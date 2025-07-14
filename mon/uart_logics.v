@@ -8,10 +8,7 @@
  * @version		0.1
  */
 
-module uart_logics
-    #(parameter IWIDTH = 14,
-      parameter DWIDTH = 14)
-	(
+module uart_logics (
 	input clk,
 	input rst_n,
 
@@ -25,7 +22,7 @@ module uart_logics
     output u_write_w,
     input write_finish,
     output [31:0] u_write_adr,
-    output [31:0] u_write_data
+    output [31:0] u_write_data,
 
 	// from controller
 	input [31:0] uart_data,
@@ -72,13 +69,12 @@ always @ (posedge clk or negedge rst_n) begin
 		cmd_wadr_cntr <= cmd_wadr_cntr + 30'd1;
 end
 
+reg write_stat;
+
 assign u_write_adr = trush_running ? { { 10{ 1'b0}}, trush_adr} : cmd_wadr_cntr[31:2];
 assign u_write_data = trush_running ? 32'd0 : uart_data;
 assign u_write_req = (write_data_en | trash_req) & ~write_stat; // trash req not work currently
 assign u_write_w = 1'b1;
-
-    output u_read_req,
-    input [31:0] read_data,
 assign u_read_w = 1'b1;
 
 always @ (posedge clk or negedge rst_n) begin
@@ -242,34 +238,15 @@ always @ (posedge clk or negedge rst_n) begin
 		i_ram_sel <= 1'b1;
 end
 
-wire en0_data = radr_cntup | dradr_cntup;
-
-
-//wire en1_data = radr_cntup & (i_ram_ofs == 3'd2);
-//wire en2_data = radr_cntup & (i_ram_ofs == 3'd3);
-
-//assign i_read_sel = dump_running &  i_ram_sel;
-//assign d_read_sel = dump_running & ~i_ram_sel;
-
-reg en1_data;
-
-always @ (posedge clk or negedge rst_n) begin
-	if (~rst_n)
-		en1_data <= 1'b0;
-	else
-		en1_data <= en0_data;
-end
+//wire en0_data = radr_cntup | dradr_cntup;
 
 reg [31:0] data_0;
-reg [31:0] data_1;
-//reg [7:0] data_2;
-//reg [7:0] data_3;
-
+ 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		data_0 <= 32'd0;
-	else if (en0_data)
-		data_0 <= d_ram_rdata[31:0];
+	else if (read_valid)
+		data_0 <= read_data;
 end
 
 

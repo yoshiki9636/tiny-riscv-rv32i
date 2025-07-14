@@ -205,6 +205,4 @@ uart_logics uart_logics (
 	.inst_data_en(inst_data_en)
 	);
 
-
-
 endmodule 

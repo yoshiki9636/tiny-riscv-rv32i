@@ -76,6 +76,7 @@ wire rs1_zero_ex = (inst_rs1 == 5'd0);
 wire rs2_zero_ex = (inst_rs2 == 5'd0);
 
 // register file
+wire [31:0] ram_data;
 
 rf_1r1w rf_1r1w (
 	.clk(clk),

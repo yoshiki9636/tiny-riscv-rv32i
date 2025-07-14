@@ -110,19 +110,18 @@ wire illegal_ops; // output
 wire [4:0] inst_rs1; // input
 wire [4:0] inst_rs2; // input
 wire [4:0] rd_adr_wb; // input
-wire wbk_rd__wb; // input
+wire wbk_rd_reg_wb; // input
 wire [31:0] wbk_data_wb; // input
 wire [31:0] rs1_data; // output
 wire [31:0] rs2_data; // output
 
 //wire [31:2] pc_ex; // input
-wire wbk_rd__ex; // input
+wire wbk_rd_reg_ex; // input
 
 wire cmd_ld_ma; // output
 wire cmd_st_ma; // output
 wire [4:0] rd_adr_ma; // output
 wire [31:0] rd_data_ma; // output
-wire wbk_rd__ma; // output
 wire [31:0] st_data_ma; // output
 wire [2:0] ldst_code_ma; // output
 wire [1:0] g_interrupt_priv; // input
@@ -166,9 +165,9 @@ pc_stage pc_stage (
 	.g_interrupt(g_interrupt),
 	.g_exception(g_exception),
 	.jmp_condition_ex(jmp_condition_ex),
-	.cmd_mret_ex(cmd_mret_ex),
-	.cmd_sret_ex(cmd_sret_ex),
-	.cmd_uret_ex(cmd_uret_ex),
+	.cmd_mret_ex(cmd_mret),
+	.cmd_sret_ex(cmd_sret),
+	.cmd_uret_ex(cmd_uret),
 	.cpu_start_adr(cpu_start_adr),
 	.csr_mtvec_ex(csr_mtvec_ex),
 	.csr_mepc_ex(csr_mepc_ex),
@@ -234,7 +233,7 @@ decoder decoder (
 	.illegal_ops(illegal_ops)
 	);
 
-reister_file reister_file (
+register_file register_file (
 	.clk(clk),
 	.rst_n(rst_n),
 	.stall(stall),
@@ -242,7 +241,7 @@ reister_file reister_file (
 	.inst_rs1(inst_rs1),
 	.inst_rs2(inst_rs2),
 	.rd_adr_wb(rd_adr_wb),
-	.wbk_rd__wb(wbk_rd__wb),
+	.wbk_rd_reg_wb(wbk_rd_reg_wb),
 	.wbk_data_wb(wbk_data_wb),
 	.id_rfr_run(id_rfr_run),
 	.rs1_data(rs1_data),
@@ -290,14 +289,12 @@ execution execution (
 	.cmd_sret_ex(cmd_sret),
 	.cmd_mret_ex(cmd_mret),
 	.cmd_wfi_ex(cmd_wfi),
-	.illegal_ops_ex(illl_ops),
+	.illegal_ops_ex(illegal_ops),
 	.rd_adr_ex(rd_adr),
-	.wbk_rd__ex(wbk_rd__ex),
 	.cmd_ld_ma(cmd_ld_ma),
 	.cmd_st_ma(cmd_st_ma),
 	.rd_adr_ma(rd_adr_ma),
 	.rd_data_ma(rd_data_ma),
-	.wbk_rd__ma(wbk_rd__ma),
 	.st_data_ma(st_data_ma),
 	.ldst_code_ma(ldst_code_ma),
 	.jmp_adr_ex(jmp_adr_ex),
@@ -323,11 +320,10 @@ data_rw_mem data_rw_mem (
 	.cmd_st_ma(cmd_st_ma),
 	.rd_adr_ma(rd_adr_ma),
 	.rd_data_ma(rd_data_ma),
-	.wbk_rd__ma(wbk_rd__ma),
 	.st_data_ma(st_data_ma),
 	.ldst_code_ma(ldst_code_ma),
 	.rd_adr_wb(rd_adr_wb),
-	.wbk_rd__wb(wbk_rd__wb),
+	.wbk_rd_reg_wb(wbk_rd_reg_wb),
 	.wbk_data_wb(wbk_data_wb),
 	.d_read_req(d_read_req),
 	.d_read_w(d_read_w),

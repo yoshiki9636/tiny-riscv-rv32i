@@ -130,7 +130,7 @@ assign dmrw_run = (data_state != `DAT_IDLE);
 // io 
 assign dma_io_we = cmd_st_ma & (ldst_code_ma == 3'b010) & (rd_data_ma[31:30] == 2'b11);
 assign dma_io_wadr = rd_data_ma[15:2];
-assign dma_io_wdata = st_wdata;
+assign dma_io_wdata = st_data_ma;
 assign dma_io_radr = rd_data_ma[15:2];
 assign dma_io_radr_en = (rd_data_ma[31:30] == 2'b11) & cmd_ld_ma;
 
@@ -145,9 +145,9 @@ always @ ( posedge clk or negedge rst_n) begin
 end
 
 // read data selector
-assign wbk_data_wb = dma_io_ren_wb ? dma_io_rdata : write_data;
+assign wbk_data_wb = dma_io_ren_wb ? dma_io_rdata : read_data;
 assign wbk_rd_reg_wb = dma_io_ren_wb | read_valid;
-assign [4:0] rd_adr_wb = rd_adr_ma;
+assign rd_adr_wb = rd_adr_ma;
 
 endmodule
 

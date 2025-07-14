@@ -92,7 +92,7 @@ always @ (posedge clk or negedge rst_n) begin
 		rs1_data <= 32'd0;
 	else if (rs1_zero_ex)
 		rs1_data <= 32'd0;
-	else if ((rfr_state == `RFR_RS1)
+	else if (rfr_state == `RFR_RS1)
 		rs1_data <= ram_data;
 end
 
@@ -101,7 +101,7 @@ always @ (posedge clk or negedge rst_n) begin
 		rs2_data <= 32'd0;
 	else if (rs2_zero_ex)
 		rs2_data <= 32'd0;
-	else if ((rfr_state == `RFR_RS2)
+	else if (rfr_state == `RFR_RS2)
 		rs2_data <= ram_data;
 end
 

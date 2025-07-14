@@ -28,7 +28,7 @@ module uart_top
 	output u_write_w,
 	input write_finish,
 	output [31:0] u_write_adr,
-	output [31:0] u_write_data
+	output [31:0] u_write_data,
 
 	input [31:0] pc_data,
 	

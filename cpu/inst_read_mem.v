@@ -23,9 +23,7 @@ module inst_mem_read (
 	output i_read_hw,
 	input i_read_valid,
 	output [31:0] i_read_adr,
-	input [31:0] i_read_data,
-
-
+	input [31:0] i_read_data
 	);
 
 // imr status

@@ -45,10 +45,10 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		pc <= 30'd0;
 	else if (cpu_start)
-		pc <= start_adr;
+		pc <= cpu_start_adr;
 	else if (jmp_cond) // Causion!! keep jmp_cond to pc state
 		pc <= jmp_adr;
-	else (cpu_stat_pc)
+	else if (cpu_stat_pc)
 		pc <= pc + 30'd1;
 end
 

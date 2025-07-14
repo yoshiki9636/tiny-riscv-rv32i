@@ -59,7 +59,7 @@ assign read_req = i_read_req | d_write_req | u_read_req;
 assign read_w = u_read_req ? u_read_w :
                 i_read_req ? i_read_w : d_read_w;
 
-assign read_hw = u_read_req ? u_read_hw :
+assign read_hw = u_read_req ? 1'b0 :
                  i_read_req ? i_read_hw : d_read_hw;
 
 assign read_adr = u_read_req ? u_read_adr :

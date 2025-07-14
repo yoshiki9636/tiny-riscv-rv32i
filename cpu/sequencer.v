@@ -56,7 +56,7 @@ begin
 				  else cpu_machine = `CPU_IDRFR;
 		`CPU_IDRFR: if (stall) cpu_machine = `CPU_IDLE;
 			        else if (id_rfr_run) cpu_machine = `CPU_IDRFR;
-				    else cpu_machine = `CPU_ID_EX;
+				    else cpu_machine = `CPU_IDRFR;
 		`CPU_EX: if (stall) cpu_machine = `CPU_IDLE;
 				 else cpu_machine = `CPU_DMRW;
 		`CPU_DMRW: if (dmrw_run) cpu_machine = `CPU_DMRW;
@@ -81,7 +81,7 @@ end
 
 assign cpu_stat_pc = (cpu_state == `CPU_PC);
 assign cpu_stat_imr = (cpu_state == `CPU_IMR);
-assign cpu_stat_idrfr = (cpu_state == `CPU_IDRDR);
+assign cpu_stat_idrfr = (cpu_state == `CPU_IDRFR);
 assign cpu_stat_ex = (cpu_state == `CPU_EX);
 assign cpu_stat_dmrw = (cpu_state == `CPU_DMRW);
 

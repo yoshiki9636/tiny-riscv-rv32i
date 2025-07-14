@@ -15,44 +15,43 @@ module decoder (
 	input [31:0] inst,
 
     // control signals
-    output reg cmd_lui,
-    output reg cmd_auipc,
-    output reg [31:12] lui_auipc_imm,
-    output reg cmd_ld,
-    output reg [11:0] ld_alui_ofs,
-    output reg cmd_alui,
-    output reg cmd_alui_shamt,
-    output reg cmd_alu,
-    output reg cmd_alu_add,
-    output reg cmd_alu_sub,
-    output reg [2:0] alu_code,
-    output reg [4:0] alui_shamt,
-    output reg cmd_st,
-    output reg [11:0] st_ofs,
-    output reg cmd_jal,
-    output reg [20:1] jal_ofs,
-    output reg cmd_jalr,
-    output reg [11:0] jalr_ofs,
-    output reg cmd_br,
-    output reg [12:1] br_ofs,
-    output reg cmd_fence,
-    output reg cmd_fencei,
-    output reg [3:0] fence_succ,
-    output reg [3:0] fence_pred,
-    output reg cmd_sfence,
-    output reg cmd_csr,
-    output reg [11:0] csr_ofs,
-	output reg [4:0] csr_uimm,
-	output reg [2:0] csr_op2,
-    output reg cmd_ecall,
-    output reg cmd_ebreak,
-    output reg cmd_uret,
-    output reg cmd_sret,
-    output reg cmd_mret,
-    output reg cmd_wfi,
-	output reg [4:0] rd_adr,
-    output reg illegal_ops,
-
+    output cmd_lui,
+    output cmd_auipc,
+    output [31:12] lui_auipc_imm,
+    output cmd_ld,
+    output [11:0] ld_alui_ofs,
+    output cmd_alui,
+    output cmd_alui_shamt,
+    output cmd_alu,
+    output cmd_alu_add,
+    output cmd_alu_sub,
+    output [2:0] alu_code,
+    output [4:0] alui_shamt,
+    output cmd_st,
+    output [11:0] st_ofs,
+    output cmd_jal,
+    output [20:1] jal_ofs,
+    output cmd_jalr,
+    output [11:0] jalr_ofs,
+    output cmd_br,
+    output [12:1] br_ofs,
+    output cmd_fence,
+    output cmd_fencei,
+    output [3:0] fence_succ,
+    output [3:0] fence_pred,
+    output cmd_sfence,
+    output cmd_csr,
+    output [11:0] csr_ofs,
+	output [4:0] csr_uimm,
+	output [2:0] csr_op2,
+    output cmd_ecall,
+    output cmd_ebreak,
+    output cmd_uret,
+    output cmd_sret,
+    output cmd_mret,
+    output cmd_wfi,
+	output [4:0] rd_adr,
+    output illegal_ops
 	);
 
 // decoder
@@ -211,83 +210,82 @@ wire dc_op5_01 = (inst_op5 == 2'b01);
 // microcode signals
 
 // load, auipc
-wire cmd_lui = dc_op1_01101 & dc_notc;
-wire cmd_auipc = dc_op1_00101 & dc_notc;
-wire [31:12] lui_auipc_imm = inst_imm_31_12;
+assign cmd_lui = dc_op1_01101 & dc_notc;
+assign cmd_auipc = dc_op1_00101 & dc_notc;
+assign lui_auipc_imm = inst_imm_31_12;
 
-wire cmd_ld = dc_op1_00000 & dc_notc;
-//wire [2:0] ld_bw = inst_op2;
-wire [11:0] ld_ofs = inst_ofs_11_0_l;
+assign cmd_ld = dc_op1_00000 & dc_notc;
+assign ld_ofs = inst_ofs_11_0_l;
 
 // ALU immediate, rs2
-wire cmd_alui = dc_op1_00100 & dc_notc & ~( dc_op2_001 | dc_op2_101 );
-wire cmd_alui_shamt = dc_op1_00100 & dc_notc & dc_zero_26 & ( dc_op2_001 | dc_op2_101 );
-wire cmd_alu = dc_op1_01100 & dc_notc & dc_zero_26_25;
-wire cmd_alu_add = dc_op3_00000;
-wire cmd_alu_sub = dc_op3_01000;
+assign cmd_alui = dc_op1_00100 & dc_notc & ~( dc_op2_001 | dc_op2_101 );
+assign cmd_alui_shamt = dc_op1_00100 & dc_notc & dc_zero_26 & ( dc_op2_001 | dc_op2_101 );
+assign cmd_alu = dc_op1_01100 & dc_notc & dc_zero_26_25;
+assign cmd_alu_add = dc_op3_00000;
+assign cmd_alu_sub = dc_op3_01000;
 
-wire [2:0] alu_code = inst_op2;
+assign alu_code = inst_op2;
 
-wire [11:0] alui_imm = inst_imm_11_0;
-wire [4:0] alui_shamt = inst_shamt;
+assign alui_imm = inst_imm_11_0;
+assign alui_shamt = inst_shamt;
 
 // store
-wire cmd_st = dc_op1_01000 & dc_notc & ~jmp_purge_ma;
-wire [11:0] st_ofs = inst_ofs_11_0_s;
+assign cmd_st = dc_op1_01000 & dc_notc;
+assign st_ofs = inst_ofs_11_0_s;
 
 // jump jal jalr branch
-wire cmd_jal = dc_op1_11011 & dc_notc & ~jmp_purge_ma;
-wire [20:1] jal_ofs = inst_ofs_20_1;
+assign cmd_jal = dc_op1_11011 & dc_notc;
+assign jal_ofs = inst_ofs_20_1;
 
-wire cmd_jalr = dc_op1_11001 & dc_op2_000 & dc_notc & ~jmp_purge_ma;
-wire [11:0] jalr_ofs = inst_ofs_11_0_l;
+assign cmd_jalr = dc_op1_11001 & dc_op2_000 & dc_notc;
+assign jalr_ofs = inst_ofs_11_0_l;
 
-wire cmd_br = dc_op1_11000 & dc_notc & ~jmp_purge_ma;
-wire [12:1] br_ofs = inst_ofs_12_1;
+assign cmd_br = dc_op1_11000 & dc_notc;
+assign br_ofs = inst_ofs_12_1;
 
 // fence
-wire cmd_fence = dc_op1_00011 & dc_op2_000 & dc_notc & dc_zero_31_28 & dc_zero_19_15 & dc_zero_11_7;
-wire cmd_fencei = dc_op1_00011 & dc_op2_001 & dc_notc & dc_zero_31_28 & dc_pred & dc_succ & dc_zero_19_15 & dc_zero_11_7;
-wire [3:0] fence_succ = inst_succ;
-wire [3:0] fence_pred = inst_pred;
+assign cmd_fence = dc_op1_00011 & dc_op2_000 & dc_notc & dc_zero_31_28 & dc_zero_19_15 & dc_zero_11_7;
+assign cmd_fencei = dc_op1_00011 & dc_op2_001 & dc_notc & dc_zero_31_28 & dc_pred & dc_succ & dc_zero_19_15 & dc_zero_11_7;
+assign fence_succ = inst_succ;
+assign fence_pred = inst_pred;
 
 // sfence
-wire cmd_sfence = dc_op1_11100 & dc_op2_000 & dc_notc & dc_op3_00010 & dc_op5_01;
+assign cmd_sfence = dc_op1_11100 & dc_op2_000 & dc_notc & dc_op3_00010 & dc_op5_01;
 
 // csr
-wire cmd_csr = dc_op1_11100 & ~dc_op2_000 & dc_notc;
-wire [11:0] csr_ofs = inst_ofs_11_0_l;
-wire [4:0] csr_uimm = inst_uimm;
+assign cmd_csr = dc_op1_11100 & ~dc_op2_000 & dc_notc;
+assign csr_ofs = inst_ofs_11_0_l;
+assign csr_uimm = inst_uimm;
 // need to see dc_op2_001 - dc_op2_111
-wire [2:0] csr_op2 = inst_op2;
+assign csr_op2 = inst_op2;
 
 // ecall
-wire cmd_ec  = dc_op1_11100 &  dc_op2_000 & dc_notc & dc_zero_26_25 & dc_zero_19_15 & dc_zero_11_7;
-wire cmd_ecall  = cmd_ec & dc_op3_00000 & dc_op4_00000;
-wire cmd_ebreak = cmd_ec & dc_op3_00000 & dc_op4_00001;
-wire cmd_uret   = cmd_ec & dc_op3_00000 & dc_op4_00010;
-wire cmd_sret   = cmd_ec & dc_op3_00010 & dc_op4_00010;
-wire cmd_mret   = cmd_ec & dc_op3_00110 & dc_op4_00010;
-wire cmd_wfi    = cmd_ec & dc_op3_00010 & dc_op4_00101;
+assign cmd_ec  = dc_op1_11100 &  dc_op2_000 & dc_notc & dc_zero_26_25 & dc_zero_19_15 & dc_zero_11_7;
+assign cmd_ecall  = cmd_ec & dc_op3_00000 & dc_op4_00000;
+assign cmd_ebreak = cmd_ec & dc_op3_00000 & dc_op4_00001;
+assign cmd_uret   = cmd_ec & dc_op3_00000 & dc_op4_00010;
+assign cmd_sret   = cmd_ec & dc_op3_00010 & dc_op4_00010;
+assign cmd_mret   = cmd_ec & dc_op3_00110 & dc_op4_00010;
+assign cmd_wfi    = cmd_ec & dc_op3_00010 & dc_op4_00101;
 
 // nop command
-wire cmd_nop = (inst == 32'h0000_0013);
+assign cmd_nop = (inst == 32'h0000_0013);
 // all command except nop
-wire cmd_all_except_nop =
+assign cmd_all_except_nop =
 	cmd_lui | cmd_auipc | cmd_ld | cmd_alui | cmd_alui_shamt
 	| cmd_alu | cmd_alu_add | cmd_alu_sub | cmd_st | cmd_jal
 	| cmd_jalr | cmd_br | cmd_fence | cmd_fencei | cmd_sfence
 	| cmd_csr | cmd_ec | cmd_ecall | cmd_ebreak | cmd_uret  
 	| cmd_sret | cmd_mret | cmd_wfi;
 
-wire illegal_ops = ~(cmd_nop | cmd_all_except_nop) & ~jmp_purge_ma & ~jmp_purge_ex;
+assign illegal_ops = ~(cmd_nop | cmd_all_except_nop);
 
 // destination register number
-wire [4:0] rd_adr = inst_rd;
+assign rd_adr = inst_rd;
 
 // destination register write back signal
 
-wire wbk_rd_reg = ~(cmd_st | cmd_br) & dc_notc & ~jmp_purge_ma;
+assign wbk_rd_reg = ~(cmd_st | cmd_br) & dc_notc;
 
 // for forwarding
 

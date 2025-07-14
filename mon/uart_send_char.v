@@ -51,7 +51,7 @@ always @ (posedge clk or negedge rst_n) begin
         send_cntr <= 5'd9 + 5'd16;
 	else if (crlf_in)
 		send_cntr <= 5'd1 + 5'd16;
-	else if (send_cntr[5] & tx_rdy)
+	else if (send_cntr[4] & tx_rdy)
          send_cntr <= send_cntr - 5'd1;
 end
 

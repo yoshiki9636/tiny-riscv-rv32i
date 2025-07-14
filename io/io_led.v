@@ -20,8 +20,7 @@ module io_led(
     input dma_io_radr_en,
     input [31:0] dma_io_rdata_in,
     output [31:0] dma_io_rdata,
-	output [3:0] rgb_led,
-
+	output [3:0] rgb_led
 	);
 
 reg [3:0] led_value;

@@ -36,6 +36,11 @@ module qspi_if (
 `define CMD_RST_EN 8'h66
 `define CMD_RESET  8'h99
 
+// input sampler
+reg word_w;
+reg word_hw;
+reg [23:0] word_adr;
+
 // tristate buffer of sio
 reg sio_out_enbl;
 reg [3:0] sio_out;
@@ -244,8 +249,7 @@ always @ (posedge clk or negedge rst_n) begin
 		adr_ofs <= adr_ofs - 3'd1;
 end
 
-assign adr_rw = cmd_freadq ? read_adr[23:0] :
-                cmd_qwrite ? write_adr[23:0] : 24'd0;
+assign adr_rw = word_adr;
 
 assign adr_slice = (adr_ofs == 3'd5) ? adr_rw[23:20] :
                    (adr_ofs == 3'd4) ? adr_rw[19:16] :
@@ -260,8 +264,8 @@ wire [31:0] wdata = write_data;
 wire [3:0] wdata_slice;
 reg [2:0] wdata_ofs;
 
-wire [2:0] write_length = write_w ? 3'd7 :
-                         write_hw ? 3'd3 : 3'd1;
+wire [2:0] write_length = word_w ? 3'd7 :
+                          word_hw ? 3'd3 : 3'd1;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
@@ -348,8 +352,8 @@ end
 assign read_wait_end = state_rdwt & (rwait_cntr == 4'd0) & fall_edge;
 
 // read end counter
-wire [3:0] read_length = read_w ? 4'd7 :
-                         read_hw ? 4'd3 : 4'd1;
+wire [3:0] read_length = word_w ? 4'd7 :
+                         word_hw ? 4'd3 : 4'd1;
 
 reg [3:0] read_cntr;
 
@@ -410,5 +414,26 @@ assign cmd_freadq = (inner_state == `IN_READ);
 assign cmd_qwrite = (inner_state == `IN_WRITE);
 assign read_valid = read_data_end;
 assign write_finish = write_data_end;
+
+// input signal sampler
+
+wire word_w_pre = read_req ? read_w : write_w;
+wire word_hw_pre = read_req ? read_hw : write_hw;
+wire [23:0] word_adr_pre = read_req ? read_adr[23:0] : write_adr[23:0];
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n) begin
+		word_w <= 1'b0;
+		word_hw <= 1'b0;
+		word_adr <= 24'd0;
+	end
+	else if (read_req | write_req) begin
+		word_w <= word_w_pre;
+		word_hw <= word_hw_pre;
+		word_adr <= word_adr_pre;
+	end
+end
+
+
 
 endmodule

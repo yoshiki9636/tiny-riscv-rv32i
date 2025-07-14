@@ -65,7 +65,7 @@ initial begin
     force fpga_top.cpu_start_adr = 30'h00000000; // 0x0 for test
 #10
 	force fpga_top.cpu_start = 1'b0;
-#10000
+#1000000
 	$stop;
 end
 

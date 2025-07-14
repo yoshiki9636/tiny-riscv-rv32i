@@ -79,7 +79,7 @@ wire [31:0] dma_io_wdata; // output
 wire [15:2] dma_io_radr; // output
 wire dma_io_radr_en; // output
 wire [31:0] dma_io_rdata; // input
-wire [31:0] dma_io_rdata_in; // input
+wire [31:0] dma_io_rdata_in = 32'd0; // input
 wire [31:0] dma_io_rdata_in_2; // input
 
 

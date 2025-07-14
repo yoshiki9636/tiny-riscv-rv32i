@@ -29,14 +29,22 @@ module inst_mem_read (
 // imr status
 
 reg imr_stat;
+reg imr_stat_dly;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		imr_stat <= 1'b0;
 	else if (i_read_valid | stall)
 		imr_stat <= 1'b0;
-	else if (cpu_stat_imr)
+	else if (cpu_stat_imr & ~imr_stat_dly)
 		imr_stat <= 1'b1;
+end
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		imr_stat_dly <= 1'b0;
+	else
+		imr_stat_dly <= imr_stat;
 end
 
 assign imr_run = imr_stat | i_read_req;
@@ -46,7 +54,7 @@ assign i_read_adr = { pc, 2'd0 } ;
 assign i_read_w = 1'b1;
 assign i_read_hw = 1'b0;
 
-assign i_read_req = cpu_stat_imr & ~imr_stat;
+assign i_read_req = cpu_stat_imr & ~imr_stat & ~imr_stat_dly;
 
 // instruction latch
 

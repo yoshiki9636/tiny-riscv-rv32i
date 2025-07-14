@@ -56,7 +56,7 @@ module execution (
     input cmd_wfi_ex,
     input illegal_ops_ex,
 	input [4:0] rd_adr_ex,
-	input wbk_rd_reg_ex,
+	//input wbk_rd_reg_ex,
 	
 	// to MA
     output reg cmd_ld_ma,

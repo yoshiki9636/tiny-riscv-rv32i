@@ -41,16 +41,24 @@ wire [31:2] jmp_adr = intr_ecall_exception ? csr_mtvec_ex :
                       cmd_mret_ex ? csr_mepc_ex :
                       cmd_sret_ex ? csr_sepc_ex : jmp_adr_ex;
 
+reg [31:2] pc_cntr;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		pc_cntr <= 30'd0;
+	else if (cpu_start)
+		pc_cntr <= cpu_start_adr;
+	else if (jmp_cond) // Causion!! keep jmp_cond to pc state
+		pc_cntr <= jmp_adr;
+	else if (cpu_stat_pc)
+		pc_cntr <= pc_cntr + 30'd1;
+end
+
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		pc <= 30'd0;
-	else if (cpu_start)
-		pc <= cpu_start_adr;
-	else if (jmp_cond) // Causion!! keep jmp_cond to pc state
-		pc <= jmp_adr;
 	else if (cpu_stat_pc)
-		pc <= pc + 30'd1;
+		pc <= pc_cntr;
 end
-
 
 endmodule

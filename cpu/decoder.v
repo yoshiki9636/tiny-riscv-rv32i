@@ -51,7 +51,9 @@ module decoder (
     output cmd_mret,
     output cmd_wfi,
 	output [4:0] rd_adr,
-    output illegal_ops
+    output illegal_ops,
+	output [4:0] inst_rs1,
+	output [4:0] inst_rs2
 	);
 
 // decoder
@@ -61,9 +63,9 @@ wire [1:0]   inst_set = inst[1:0];
 wire [6:2]   inst_op1 = inst[6:2];
 wire [11:7]  inst_rd  = inst[11:7];
 wire [14:12] inst_op2 = inst[14:12];
-wire [19:15] inst_rs1 = inst[19:15];
+assign inst_rs1 = inst[19:15];
 wire [19:15] inst_uimm = inst[19:15];
-wire [24:20] inst_rs2 = inst[24:20];
+assign inst_rs2 = inst[24:20];
 wire [26:25] inst_op5 = inst[26:25];
 wire [31:27] inst_op3 = inst[31:27];
 wire [31:12] inst_imm_31_12 = inst[31:12];
@@ -289,14 +291,14 @@ assign wbk_rd_reg = ~(cmd_st | cmd_br) & dc_notc;
 
 // for forwarding
 
-assign inst_rs1 = inst_rs1;
-assign inst_rs2 = inst_rs2;
+//assign inst_rs1_valid = cmd_alui | cmd_alui_shamt | cmd_alu | cmd_csr |
+                        //cmd_sfence | cmd_ld | cmd_st | cmd_jalr | cmd_br;
 
-assign inst_rs1_valid = cmd_alui | cmd_alui_shamt | cmd_alu | cmd_csr |
-                        cmd_sfence | cmd_ld | cmd_st | cmd_jalr | cmd_br;
+//assign inst_rs2_valid = cmd_alu | cmd_st | cmd_br;
 
-assign inst_rs2_valid = cmd_alu | cmd_st | cmd_br;
+// added
 
+assign ld_alui_ofs = ld_ofs;
 
 
 

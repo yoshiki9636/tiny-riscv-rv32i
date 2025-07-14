@@ -29,9 +29,9 @@ module uart_rec_char (
 	output start_trush,
 	output start_step,
 	output quit_cmd,
-	output pgm_start_set,
-	output pgm_end_set,
-	output pgm_stop,
+	//output pgm_start_set,
+	//output pgm_end_set,
+	//output pgm_stop,
 	output inst_address_set,
 	output inst_data_en,
 	output pc_print,
@@ -206,7 +206,7 @@ begin
 				9'b0_001?_???? : cmd_statemachine = `C_RSTARTN;
 				9'b0_0001_???? : cmd_statemachine = `C_TRUSHDT;
 				9'b0_0000_1??? : cmd_statemachine = `C_STEPRUN;
-				9'b0_0000_01?? : cmd_statemachine = `C_IRDSTAR;
+				//9'b0_0000_01?? : cmd_statemachine = `C_IRDSTAR;
 				9'b0_0000_001? : cmd_statemachine = `C_IWTADRN;
 				9'b0_0000_0001 : cmd_statemachine = `C_DCFLUSH;
 				default   : cmd_statemachine = `C_STAIDLE;
@@ -257,23 +257,23 @@ begin
 				cmd_statemachine = `C_TRUSHDT;
 		`C_STEPRUN :
 			cmd_statemachine = `C_STAIDLE;
-		`C_IRDSTAR :
-			casez({cmd_q,word_valid})
-				2'b1? : cmd_statemachine = `C_STAIDLE;
-				2'b01 : cmd_statemachine = `C_IRDENDN;
-				default : cmd_statemachine = `C_IRDSTAR;
-			endcase
-		`C_IRDENDN :
-			casez({cmd_q,word_valid})
-				2'b1? : cmd_statemachine = `C_STAIDLE;
-				2'b01 : cmd_statemachine = `C_IRDDUMP;
-				default : cmd_statemachine = `C_IRDENDN;
-			endcase
-		`C_IRDDUMP :
-			if (cmd_q | ~dump_running)
-				cmd_statemachine = `C_STAIDLE;
-			else
-				cmd_statemachine = `C_IRDDUMP;
+		//`C_IRDSTAR :
+			//casez({cmd_q,word_valid})
+				//2'b1? : cmd_statemachine = `C_STAIDLE;
+				//2'b01 : cmd_statemachine = `C_IRDENDN;
+				//default : cmd_statemachine = `C_IRDSTAR;
+			//endcase
+		//`C_IRDENDN :
+			//casez({cmd_q,word_valid})
+				//2'b1? : cmd_statemachine = `C_STAIDLE;
+				//2'b01 : cmd_statemachine = `C_IRDDUMP;
+				//default : cmd_statemachine = `C_IRDENDN;
+			//endcase
+		//`C_IRDDUMP :
+			//if (cmd_q | ~dump_running)
+				//cmd_statemachine = `C_STAIDLE;
+			//else
+				//cmd_statemachine = `C_IRDDUMP;
 		`C_IWTADRN :
 			casez({cmd_q,word_valid})
 				2'b1? : cmd_statemachine = `C_STAIDLE;
@@ -335,9 +335,9 @@ wire wcmd_setdat = ( cmd_status == `C_WDATNUM );
 wire rcmd_setsta = ( cmd_status == `C_RSTARTN );
 wire rcmd_setend = ( cmd_status == `C_RENDNUM );
 wire rcmd_dumpdt = ( cmd_status == `C_RDUMPDT );
-wire pcmd_setsta = ( cmd_status == `C_IRDSTAR );
-wire pcmd_setend = ( cmd_status == `C_IRDENDN );
-wire pcmd_dumpdt = ( cmd_status == `C_IRDDUMP );
+//wire pcmd_setsta = ( cmd_status == `C_IRDSTAR );
+//wire pcmd_setend = ( cmd_status == `C_IRDENDN );
+//wire pcmd_dumpdt = ( cmd_status == `C_IRDDUMP );
 wire icmd_setnum = ( cmd_status == `C_IWTADRN );
 wire icmd_setdat = ( cmd_status == `C_IWTDATA );
 wire jcmd_pcprnt = ( cmd_status == `C_PCPRINT );
@@ -345,21 +345,24 @@ wire jcmd_pcprnt = ( cmd_status == `C_PCPRINT );
 wire g_crlf = ( cmd_status == `C_GSETNUM ) & ( next_cmd_status == `C_GOTONUM );
 wire r_crlf = ( cmd_status == `C_RENDNUM ) & ( next_cmd_status == `C_RDUMPDT );
 wire w_crlf = ( cmd_status == `C_WADRNUM ) & ( next_cmd_status == `C_WDATNUM );
-wire p_crlf = ( cmd_status == `C_IRDENDN ) & ( next_cmd_status == `C_IRDDUMP );
+//wire p_crlf = ( cmd_status == `C_IRDENDN ) & ( next_cmd_status == `C_IRDDUMP );
 wire i_crlf = ( cmd_status == `C_IWTADRN ) & ( next_cmd_status == `C_IWTDATA );
 assign pc_print_sel = (cmd_status == `C_PCPRINT);
 assign pc_print = idle_status & (next_cmd_status == `C_PCPRINT);
 
-assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | cmd_t | cmd_s | p_crlf | i_crlf | cmd_crlf | cmd_j | cmd_z;
+assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | cmd_t | cmd_s | i_crlf | cmd_crlf | cmd_j | cmd_z;
+//assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | cmd_t | cmd_s | p_crlf | i_crlf | cmd_crlf | cmd_j | cmd_z;
 
 // data setter
 
 wire bin_data_set = data_en & num_char & (gcmd_setnum | wcmd_setnum | wcmd_setdat | rcmd_setsta | rcmd_setend
-                                          | pcmd_setsta | pcmd_setend | icmd_setnum | icmd_setdat);
+                                          | icmd_setnum | icmd_setdat);
+                                          //| pcmd_setsta | pcmd_setend | icmd_setnum | icmd_setdat);
 
 wire word_start =  idle_status & (( next_cmd_status == `C_GSETNUM )|( next_cmd_status == `C_WADRNUM )|
-								  ( next_cmd_status == `C_RSTARTN )|( next_cmd_status == `C_IRDSTAR )|
+								  ( next_cmd_status == `C_RSTARTN )|
 								  ( next_cmd_status == `C_IWTADRN ));
+								  //( next_cmd_status == `C_RSTARTN )|( next_cmd_status == `C_IRDSTAR )|
 
 reg [31:0] data_word;
 reg [31:0] data_word_out;
@@ -407,7 +410,8 @@ end
 // g command
 
 wire ctrl_valid = gcmd_setnum | wcmd_setnum | wcmd_setdat | rcmd_setsta | rcmd_setend
-							  | pcmd_setsta | pcmd_setend | icmd_setnum | icmd_setdat;
+							  | icmd_setnum | icmd_setdat;
+							  //| pcmd_setsta | pcmd_setend | icmd_setnum | icmd_setdat;
 
 
 assign uart_data = data_word_out;
@@ -444,9 +448,9 @@ assign read_stop = rcmd_dumpdt & cmd_q;
 assign start_trush = idle_status & cmd_t;
 assign start_step = idle_status & cmd_s;
 assign quit_cmd = cmd_q;
-assign pgm_start_set = pcmd_setsta & word_valid;
-assign pgm_end_set = pcmd_setend & word_valid;
-assign pgm_stop = pcmd_dumpdt & cmd_q;
+//assign pgm_start_set = pcmd_setsta & word_valid;
+//assign pgm_end_set = pcmd_setend & word_valid;
+//assign pgm_stop = pcmd_dumpdt & cmd_q;
 assign inst_address_set = icmd_setnum & word_valid;
 assign inst_data_en = icmd_setdat & word_valid;
 

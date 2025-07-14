@@ -39,9 +39,9 @@ module uart_logics (
 	input start_trush,
 	output trush_running,
 	input start_step,
-	input pgm_start_set,
-	input pgm_end_set,
-	input pgm_stop,
+	//input pgm_start_set,
+	//input pgm_end_set,
+	//input pgm_stop,
 	input inst_address_set,
 	input pc_print,
 	input pc_print_sel,
@@ -94,18 +94,18 @@ reg [32:2] cmd_read_adr;
 reg dread_dsel;
 
 wire dump_end;
-wire radr_cntup;
+//wire radr_cntup;
 wire dradr_cntup;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		cmd_read_adr <= 31'd0;
-	else if (read_start_set | pgm_start_set)
+	else if (read_start_set)
 		cmd_read_adr <= { 1'b0, uart_data[31:2] };
 	else if (dradr_cntup)
 		cmd_read_adr <= cmd_read_adr + 31'd2;
-	else if (radr_cntup)
-		cmd_read_adr <= cmd_read_adr + 31'd1;
+	//else if (radr_cntup)
+		//cmd_read_adr <= cmd_read_adr + 31'd1;
 end
 
 always @ (posedge clk or negedge rst_n) begin
@@ -118,7 +118,7 @@ end
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		cmd_read_end <= 31'd0;
-	else if (read_end_set | pgm_end_set)
+	else if (read_end_set)
 		cmd_read_end <= uart_data[31:2];
 end
 
@@ -128,8 +128,8 @@ assign u_read_adr = { cmd_read_adr[31:2], 2'b00 };
 
 
 `define D_IDLE 3'd0
-`define D_RED1 3'd1
-`define D_RED2 3'd2
+//`define D_RED1 3'd1
+//`define D_RED2 3'd2
 `define D_DRWT 3'd3
 `define D_DRDF 3'd4
 `define D_WAIT 3'd5
@@ -140,9 +140,9 @@ wire [2:0] next_status_dump;
 function [2:0] dump_status;
 input [2:0] status_dump;
 input read_end_set;
-input pgm_end_set;
+//input pgm_end_set;
 input read_stop;
-input pgm_stop;
+//input pgm_stop;
 input flushing_wq;
 input dump_end;
 input pc_print;
@@ -151,24 +151,12 @@ input read_valid;
 begin
 	case(status_dump)
 		`D_IDLE :
-			if (pgm_end_set)
-				dump_status = `D_RED1;
-			else if (read_end_set)
+			if (read_end_set)
 				dump_status = `D_DRWT;
 			else if (pc_print)
 				dump_status = `D_WAIT;
 			else
 				dump_status = `D_IDLE;
-		`D_RED1 :
-			if (pgm_stop)
-				dump_status = `D_IDLE;
-			else
-				dump_status = `D_RED2;
-		`D_RED2 :
-			if (pgm_stop)
-				dump_status = `D_IDLE;
-			else
-				dump_status = `D_WAIT;
 		`D_DRWT :
 			if (read_stop)
 				dump_status = `D_IDLE;
@@ -177,7 +165,7 @@ begin
 			else
 				dump_status = `D_DRWT;
 		`D_DRDF :
-			if (read_stop | pgm_stop)
+			if (read_stop)
 				dump_status = `D_IDLE;
 			else if (flushing_wq & dump_end)
 				dump_status = `D_IDLE;
@@ -186,14 +174,14 @@ begin
 			else
 				dump_status = `D_DRDF;
 		`D_WAIT :
-			if (read_stop | pgm_stop)
+			if (read_stop)
 				dump_status = `D_IDLE;
 			else if (flushing_wq & pc_print_sel)
 				dump_status = `D_IDLE;
 			else if (flushing_wq & dump_end)
 				dump_status = `D_IDLE;
-			else if (flushing_wq & ~dump_end)
-				dump_status = `D_RED1;
+			//else if (flushing_wq & ~dump_end)
+				//dump_status = `D_RED1;
 			else
 				dump_status = `D_WAIT;
 		default : dump_status = `D_IDLE;
@@ -204,9 +192,7 @@ endfunction
 assign next_status_dump = dump_status(
 							status_dump,
 							read_end_set,
-							pgm_end_set,
 							read_stop,
-							pgm_stop,
 							flushing_wq,
 							dump_end,
 							pc_print,
@@ -221,22 +207,23 @@ always @ (posedge clk or negedge rst_n) begin
 		status_dump <= next_status_dump;
 end
 
-assign radr_cntup = (status_dump == `D_RED1)|(status_dump == `D_RED2);
 assign dradr_cntup = (status_dump == `D_DRWT)&(next_status_dump == `D_DRDF);
-assign dread_start = ((status_dump == `D_IDLE)|(status_dump == `D_DRDF))&(next_status_dump == `D_DRWT);
+//assign dread_start = ((status_dump == `D_IDLE)|(status_dump == `D_DRDF))&(next_status_dump == `D_DRWT);
 assign dump_running = (status_dump != `D_IDLE);
 wire rdata_snd_wait = (status_dump == `D_WAIT)|(status_dump == `D_DRDF);
 
-reg i_ram_sel;
+assign u_read_req = dradr_cntup;
 
-always @ (posedge clk or negedge rst_n) begin
-	if (~rst_n)
-		i_ram_sel <= 1'b0;
-	else if ( read_end_set )
-		i_ram_sel <= 1'b0;
-	else if ( pgm_end_set )
-		i_ram_sel <= 1'b1;
-end
+//reg i_ram_sel;
+
+//always @ (posedge clk or negedge rst_n) begin
+	//if (~rst_n)
+		//i_ram_sel <= 1'b0;
+	//else if ( read_end_set )
+		//i_ram_sel <= 1'b0;
+	//else if ( pgm_end_set )
+		//i_ram_sel <= 1'b1;
+//end
 
 //wire en0_data = radr_cntup | dradr_cntup;
 

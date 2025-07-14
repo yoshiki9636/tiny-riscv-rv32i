@@ -53,9 +53,9 @@ wire [7:0] tx_wdata;
 wire flushing_wq;
 wire inst_address_set;
 wire inst_data_en;
-wire pgm_end_set;
-wire pgm_start_set;
-wire pgm_stop;
+//wire pgm_end_set;
+//wire pgm_start_set;
+//wire pgm_stop;
 wire rdata_snd_start;
 wire read_end_set;
 wire read_start_set;
@@ -146,9 +146,9 @@ uart_rec_char uart_rec_char (
 	.start_trush(start_trush),
 	.start_step(start_step),
 	.quit_cmd(quit_cmd),
-	.pgm_start_set(pgm_start_set),
-	.pgm_end_set(pgm_end_set),
-	.pgm_stop(pgm_stop),
+	//.pgm_start_set(pgm_start_set),
+	//.pgm_end_set(pgm_end_set),
+	//.pgm_stop(pgm_stop),
 	.inst_address_set(inst_address_set),
 	.inst_data_en(inst_data_en),
 	.pc_print(pc_print),
@@ -195,9 +195,9 @@ uart_logics uart_logics (
 	.start_trush(start_trush),
 	.trush_running(trush_running),
 	.start_step(start_step),
-	.pgm_start_set(pgm_start_set),
-	.pgm_end_set(pgm_end_set),
-	.pgm_stop(pgm_stop),
+	//.pgm_start_set(pgm_start_set),
+	//.pgm_end_set(pgm_end_set),
+	//.pgm_stop(pgm_stop),
 	.inst_address_set(inst_address_set),
 	.pc_print(pc_print),
 	.pc_print_sel(pc_print_sel),

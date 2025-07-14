@@ -56,11 +56,11 @@ begin
 				  else cpu_machine = `CPU_IDRFR;
 		`CPU_IDRFR: if (stall) cpu_machine = `CPU_IDLE;
 			        else if (id_rfr_run) cpu_machine = `CPU_IDRFR;
-				    else cpu_machine = `CPU_IDRFR;
+				    else cpu_machine = `CPU_EX;
 		`CPU_EX: if (stall) cpu_machine = `CPU_IDLE;
 				 else cpu_machine = `CPU_DMRW;
 		`CPU_DMRW: if (dmrw_run) cpu_machine = `CPU_DMRW;
-				   else cpu_machine = `CPU_IDLE;
+				   else cpu_machine = `CPU_PC;
 		default : cpu_machine = `CPU_IDLE;
 	endcase
 end

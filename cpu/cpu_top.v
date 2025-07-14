@@ -46,6 +46,11 @@ module cput_top (
 
 	);
 
+
+`define M_MODE 2'b11
+`define S_MODE 2'b01
+`define U_MODE 2'b00
+
 wire stall; // output
 wire [31:2] pc; // output
 
@@ -60,25 +65,6 @@ wire cpu_stat_ex; // output
 wire cpu_stat_dmrw; // output
 
 wire ecall_condition_ex; // input
-wire g_interrupt; // input
-wire g_exception; // input
-wire jmp_condition_ex; // input
-
-wire [31:2] csr_mtvec_ex; // input
-wire [31:2] csr_mepc_ex; // input
-wire [31:2] csr_sepc_ex; // input
-wire [31:2] jmp_adr_ex; // input
-wire [31:0] inst; // output
-
-wire cmd_lui; // output
-wire cmd_auipc; // output
-wire [31:12] lui_auipc_imm; // output
-wire cmd_ld; // output
-wire [11:0] ld_alui_ofs; // output
-wire cmd_alui; // output
-wire cmd_alui_shamt; // output
-wire cmd_alu; // output
-wire cmd_alu_add; // output
 wire cmd_alu_sub; // output
 wire [2:0] alu_code; // output
 wire [4:0] alui_shamt; // output
@@ -116,7 +102,7 @@ wire [31:0] rs1_data; // output
 wire [31:0] rs2_data; // output
 
 //wire [31:2] pc_ex; // input
-wire wbk_rd_reg_ex; // input
+//wire wbk_rd_reg_ex; // input
 
 wire cmd_ld_ma; // output
 wire cmd_st_ma; // output
@@ -124,8 +110,27 @@ wire [4:0] rd_adr_ma; // output
 wire [31:0] rd_data_ma; // output
 wire [31:0] st_data_ma; // output
 wire [2:0] ldst_code_ma; // output
-wire [1:0] g_interrupt_priv; // input
-wire [1:0] g_current_priv; // input
+wire [1:0] g_interrupt_priv = `M_MODE; // temp
+wire [1:0] g_current_priv = `M_MODE; // temp
+wire g_interrupt; // input
+wire g_exception; // input
+wire jmp_condition_ex; // input
+
+wire [31:2] csr_mtvec_ex; // input
+wire [31:2] csr_mepc_ex; // input
+wire [31:2] csr_sepc_ex; // input
+wire [31:2] jmp_adr_ex; // input
+wire [31:0] inst; // output
+
+wire cmd_lui; // output
+wire cmd_auipc; // output
+wire [31:12] lui_auipc_imm; // output
+wire cmd_ld; // output
+wire [11:0] ld_alui_ofs; // output
+wire cmd_alui; // output
+wire cmd_alui_shamt; // output
+wire cmd_alu; // output
+wire cmd_alu_add; // output
 wire csr_meie; // output
 wire csr_mtie; // output
 wire csr_msie; // output
@@ -230,7 +235,9 @@ decoder decoder (
 	.cmd_mret(cmd_mret),
 	.cmd_wfi(cmd_wfi),
 	.rd_adr(rd_adr),
-	.illegal_ops(illegal_ops)
+	.illegal_ops(illegal_ops),
+	.inst_rs1(inst_rs1),
+	.inst_rs2(inst_rs2)
 	);
 
 register_file register_file (

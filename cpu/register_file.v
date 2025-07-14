@@ -28,15 +28,16 @@ module register_file (
 
 // rfr state machine
 
-`define RFR_IDLE 2'b00
-`define RFR_ADR  2'b01
-`define RFR_RS1  2'b10
-`define RFR_RS2  2'b11
+`define RFR_IDLE 3'b000
+`define RFR_ADR  3'b001
+`define RFR_RS1  3'b010
+`define RFR_RS2  3'b011
+`define RFR_WAIT 3'b100
 
-reg [1:0] rfr_state;
+reg [2:0] rfr_state;
 
-function [1:0] rfr_machine;
-input [1:0] rfr_state;
+function [2:0] rfr_machine;
+input [2:0] rfr_state;
 input stall;
 input cpu_stat_idrfr;
 
@@ -45,28 +46,29 @@ begin
 		`RFR_IDLE: if (stall) rfr_machine = `RFR_IDLE;
 			      else if (cpu_stat_idrfr) rfr_machine = `RFR_ADR;
 				  else rfr_machine = `RFR_IDLE;
-		`RFR_ADR: if (stall) rfr_machine = `RFR_IDLE;
+		`RFR_ADR: if (stall) rfr_machine = `RFR_WAIT;
 				  else rfr_machine = `RFR_RS1;
-		`RFR_RS1: if (stall) rfr_machine = `RFR_IDLE;
+		`RFR_RS1: if (stall) rfr_machine = `RFR_WAIT;
 				  else rfr_machine = `RFR_RS2;
-		`RFR_RS2: rfr_machine = `RFR_IDLE;
+		`RFR_RS2: rfr_machine = `RFR_WAIT;
+		`RFR_WAIT: rfr_machine = `RFR_IDLE;
 		default : rfr_machine = `RFR_IDLE;
 	endcase
 end
 endfunction
 
-wire [1:0] next_rfr_state = rfr_machine( rfr_state,
+wire [2:0] next_rfr_state = rfr_machine( rfr_state,
 										 stall,
 										 cpu_stat_idrfr);
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		rfr_state <= 2'b00;
+		rfr_state <= 3'b000;
 	else 
 		rfr_state <= next_rfr_state;
 end
 
-assign id_rfr_run = (rfr_state != `RFR_IDLE);
+assign id_rfr_run = (rfr_state != `RFR_IDLE)&(rfr_state != `RFR_WAIT) | (cpu_stat_idrfr & (rfr_state == `RFR_IDLE)) ;
 
 // control singals
 

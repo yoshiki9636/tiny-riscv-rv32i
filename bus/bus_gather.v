@@ -69,7 +69,7 @@ assign write_req = d_write_req | u_write_req;
 
 assign write_w = u_write_req ? u_write_w : d_write_w;
 
-assign read_hw = ~u_write_req & d_write_hw;
+assign write_hw = ~u_write_req & d_write_hw;
 
 assign write_adr = u_write_req ? u_write_adr : d_write_adr;
 

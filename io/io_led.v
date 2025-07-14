@@ -1,0 +1,54 @@
+/*
+ * My RISC-V RV32I CPU
+ *   FPGA LED output Module for Tang Premier
+ *    Verilog code
+ * @auther		Yoshiki Kurokawa <yoshiki.k963@gmail.com>
+ * @copylight	2025 Yoshiki Kurokawa
+ * @license		https://opensource.org/licenses/MIT     MIT license
+ * @version		0.1
+ */
+
+module io_led(
+	input clk,
+	input rst_n,
+	// from/to IO bus
+
+    input dma_io_we,
+    input [15:2] dma_io_wadr,
+    input [31:0] dma_io_wdata,
+    input [15:2] dma_io_radr,
+    input dma_io_radr_en,
+    input [31:0] dma_io_rdata_in,
+    output [31:0] dma_io_rdata,
+	output [3:0] rgb_led,
+
+	);
+
+reg [3:0] led_value;
+
+// decode :: adr 0x0 : LED values
+`define SYS_LED_IO 14'h3F80
+
+wire we_led_value = dma_io_we & (dma_io_wadr == `SYS_LED_IO);
+wire re_led_value = dma_io_radr_en & (dma_io_radr == `SYS_LED_IO);
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n)
+        led_value <= 4'd0 ;
+	else if ( we_led_value )
+		led_value <= dma_io_wdata[3:0];
+end
+
+reg re_led_value_dly;
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n)
+        re_led_value_dly <= 1'b0 ;
+	else
+        re_led_value_dly <= re_led_value ;
+end
+
+assign dma_io_rdata = re_led_value_dly ? { 28'd0, led_value[3:0] } : dma_io_rdata_in;
+assign rgb_led = led_value[3:0];
+
+endmodule

@@ -1,0 +1,12 @@
+cpu_status cpu_status (
+	.clk(clk),
+	.rst_n(rst_n),
+	.cpu_start(cpu_start),
+	.quit_cmd(quit_cmd),
+	.stall(stall)
+	);
+wire clk; // input
+wire rst_n; // input
+wire cpu_start; // input
+wire quit_cmd; // input
+wire stall; // output

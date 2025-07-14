@@ -1,7 +1,0 @@
-qspi_psram_model qspi_psram_model (
-	.clk(clk),
-	.rst_n(rst_n),
-	.sck(sck),
-	.ce_n(ce_n),
-	.sio(sio)
-	);

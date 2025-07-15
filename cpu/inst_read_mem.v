@@ -61,7 +61,7 @@ assign i_read_req = cpu_stat_imr & ~imr_stat & ~imr_stat_dly;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		inst <= 32'd0;
-	else if (i_read_valid)
+	else if (i_read_valid & imr_stat)
 		inst <= i_read_data;
 end
 

@@ -138,6 +138,7 @@ assign dma_io_radr_en = (rd_data_ma[31:30] == 2'b11) & cmd_ld_ma;
 wire dma_io_ren_ma = cmd_ld_ma & (rd_data_ma[31:30] == 2'b11);
 
 reg dma_io_ren_wb;
+
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n)
 		dma_io_ren_wb <= 1'b0;
@@ -145,9 +146,29 @@ always @ ( posedge clk or negedge rst_n) begin
 		dma_io_ren_wb <= dma_io_ren_ma;
 end
 
+wire [31:0] ext_read_mem;
+reg req_w_dly;
+reg req_hw_dly;
+
+always @ ( posedge clk or negedge rst_n) begin   
+	if (~rst_n) begin
+		req_w_dly <= 1'b0;
+		req_hw_dly <= 1'b0;
+	end
+	else if (ld_mem_req) begin
+		req_w_dly <= req_w;
+		req_hw_dly <= req_hw;
+	end
+end
+
+assign ext_read_mem = req_w_dly ? read_data :
+                      req_hw_dly ? { { 16{ read_data[15] }}, read_data[15:0] } :
+                                   { { 24{ read_data[7] }}, read_data[7:0] } ;
+ 
+
 // read data selector
 assign wbk_data_wb = dma_io_ren_wb ? dma_io_rdata :
-                     dmrw_run ? read_data : rd_data_ma;
+                     dmrw_run ? ext_read_mem : rd_data_ma;
 assign wbk_rd_reg_wb = dma_io_ren_wb | (read_valid & dmrw_run) | (wbk_rd_reg_ma & cpu_stat_dmrw & (next_data_state == `DAT_IDLE)) ;
 assign rd_adr_wb = rd_adr_ma;
 

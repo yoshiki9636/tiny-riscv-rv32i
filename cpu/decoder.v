@@ -52,6 +52,7 @@ module decoder (
     output cmd_wfi,
 	output [4:0] rd_adr,
     output illegal_ops,
+    output wbk_rd_reg,
 	output [4:0] inst_rs1,
 	output [4:0] inst_rs2
 	);
@@ -217,7 +218,7 @@ assign cmd_auipc = dc_op1_00101 & dc_notc;
 assign lui_auipc_imm = inst_imm_31_12;
 
 assign cmd_ld = dc_op1_00000 & dc_notc;
-assign ld_ofs = inst_ofs_11_0_l;
+//assign ld_ofs = inst_ofs_11_0_l;
 
 // ALU immediate, rs2
 assign cmd_alui = dc_op1_00100 & dc_notc & ~( dc_op2_001 | dc_op2_101 );
@@ -298,7 +299,7 @@ assign wbk_rd_reg = ~(cmd_st | cmd_br) & dc_notc;
 
 // added
 
-assign ld_alui_ofs = ld_ofs;
+assign ld_alui_ofs = inst_ofs_11_0_l;
 
 
 

@@ -15,6 +15,7 @@ module data_rw_mem (
 	// from EX
     input cmd_ld_ma,
     input cmd_st_ma,
+    input wbk_rd_reg_ma,
 	input [4:0] rd_adr_ma,
 	input [31:0] rd_data_ma,
 	input [31:0] st_data_ma,
@@ -145,13 +146,10 @@ always @ ( posedge clk or negedge rst_n) begin
 end
 
 // read data selector
-assign wbk_data_wb = dma_io_ren_wb ? dma_io_rdata : read_data;
-assign wbk_rd_reg_wb = dma_io_ren_wb | read_valid;
+assign wbk_data_wb = dma_io_ren_wb ? dma_io_rdata :
+                     dmrw_run ? read_data : rd_data_ma;
+assign wbk_rd_reg_wb = dma_io_ren_wb | (read_valid & dmrw_run) | (wbk_rd_reg_ma & cpu_stat_dmrw & (next_data_state == `DAT_IDLE)) ;
 assign rd_adr_wb = rd_adr_ma;
 
 endmodule
-
-
-
-
 

@@ -96,6 +96,8 @@ wire illegal_ops; // output
 wire [4:0] inst_rs1; // input
 wire [4:0] inst_rs2; // input
 wire [4:0] rd_adr_wb; // input
+wire wbk_rd_reg;
+wire wbk_rd_reg_ma;
 wire wbk_rd_reg_wb; // input
 wire [31:0] wbk_data_wb; // input
 wire [31:0] rs1_data; // output
@@ -236,6 +238,7 @@ decoder decoder (
 	.cmd_wfi(cmd_wfi),
 	.rd_adr(rd_adr),
 	.illegal_ops(illegal_ops),
+	.wbk_rd_reg(wbk_rd_reg),
 	.inst_rs1(inst_rs1),
 	.inst_rs2(inst_rs2)
 	);
@@ -261,6 +264,7 @@ execution execution (
 	.rs1_data_ex(rs1_data),
 	.rs2_data_ex(rs2_data),
 	.pc_ex(pc),
+	.wbk_rd_reg(wbk_rd_reg),
 	.cmd_lui_ex(cmd_lui),
 	.cmd_auipc_ex(cmd_auipc),
 	.lui_auipc_imm_ex(lui_auipc_imm),
@@ -300,6 +304,7 @@ execution execution (
 	.rd_adr_ex(rd_adr),
 	.cmd_ld_ma(cmd_ld_ma),
 	.cmd_st_ma(cmd_st_ma),
+	.wbk_rd_reg_ma(wbk_rd_reg_ma),
 	.rd_adr_ma(rd_adr_ma),
 	.rd_data_ma(rd_data_ma),
 	.st_data_ma(st_data_ma),
@@ -325,6 +330,7 @@ data_rw_mem data_rw_mem (
 	.rst_n(rst_n),
 	.cmd_ld_ma(cmd_ld_ma),
 	.cmd_st_ma(cmd_st_ma),
+	.wbk_rd_reg_ma(wbk_rd_reg_ma),
 	.rd_adr_ma(rd_adr_ma),
 	.rd_data_ma(rd_data_ma),
 	.st_data_ma(st_data_ma),

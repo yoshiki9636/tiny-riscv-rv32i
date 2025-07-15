@@ -16,6 +16,7 @@ module execution (
 	input [31:0] rs1_data_ex,
 	input [31:0] rs2_data_ex,
 	input [31:2] pc_ex,
+	input wbk_rd_reg,
     // microcode
     input cmd_lui_ex,
     input cmd_auipc_ex,
@@ -61,6 +62,7 @@ module execution (
 	// to MA
     output reg cmd_ld_ma,
     output reg cmd_st_ma,
+    output reg wbk_rd_reg_ma,
 	output [4:0] rd_adr_ma,
 	output [31:0] rd_data_ma,
 	output [31:0] st_data_ma,
@@ -302,14 +304,16 @@ always @ ( posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
         cmd_ld_ma <= 1'b0;
         cmd_st_ma <= 1'b0;
+        wbk_rd_reg_ma <= 1'b0;
 		//rd_adr_ma <= 5'd0;
 		//rd_data_ma <= 32'd0;
 		//st_data_ma <= 32'd0;
 		//ldst_code_ma <= 3'd0;
 	end
-	else if (cpu_stat_ex) begin
-	    cmd_ld_ma <= cmd_ld_ex;
-        cmd_st_ma <= cmd_st_ex;
+	else begin
+	    cmd_ld_ma <= cmd_ld_ex & cpu_stat_ex;
+        cmd_st_ma <= cmd_st_ex & cpu_stat_ex;
+        wbk_rd_reg_ma <= wbk_rd_reg & cpu_stat_ex;
 		//rd_adr_ma <= rd_adr_ex;
 		//rd_data_ma <= rd_data_ex;
 		//st_data_ma <= st_data_ex;

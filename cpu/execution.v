@@ -16,6 +16,7 @@ module execution (
 	input [31:0] rs1_data_ex,
 	input [31:0] rs2_data_ex,
 	input [31:2] pc_ex,
+	input [31:2] pc_excep,
 	input wbk_rd_reg,
     // microcode
     input cmd_lui_ex,
@@ -212,7 +213,7 @@ csr_array csr_array (
     .csr_msie(csr_msie),
 	//.csr_mie(csr_mie),
     .cmd_ecall_ex(cmd_ecall_ex),
-	.pc_ex(pc_ex),
+	.pc_excep(pc_excep),
 	.cpu_stat_ex(cpu_stat_ex)
 	);
 

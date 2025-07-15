@@ -26,7 +26,8 @@ module pc_stage (
 	input [31:2] csr_mepc_ex,
 	input [31:2] csr_sepc_ex,
 	input [31:2] jmp_adr_ex,
-	output reg [31:2] pc
+	output reg [31:2] pc,
+	output reg [31:2] pc_excep
 	);
 
 // resources
@@ -74,6 +75,14 @@ always @ (posedge clk or negedge rst_n) begin
 	else if (cpu_stat_pc)
 		pc <= pc + 30'd1;
 		//pc <= pc_cntr;
+end
+
+// pc sampler for ecall/exception
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		pc_excep <= 30'd0;
+	else if (intr_ecall_exception & cpu_stat_pc)
+		pc_excep <= pc;
 end
 
 endmodule

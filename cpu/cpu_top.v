@@ -180,7 +180,8 @@ pc_stage pc_stage (
 	.csr_mepc_ex(csr_mepc_ex),
 	.csr_sepc_ex(csr_sepc_ex),
 	.jmp_adr_ex(jmp_adr_ex),
-	.pc(pc)
+	.pc(pc),
+	.pc_excep(pc_excep)
 	);
 
 inst_mem_read inst_mem_read (
@@ -264,6 +265,7 @@ execution execution (
 	.rs1_data_ex(rs1_data),
 	.rs2_data_ex(rs2_data),
 	.pc_ex(pc),
+	.pc_excep(pc_excep),
 	.wbk_rd_reg(wbk_rd_reg),
 	.cmd_lui_ex(cmd_lui),
 	.cmd_auipc_ex(cmd_auipc),

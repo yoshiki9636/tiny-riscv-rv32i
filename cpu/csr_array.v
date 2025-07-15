@@ -34,7 +34,7 @@ module csr_array(
 	output csr_mtie,
 	output csr_msie,
     input cmd_ecall_ex,
-	input [31:2] pc_ex,
+	input [31:2] pc_excep,
 	input cpu_stat_ex
 	);
 
@@ -100,7 +100,22 @@ wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        adr_mie ? csr_mie :
                        32'd0;
 
-assign csr_rd_data = csr_rsel;
+// output delay latch
+reg [31:0] csr_rd_data_prev;
+
+always @ ( posedge clk or negedge rst_n) begin   
+	if (~rst_n) begin
+		csr_rd_data_prev <= 32'd0;
+	end
+	else if (cpu_stat_ex & cmd_csr_ex) begin
+		csr_rd_data_prev <= csr_rsel;
+	end
+end
+
+
+//immidiate
+//assign csr_rd_data = (cmd_rw | cmd_rs) ? csr_rd_data_prev : csr_rsel;
+assign csr_rd_data = csr_rd_data_prev;
 
 // wirte data selector 
 wire [31:0] wdata_rw = immidiate ? { 27'd0, csr_uimm_ex } : rs1_sel;
@@ -256,14 +271,13 @@ assign csr_mtvec_ex = csr_mtvec[31:2];
 
 // mepc
 // capture PC when ecall occured
-wire [31:2] sel_pc_ex;
 
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin
 		csr_mepc <= 30'd0;
 	end
 	else if (cmd_ecall_ex | m_interrupt | g_exception) begin
-		csr_mepc <= sel_pc_ex;
+		csr_mepc <= pc_excep;
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mepc)) begin
 		csr_mepc <= wdata_all[31:2];
@@ -326,6 +340,5 @@ assign csr_meie = csr_mie[11];
 assign csr_mtie = csr_mie[7];
 assign csr_msie = csr_mie[3];
 
-assign sel_pc_ex = pc_ex;
 
 endmodule

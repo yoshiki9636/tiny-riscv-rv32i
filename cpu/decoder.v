@@ -229,7 +229,7 @@ assign cmd_alu_sub = dc_op3_01000;
 
 assign alu_code = inst_op2;
 
-assign alui_imm = inst_imm_11_0;
+//assign alui_imm = inst_imm_11_0;
 assign alui_shamt = inst_shamt;
 
 // store
@@ -263,7 +263,7 @@ assign csr_uimm = inst_uimm;
 assign csr_op2 = inst_op2;
 
 // ecall
-assign cmd_ec  = dc_op1_11100 &  dc_op2_000 & dc_notc & dc_zero_26_25 & dc_zero_19_15 & dc_zero_11_7;
+wire cmd_ec  = dc_op1_11100 &  dc_op2_000 & dc_notc & dc_zero_26_25 & dc_zero_19_15 & dc_zero_11_7;
 assign cmd_ecall  = cmd_ec & dc_op3_00000 & dc_op4_00000;
 assign cmd_ebreak = cmd_ec & dc_op3_00000 & dc_op4_00001;
 assign cmd_uret   = cmd_ec & dc_op3_00000 & dc_op4_00010;
@@ -272,9 +272,9 @@ assign cmd_mret   = cmd_ec & dc_op3_00110 & dc_op4_00010;
 assign cmd_wfi    = cmd_ec & dc_op3_00010 & dc_op4_00101;
 
 // nop command
-assign cmd_nop = (inst == 32'h0000_0013);
+wire cmd_nop = (inst == 32'h0000_0013);
 // all command except nop
-assign cmd_all_except_nop =
+wire cmd_all_except_nop =
 	cmd_lui | cmd_auipc | cmd_ld | cmd_alui | cmd_alui_shamt
 	| cmd_alu | cmd_alu_add | cmd_alu_sub | cmd_st | cmd_jal
 	| cmd_jalr | cmd_br | cmd_fence | cmd_fencei | cmd_sfence

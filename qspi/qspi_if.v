@@ -276,13 +276,13 @@ always @ (posedge clk or negedge rst_n) begin
 		wdata_ofs <= wdata_ofs - 3'd1;
 end
 
-assign wdata_slice = (wdata_ofs == 3'd7) ? wdata[31:28] :
-                     (wdata_ofs == 3'd6) ? wdata[27:24] :
-                     (wdata_ofs == 3'd5) ? wdata[23:20] :
-                     (wdata_ofs == 3'd4) ? wdata[19:16] :
-                     (wdata_ofs == 3'd3) ? wdata[15:12] :
-                     (wdata_ofs == 3'd2) ? wdata[11:8] :
-                     (wdata_ofs == 3'd1) ? wdata[7:4] : wdata[3:0];
+assign wdata_slice = (wdata_ofs == 3'd1) ? wdata[31:28] :
+                     (wdata_ofs == 3'd0) ? wdata[27:24] :
+                     (wdata_ofs == 3'd3) ? wdata[23:20] :
+                     (wdata_ofs == 3'd2) ? wdata[19:16] :
+                     (wdata_ofs == 3'd5) ? wdata[15:12] :
+                     (wdata_ofs == 3'd4) ? wdata[11:8] :
+                     (wdata_ofs == 3'd7) ? wdata[7:4] : wdata[3:0];
 
 assign write_data_end = state_write & (wdata_ofs == 3'b0) & fall_edge;
 
@@ -317,7 +317,8 @@ always @ (posedge clk or negedge rst_n) begin
 		word_data <= { word_data[27:0], sio_in_sync } ;
 end
 
-assign read_data = word_data;
+assign read_data = word_w ? { word_data[7:0], word_data[15:8], word_data[23:16], word_data[31:24] } :
+                   word_hw ? { 16'd0, word_data[7:0], word_data[15:8] } : { 24'd0, word_data[7:0] };
 
 // reset counter
 reg [3:0] rst_cntr;

@@ -94,8 +94,8 @@ input write_finish;
 
 begin
 	case(data_state)
-		`DAT_IDLE: if (st_mem_req) data_machine = `DAT_READ;
-			       else if (ld_mem_req) data_machine = `DAT_WRTE;
+		`DAT_IDLE: if (ld_mem_req) data_machine = `DAT_READ;
+			       else if (st_mem_req) data_machine = `DAT_WRTE;
 			       else if (dma_io_radr_en) data_machine = `DAT_IOR1;
 			       else if (dma_io_we) data_machine = `DAT_IOWT;
 				   else data_machine = `DAT_IDLE;
@@ -126,7 +126,7 @@ always @ (posedge clk or negedge rst_n) begin
 		data_state <= next_data_state;
 end
 
-assign dmrw_run = (data_state != `DAT_IDLE);
+assign dmrw_run = (data_state != `DAT_IDLE) | (next_data_state != `DAT_IDLE);
 
 // io 
 assign dma_io_we = cmd_st_ma & (ldst_code_ma == 3'b010) & (rd_data_ma[31:30] == 2'b11);

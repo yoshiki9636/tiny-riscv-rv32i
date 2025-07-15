@@ -135,7 +135,6 @@ uart_rec_char uart_rec_char (
 	.rout_en(rout_en),
 	.dump_running(dump_running),
 	.trush_running(trush_running),
-	.dcflush_running(dcflush_running),
 	.uart_data(uart_data),
 	.cpu_start(cpu_start),
 	.write_address_set(write_address_set),

@@ -54,7 +54,7 @@ module bus_gather (
 
 	);
 
-assign read_req = i_read_req | d_write_req | u_read_req;
+assign read_req = i_read_req | d_read_req | u_read_req;
 
 assign read_w = u_read_req ? u_read_w :
                 i_read_req ? i_read_w : d_read_w;

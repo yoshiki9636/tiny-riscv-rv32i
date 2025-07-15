@@ -17,7 +17,7 @@ module uart_rec_char (
 	// from ctrl logics
 	input dump_running,
 	input trush_running,
-	input dcflush_running,
+	//input dcflush_running,
 	// to ctrl logics
 	output [31:0] uart_data,
 	output reg cpu_start,
@@ -194,7 +194,7 @@ input cmd_z;
 input word_valid;
 input dump_running;
 input trush_running;
-input dcflush_running;
+//input dcflush_running;
 
 begin
 	case(cmd_status)
@@ -291,7 +291,7 @@ begin
 			else
 				cmd_statemachine = `C_PCPRINT;
 		`C_DCFLUSH :
-			if (cmd_q | ~dcflush_running)
+			if (cmd_q )
 				cmd_statemachine = `C_STAIDLE;
 			else
 				cmd_statemachine = `C_DCFLUSH;
@@ -314,8 +314,7 @@ assign next_cmd_status = cmd_statemachine(
 							cmd_z,
 							word_valid,
 							dump_running,
-							trush_running,
-							dcflush_running
+							trush_running
 							);
 
 always @ (posedge clk or negedge rst_n) begin

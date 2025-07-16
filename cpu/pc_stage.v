@@ -89,6 +89,6 @@ always @ (posedge clk or negedge rst_n) begin
 		pc_ecall <= pc;
 end
 
-assign pc_excep = (ecall_condition_ex & ~(g_interrupt | g_exception)) ? pc_ecall : pc_p1;
+assign pc_excep = (ecall_condition_ex & ~g_interrupt) ? pc_ecall : pc_p1;
 
 endmodule

@@ -276,13 +276,17 @@ always @ (posedge clk or negedge rst_n) begin
 		wdata_ofs <= wdata_ofs - 3'd1;
 end
 
-assign wdata_slice = (wdata_ofs == 3'd1) ? wdata[31:28] :
-                     (wdata_ofs == 3'd0) ? wdata[27:24] :
-                     (wdata_ofs == 3'd3) ? wdata[23:20] :
-                     (wdata_ofs == 3'd2) ? wdata[19:16] :
-                     (wdata_ofs == 3'd5) ? wdata[15:12] :
-                     (wdata_ofs == 3'd4) ? wdata[11:8] :
-                     (wdata_ofs == 3'd7) ? wdata[7:4] : wdata[3:0];
+wire [31:0] ext_wdata = word_w ? wdata :
+                        word_hw ? { wdata[15:0], 16'd0 } : { wdata[7:0], 24'd0 } ;
+
+
+assign wdata_slice = (wdata_ofs == 3'd1) ? ext_wdata[31:28] :
+                     (wdata_ofs == 3'd0) ? ext_wdata[27:24] :
+                     (wdata_ofs == 3'd3) ? ext_wdata[23:20] :
+                     (wdata_ofs == 3'd2) ? ext_wdata[19:16] :
+                     (wdata_ofs == 3'd5) ? ext_wdata[15:12] :
+                     (wdata_ofs == 3'd4) ? ext_wdata[11:8] :
+                     (wdata_ofs == 3'd7) ? ext_wdata[7:4] : ext_wdata[3:0];
 
 assign write_data_end = state_write & (wdata_ofs == 3'b0) & fall_edge;
 

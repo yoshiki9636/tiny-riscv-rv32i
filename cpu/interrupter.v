@@ -13,9 +13,11 @@ module interrupter(
 	input rst_n,
 	// from external
 	input interrupt_0,
+	// from sequencer
+	input cpu_stat_pc,
 	// from csr
 	input csr_meie,
-	output g_interrupt
+	output reg g_interrupt
 
 	);
 
@@ -37,6 +39,14 @@ always @ (posedge clk or negedge rst_n) begin
 	end
 end
 
-assign g_interrupt = csr_meie & int_2lat & ~int_3lat;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		g_interrupt <= 1'b0;
+	else if (cpu_stat_pc)
+		g_interrupt <= 1'b0;
+	else if (csr_meie & int_2lat & ~int_3lat)
+		g_interrupt <= 1'b1;
+end
+
 
 endmodule

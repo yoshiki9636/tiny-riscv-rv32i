@@ -27,7 +27,7 @@ module pc_stage (
 	input [31:2] csr_sepc_ex,
 	input [31:2] jmp_adr_ex,
 	output reg [31:2] pc,
-	output reg [31:2] pc_excep
+	output [31:2] pc_excep
 	);
 
 // resources
@@ -65,6 +65,8 @@ always @ (posedge clk or negedge rst_n) begin
 		cpu_adr_ld <= 1'b1;
 end
 
+wire [31:2] pc_p1 = pc + 30'd1;
+
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		pc <= 30'd0;
@@ -73,16 +75,20 @@ always @ (posedge clk or negedge rst_n) begin
 	else if (jmp_cond & cpu_stat_pc) // Causion!! keep jmp_cond to pc state
 		pc <= jmp_adr;
 	else if (cpu_stat_pc)
-		pc <= pc + 30'd1;
+		pc <= pc_p1;
 		//pc <= pc_cntr;
 end
 
 // pc sampler for ecall/exception
+reg [31:2] pc_ecall;
+
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		pc_excep <= 30'd0;
-	else if (intr_ecall_exception & cpu_stat_pc)
-		pc_excep <= pc;
+		pc_ecall <= 30'd0;
+	else if (ecall_condition_ex & cpu_stat_pc)
+		pc_ecall <= pc;
 end
+
+assign pc_excep = (ecall_condition_ex & ~(g_interrupt | g_exception)) ? pc_ecall : pc_p1;
 
 endmodule

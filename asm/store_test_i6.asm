@@ -16,15 +16,16 @@ lui x2, 0xc0010 ; LED address
 addi x2, x2, 0xe00 ;
 sw x1, 0x0(x2) ; set LED
 ; store pattern data for test
+lui x9, 0x1 ; offset
 lui x3, 0xa5a5a ;
 ori x3, x3, 0x5a5 ; test value (1)
-sw x3, 0x0(x0)
-sw x3, 0x4(x0)
-sw x3, 0x8(x0)
-sw x3, 0xc(x0)
+sw x3, 0x0(x9)
+sw x3, 0x4(x9)
+sw x3, 0x8(x9)
+sw x3, 0xc(x9)
 ; test sb offset 0
 :fail_test1
-and x4, x4, x0
+lui x4, 0x1 ; offset
 lui x5, 0xfedcb
 ori x5, x5, 0x298
 lui x7, 0x00001
@@ -40,8 +41,9 @@ addi x1, x0, 6 ; LED value
 sw x1, 0x0(x2) ; set LED
 ; test sb offset 1
 :fail_test2
-and x8, x8, x0
-ori x4, x0, 0x1
+lui x8, 0x1 ; offset
+lui x4, 0x1 ; offset
+ori x4, x4, 0x1
 lui x5, 0x98fed
 ori x5, x5, 0x4ba
 lui x7, 0x00001
@@ -60,8 +62,9 @@ addi x1, x0, 5 ; LED value
 sw x1, 0x0(x2) ; set LED
 ; test sb offset 2
 :fail_test3
-and x8, x8, x0
-ori x4, x0, 0x2
+lui x8, 0x1 ; offset
+lui x4, 0x1 ; offset
+ori x4, x4, 0x2
 lui x5, 0xba98f
 ori x5, x5, 0x6dc
 lui x7, 0x00001
@@ -77,11 +80,12 @@ or x7, x7, x8
 bne x6, x7, fail_test3
 ; next value
 addi x1, x0, 4 ; LED value
-;sw x1, 0x0(x2) ; set LED
+sw x1, 0x0(x2) ; set LED
 ; test sb offset 3
 :fail_test4
-and x8, x8, x0
-ori x4, x0, 0x3
+lui x8, 0x1 ; offset
+lui x4, 0x1 ; offset
+ori x4, x4, 0x3
 lui x5, 0xdcba9
 ori x5, x5, 0x0fe
 lui x7, 0x00001
@@ -101,8 +105,10 @@ sw x1, 0x0(x2) ; set LED
 ; test sh offset 0
 sw x3, 0x4(x0)
 :fail_test5
-ori x8, x0, 0x4
-ori x4, x0, 0x4
+lui x8, 0x1 ; offset
+ori x8, x8, 0x4
+lui x4, 0x1 ; offset
+ori x4, x4, 0x4
 lui x5, 0xfedcb
 ori x5, x5, 0x298
 lui x7, 0x00001
@@ -121,8 +127,10 @@ addi x1, x0, 2 ; LED value
 sw x1, 0x0(x2) ; set LED
 ; test sh offset 1
 :fail_test6
-ori x8, x0, 0x4
-ori x4, x0, 0x6
+lui x8, 0x1 ; offset
+ori x8, x8, 0x4
+lui x4, 0x1 ; offset
+ori x4, x4, 0x6
 lui x5, 0xba98f
 ori x5, x5, 0x6dc
 lui x7, 0x00001
@@ -141,8 +149,10 @@ addi x1, x0, 1 ; LED value
 sw x1, 0x0(x2) ; set LED
 ; test sw 
 :fail_test7
-ori x8, x0, 0x8
-ori x4, x0, 0x8
+lui x8, 0x1 ; offset
+ori x8, x8, 0x8
+lui x4, 0x1 ; offset
+ori x4, x4, 0x8
 lui x5, 0x76543
 ori x5, x5, 0x210
 sw x5, 0x0(x4)

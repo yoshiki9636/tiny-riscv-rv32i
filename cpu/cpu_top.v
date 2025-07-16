@@ -137,6 +137,7 @@ wire csr_meie; // output
 wire csr_mtie; // output
 wire csr_msie; // output
 
+wire [31:2] pc_excep; // output
 
 assign pc_data = { pc, 2'd0 };
 
@@ -366,6 +367,7 @@ interrupter interrupter (
 	.clk(clk),
 	.rst_n(rst_n),
 	.interrupt_0(interrupt_0),
+	.cpu_stat_pc(cpu_stat_pc),
 	.csr_meie(csr_meie),
 	.g_interrupt(g_interrupt)
 	);

@@ -19,6 +19,8 @@ module cput_top (
 	output [31:0] pc_data,
 
 	input interrupt_0,
+	output csr_mtie,
+	input frc_cntr_val_leq,
 
 	output i_read_req,
 	output i_read_w,
@@ -134,7 +136,6 @@ wire cmd_alui_shamt; // output
 wire cmd_alu; // output
 wire cmd_alu_add; // output
 wire csr_meie; // output
-wire csr_mtie; // output
 wire csr_msie; // output
 
 wire [31:2] pc_excep; // output
@@ -325,7 +326,8 @@ execution execution (
 	.csr_meie(csr_meie),
 	.csr_mtie(csr_mtie),
 	.csr_msie(csr_msie),
-	.cpu_stat_ex(cpu_stat_ex)
+	.cpu_stat_ex(cpu_stat_ex),
+	.frc_cntr_val_leq(frc_cntr_val_leq)
 	);
 
 data_rw_mem data_rw_mem (

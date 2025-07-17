@@ -84,7 +84,8 @@ module execution (
     output csr_mtie,
     output csr_msie,
 	// status
-	input cpu_stat_ex
+	input cpu_stat_ex,
+	input frc_cntr_val_leq
 
 	);
 
@@ -214,7 +215,8 @@ csr_array csr_array (
 	//.csr_mie(csr_mie),
     .cmd_ecall_ex(cmd_ecall_ex),
 	.pc_excep(pc_excep),
-	.cpu_stat_ex(cpu_stat_ex)
+	.cpu_stat_ex(cpu_stat_ex),
+	.frc_cntr_val_leq(frc_cntr_val_leq)
 	);
 
 // exception block

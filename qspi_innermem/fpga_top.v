@@ -79,7 +79,11 @@ wire dma_io_radr_en; // output
 wire [31:0] dma_io_rdata; // input
 wire [31:0] dma_io_rdata_in = 32'd0; // input
 wire [31:0] dma_io_rdata_in_2; // input
+wire [31:0] dma_io_rdata_in_3; // input
 
+// for free run counter signals
+wire csr_mtie;
+wire frc_cntr_val_leq;
 
 clk_wiz_0 clk_wiz_0 (
 	.clk_out1(clk),
@@ -96,6 +100,8 @@ cput_top cput_top (
 	.cpu_start_adr(cpu_start_adr),
 	.pc_data(pc_data),
 	.interrupt_0(interrupt_0),
+	.csr_mtie(csr_mtie),
+	.frc_cntr_val_leq(frc_cntr_val_leq),
 	.i_read_req(i_read_req),
 	.i_read_w(i_read_w),
 	.i_read_hw(i_read_hw),
@@ -205,7 +211,7 @@ io_led io_led (
 	.dma_io_radr(dma_io_radr),
 	.dma_io_radr_en(dma_io_radr_en),
 	.dma_io_rdata_in(dma_io_rdata_in_2),
-	.dma_io_rdata(dma_io_rdata),
+	.dma_io_rdata(dma_io_rdata_in_3),
 	.rgb_led(rgb_led)
 	);
 
@@ -222,6 +228,21 @@ io_uart_out io_uart_out (
 	.uart_io_char(uart_io_char),
 	.uart_io_we(uart_io_we),
 	.uart_io_full(uart_io_full)
+	);
+
+
+io_frc io_frc (
+	.clk(clk),
+	.rst_n(rst_n),
+	.dma_io_we(dma_io_we),
+	.dma_io_wadr(dma_io_wadr),
+	.dma_io_wdata(dma_io_wdata),
+	.dma_io_radr(dma_io_radr),
+	.dma_io_radr_en(dma_io_radr_en),
+	.dma_io_rdata_in(dma_io_rdata_in_3),
+	.dma_io_rdata(dma_io_rdata),
+	.csr_mtie(csr_mtie),
+	.frc_cntr_val_leq(frc_cntr_val_leq)
 	);
 
 endmodule

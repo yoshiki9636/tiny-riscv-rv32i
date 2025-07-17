@@ -35,7 +35,8 @@ module csr_array(
 	output csr_msie,
     input cmd_ecall_ex,
 	input [31:2] pc_excep,
-	input cpu_stat_ex
+	input cpu_stat_ex,
+	input frc_cntr_val_leq
 	);
 
 // csr address definition
@@ -86,8 +87,8 @@ reg [31:2] csr_mepc;
 reg [31:0] csr_mcause;
 //wire [31:2] csr_sepc_i = 30'd0;
 assign csr_sepc_ex = 30'd0;
-wire [31:0] csr_mip = 32'h0000_0888;
-reg [31:0] csr_mie;
+wire [31:0] csr_mip;
+wire [31:0] csr_mie;
 
 wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        adr_misa ? csr_misa :
@@ -137,7 +138,7 @@ reg [1:0] csr_mpp;
 reg csr_spp;
 
 // MIE[3] : Machine mode Global Interrupt enable
-wire m_interrupt = g_interrupt & (g_interrupt_priv == `M_MODE);
+wire m_interrupt = (g_interrupt | frc_cntr_val_leq) & (g_interrupt_priv == `M_MODE);
 wire rmie_wr = m_interrupt | cmd_mret_ex;
 wire rmie_value = m_interrupt ? 1'b0 :
                  cmd_mret_ex ? csr_mpie : csr_rmie;
@@ -190,7 +191,7 @@ always @ ( posedge clk or negedge rst_n) begin
 end
 
 // SIE[1] : Supervisor mode Global Interrupt enable : currently not used
-wire s_interrupt = g_interrupt & (g_interrupt_priv == `S_MODE);
+wire s_interrupt = (g_interrupt | frc_cntr_val_leq) & (g_interrupt_priv == `S_MODE);
 wire sie_wr = s_interrupt | cmd_sret_ex;
 wire sie_value = s_interrupt ? 1'b0 :
                  cmd_sret_ex ? csr_spie : csr_sie;
@@ -288,12 +289,13 @@ assign csr_mepc_ex = csr_mepc[31:2];
 
 // mcause
 // conditions
-wire interrupt_bit = g_interrupt ? 1'b1 : 1'b0;
+wire interrupt_bit = g_interrupt | frc_cntr_val_leq;
 // just impliment Machine mode Ecall and inteeupt
 wire [30:0] mcause_code = g_interrupt ? 31'd11 :
+                          frc_cntr_val_leq ? 31'd7 :
 						  illegal_ops_ex ? 31'd2 :
                           cmd_ecall_ex ?  31'd3 : 31'd0;
-wire mcause_write = cmd_ecall_ex | g_interrupt | g_exception;
+wire mcause_write = cmd_ecall_ex | g_interrupt | g_exception | frc_cntr_val_leq | illegal_ops_ex;
 
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin
@@ -326,19 +328,27 @@ end
 // mip resister : currently read only register because of only M-mode is supported
 // MEIP,MTIP,MSIP is set to 1 others are set to 0
 
+
+// mip register
+assign csr_mip = { 4'd0, g_interrupt, 3'd0, frc_cntr_val_leq, 3'd0, g_exception, 3'd0 };
+
 // mie register
+reg [2:0] csr_mie_bits;
+
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin
-		csr_mie <= 32'd0;
+		csr_mie_bits <= 32'd0;
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mie)) begin
-		csr_mie <= wdata_all;
+		csr_mie_bits <= { wdata_all[11], wdata_all[7], wdata_all[3] };
 	end
 end
 
-assign csr_meie = csr_mie[11];
-assign csr_mtie = csr_mie[7];
-assign csr_msie = csr_mie[3];
+assign csr_mie = { 4'd0, csr_mie_bits[2], 3'd0, csr_mie_bits[1], 3'd0, csr_mie_bits[0], 3'd0 };
+
+assign csr_meie = csr_mie_bits[2];
+assign csr_mtie = csr_mie_bits[1];
+assign csr_msie = csr_mie_bits[0];
 
 
 endmodule

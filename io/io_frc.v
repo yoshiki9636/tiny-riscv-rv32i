@@ -51,7 +51,7 @@ wire re_frc_cmphi = dma_io_radr_en & (dma_io_wadr == `SYS_FRC_CMPHI);
 wire we_frc_cntrl = dma_io_we      & (dma_io_wadr == `SYS_FRC_CNTRL);
 wire re_frc_cntrl = dma_io_radr_en & (dma_io_wadr == `SYS_FRC_CNTRL);
 
-wire we_frc_cntrl = dma_io_we      & (dma_io_wadr == `SYS_INT_CLEAR);
+wire we_frc_clear = dma_io_we      & (dma_io_wadr == `SYS_INT_CLEAR);
 
 wire run_cntr;
 wire frc_cntr_rst;
@@ -93,7 +93,6 @@ end
 
 assign run_cntr = frc_cntrl_val;
 assign frc_cntr_rst = we_frc_cntrl & dma_io_wdata[1];
-assign frc_cntr_val_leq = (frc_cntr_val <= frc_cmp_val) & run_cntr & csr_mtie;
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
@@ -105,6 +104,6 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 // for interrupt
-assign interrupt_clear = we_frc_cntrl;
+assign interrupt_clear = we_frc_clear;
 
 endmodule

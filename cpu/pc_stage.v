@@ -16,6 +16,7 @@ module pc_stage (
 	input cpu_stat_pc,
 	input ecall_condition_ex,
 	input g_interrupt,
+	input g_interrupt_1shot,
 	input g_exception,
 	input jmp_condition_ex,
 	input cmd_mret_ex,
@@ -33,8 +34,9 @@ module pc_stage (
 // resources
 // PC
 
+reg g_interrupt_latch;
 
-wire intr_ecall_exception = ecall_condition_ex | g_interrupt | g_exception ;
+wire intr_ecall_exception = ecall_condition_ex | g_interrupt_latch | g_exception ;
 wire jump_cmd_cond = jmp_condition_ex | cmd_mret_ex | cmd_sret_ex | cmd_uret_ex;
 
 wire jmp_cond = intr_ecall_exception | jump_cmd_cond;
@@ -90,5 +92,15 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 assign pc_excep = (ecall_condition_ex & ~g_interrupt) ? pc_ecall : pc_p1;
+
+// interrupter latch
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		g_interrupt_latch <= 1'b0;
+	else if (cpu_stat_pc)
+		g_interrupt_latch <= 1'b0;
+	else if (g_interrupt_1shot)
+		g_interrupt_latch <= 1'b1;
+end
 
 endmodule

@@ -118,6 +118,7 @@ wire [2:0] ldst_code_ma; // output
 wire [1:0] g_interrupt_priv = `M_MODE; // temp
 wire [1:0] g_current_priv = `M_MODE; // temp
 wire g_interrupt; // input
+wire g_interrupt_1shot; // input
 wire g_exception; // input
 wire jmp_condition_ex; // input
 
@@ -173,6 +174,7 @@ pc_stage pc_stage (
 	.cpu_stat_pc(cpu_stat_pc),
 	.ecall_condition_ex(ecall_condition_ex),
 	.g_interrupt(g_interrupt),
+	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_exception(g_exception),
 	.jmp_condition_ex(jmp_condition_ex),
 	.cmd_mret_ex(cmd_mret),
@@ -321,6 +323,7 @@ execution execution (
 	.csr_mepc_ex(csr_mepc_ex),
 	.csr_sepc_ex(csr_sepc_ex),
 	.g_interrupt(g_interrupt),
+	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_interrupt_priv(g_interrupt_priv),
 	.g_current_priv(g_current_priv),
 	.g_exception(g_exception),
@@ -372,6 +375,7 @@ interrupter interrupter (
 	.interrupt_0(interrupt_0),
 	.interrupt_clear(interrupt_clear),
 	.csr_meie(csr_meie),
+	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_interrupt(g_interrupt)
 	);
 

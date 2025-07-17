@@ -21,6 +21,7 @@ module csr_array(
 	output [31:0] csr_rd_data,
 	output [31:2] csr_mtvec_ex,
 	input g_interrupt,
+	input g_interrupt_1shot,
 	input illegal_ops_ex,
 	input g_exception,
 	input [1:0] g_interrupt_priv,
@@ -82,7 +83,7 @@ wire adr_mie = (csr_ofs_ex == `CSR_MIE_ADR);
 wire [31:0] csr_mstatus;
 reg [31:0] csr_mstatush;
 wire [31:0] csr_misa = `CSR_MISA_DATA;
-reg [31:2] csr_mtvec;
+reg [31:0] csr_mtvec;
 reg [31:2] csr_mepc;
 reg [31:0] csr_mcause;
 //wire [31:2] csr_sepc_i = 30'd0;
@@ -92,7 +93,7 @@ wire [31:0] csr_mie;
 
 wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        adr_misa ? csr_misa :
-                       adr_mtvec ? { csr_mtvec, 2'b00 } :
+                       adr_mtvec ? csr_mtvec :
                        adr_mepc ? { csr_mepc, 2'b00 } :
                        adr_sepc ? csr_sepc_ex :
                        adr_mcause ? csr_mcause :
@@ -138,7 +139,7 @@ reg [1:0] csr_mpp;
 reg csr_spp;
 
 // MIE[3] : Machine mode Global Interrupt enable
-wire m_interrupt = (g_interrupt | frc_cntr_val_leq) & (g_interrupt_priv == `M_MODE);
+wire m_interrupt = (g_interrupt_1shot | frc_cntr_val_leq) & (g_interrupt_priv == `M_MODE);
 wire rmie_wr = m_interrupt | cmd_mret_ex;
 wire rmie_value = m_interrupt ? 1'b0 :
                  cmd_mret_ex ? csr_mpie : csr_rmie;
@@ -191,7 +192,7 @@ always @ ( posedge clk or negedge rst_n) begin
 end
 
 // SIE[1] : Supervisor mode Global Interrupt enable : currently not used
-wire s_interrupt = (g_interrupt | frc_cntr_val_leq) & (g_interrupt_priv == `S_MODE);
+wire s_interrupt = (g_interrupt_1shot | frc_cntr_val_leq) & (g_interrupt_priv == `S_MODE);
 wire sie_wr = s_interrupt | cmd_sret_ex;
 wire sie_value = s_interrupt ? 1'b0 :
                  cmd_sret_ex ? csr_spie : csr_sie;
@@ -258,17 +259,21 @@ assign csr_mstatus = { 18'd0, csr_mpp, 2'b00, csr_spp, 1'b0, csr_mpie,
 
 // MISA : currently implimented as read-only
 
+wire [30:0] mcause_code;
+
 // mtvec
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin
-		csr_mtvec <= 30'd0;
+		csr_mtvec <= 32'd0;
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mtvec)) begin
-		csr_mtvec <= wdata_all[31:2];
+		csr_mtvec <= wdata_all;
 	end
 end
 
-assign csr_mtvec_ex = csr_mtvec[31:2];
+assign csr_mtvec_ex = (csr_mtvec[1:0] == 2'd0) ? csr_mtvec[31:2] :
+                      (csr_mtvec[1:0] == 2'd1) ? csr_mtvec[31:2] + mcause_code[29:0] : 30'd0;
+
 
 // mepc
 // capture PC when ecall occured
@@ -291,11 +296,11 @@ assign csr_mepc_ex = csr_mepc[31:2];
 // conditions
 wire interrupt_bit = g_interrupt | frc_cntr_val_leq;
 // just impliment Machine mode Ecall and inteeupt
-wire [30:0] mcause_code = g_interrupt ? 31'd11 :
-                          frc_cntr_val_leq ? 31'd7 :
-						  illegal_ops_ex ? 31'd2 :
-                          cmd_ecall_ex ?  31'd3 : 31'd0;
-wire mcause_write = cmd_ecall_ex | g_interrupt | g_exception | frc_cntr_val_leq | illegal_ops_ex;
+assign mcause_code = g_interrupt ? 31'd11 :
+                    frc_cntr_val_leq ? 31'd7 :
+                    illegal_ops_ex ? 31'd2 :
+                    cmd_ecall_ex ?  31'd3 : 31'd0;
+wire mcause_write = cmd_ecall_ex | g_interrupt_1shot | g_exception | frc_cntr_val_leq | illegal_ops_ex;
 
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin

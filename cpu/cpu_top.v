@@ -19,6 +19,7 @@ module cput_top (
 	output [31:0] pc_data,
 
 	input interrupt_0,
+	output interrupt_clear,
 	output csr_mtie,
 	input frc_cntr_val_leq,
 
@@ -369,7 +370,7 @@ interrupter interrupter (
 	.clk(clk),
 	.rst_n(rst_n),
 	.interrupt_0(interrupt_0),
-	.cpu_stat_pc(cpu_stat_pc),
+	.interrupt_clear(interrupt_clear),
 	.csr_meie(csr_meie),
 	.g_interrupt(g_interrupt)
 	);

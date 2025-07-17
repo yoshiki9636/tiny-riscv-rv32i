@@ -86,6 +86,7 @@ wire [31:0] dma_io_rdata_in_3; // input
 // for free run counter signals
 wire csr_mtie;
 wire frc_cntr_val_leq;
+wire interrupt_clear;
 
 cput_top cput_top (
 	.clk(clk),
@@ -95,6 +96,7 @@ cput_top cput_top (
 	.cpu_start_adr(cpu_start_adr),
 	.pc_data(pc_data),
 	.interrupt_0(interrupt_0),
+	.interrupt_clear(interrupt_clear),
 	.csr_mtie(csr_mtie),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
 	.i_read_req(i_read_req),
@@ -239,7 +241,8 @@ io_frc io_frc (
 	.dma_io_rdata_in(dma_io_rdata_in_3),
 	.dma_io_rdata(dma_io_rdata),
 	.csr_mtie(csr_mtie),
-	.frc_cntr_val_leq(frc_cntr_val_leq)
+	.frc_cntr_val_leq(frc_cntr_val_leq),
+	.interrupt_clear(interrupt_clear)
 	);
 
 endmodule

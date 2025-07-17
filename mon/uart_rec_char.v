@@ -83,7 +83,7 @@ begin
 		8'h65 : data_decoder = 27'b000_0000_0000_0100_0000_0000_0000; // e
 		8'h66 : data_decoder = 27'b000_0000_0000_1000_0000_0000_0000; // f
 		8'h67 : data_decoder = 27'b000_0000_0001_0000_0000_0000_0000; // g : go PC to address (run program)
-		8'h03 : data_decoder = 27'b000_0000_0010_0000_0000_0000_0000; // q : quit,stop,finish
+		8'h03 : data_decoder = 27'b000_0000_0010_0000_0000_0000_0000; // Ctri-c : quit,stop,finish
 		8'h77 : data_decoder = 27'b000_0000_0100_0000_0000_0000_0000; // w : write data memory
 		8'h72 : data_decoder = 27'b000_0000_1000_0000_0000_0000_0000; // r : read data memory and dump
 		8'h74 : data_decoder = 27'b000_0001_0000_0000_0000_0000_0000; // t : trushed memory and 0 clear
@@ -144,7 +144,7 @@ wire cmd_crlf = decode_bits[26] & data_en;
 
 // command format
 // g : goto PC address ( run program until quit ) : format:  g <start addess>
-// Ctrl-c : quit from any command                      : format: Ctrl-c
+// Ctrl-c : quit from any command                 : format: Ctrl-c
 // w : write date to memory                       : format:  w <start adderss> <data> ....<data> q
 // r : read data from memory                      : format:  r <start address> <end adderss>
 // t : trashed memory data and 0 clear            : format:  t

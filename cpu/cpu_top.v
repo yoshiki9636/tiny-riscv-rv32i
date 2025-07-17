@@ -19,7 +19,7 @@ module cpu_top (
 	output [31:0] pc_data,
 
 	input interrupt_0,
-	output interrupt_clear,
+	input interrupt_clear,
 	output csr_mtie,
 	input frc_cntr_val_leq,
 

@@ -93,7 +93,7 @@ clk_wiz_0 clk_wiz_0 (
 	.clk_in1(clkin)
 	);
 
-cput_top cput_top (
+cpu_top cpu_top (
 	.clk(clk),
 	.rst_n(rst_n),
 	.cpu_start(cpu_start),

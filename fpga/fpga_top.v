@@ -88,7 +88,7 @@ wire csr_mtie;
 wire frc_cntr_val_leq;
 wire interrupt_clear;
 
-cput_top cput_top (
+cpu_top cpu_top (
 	.clk(clk),
 	.rst_n(rst_n),
 	.cpu_start(cpu_start),

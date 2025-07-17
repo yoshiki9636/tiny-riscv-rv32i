@@ -9,7 +9,7 @@
  * @version		0.1
  */
 
-module cput_top (
+module cpu_top (
 
 	input clk,
 	input rst_n,

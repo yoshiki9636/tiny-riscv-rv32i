@@ -260,7 +260,9 @@ assign adr_slice = (adr_ofs == 3'd5) ? adr_rw[23:20] :
 assign adr_end = state_adr & (adr_ofs == 3'b0) & fall_edge;
 
 // write data slicer
-wire [31:0] wdata = write_data;
+reg [31:0] write_data_lat;
+
+wire [31:0] wdata = write_data_lat;
 wire [3:0] wdata_slice;
 reg [2:0] wdata_ofs;
 
@@ -439,6 +441,13 @@ always @ (posedge clk or negedge rst_n) begin
 	end
 end
 
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		write_data_lat <= 32'd0;
+	else if (write_req)
+		write_data_lat <= write_data;
+end
 
 
 endmodule

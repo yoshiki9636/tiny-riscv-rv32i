@@ -71,7 +71,7 @@ end
 
 reg write_stat;
 
-assign u_write_adr = trush_running ? { { 10{ 1'b0}}, trush_adr} : cmd_wadr_cntr[31:2];
+assign u_write_adr = trush_running ? { { 10{ 1'b0}}, trush_adr, 2'd0} : { cmd_wadr_cntr[31:2], 2'd0};
 assign u_write_data = trush_running ? 32'd0 : uart_data;
 assign u_write_req = (write_data_en | trash_req) & ~write_stat; // trash req not work currently
 assign u_write_w = 1'b1;
@@ -208,11 +208,11 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 assign dradr_cntup = (status_dump == `D_DRWT)&(next_status_dump == `D_DRDF);
-//assign dread_start = ((status_dump == `D_IDLE)|(status_dump == `D_DRDF))&(next_status_dump == `D_DRWT);
+assign dread_start = ((status_dump == `D_IDLE)|(status_dump == `D_DRDF))&(next_status_dump == `D_DRWT);
 assign dump_running = (status_dump != `D_IDLE);
 wire rdata_snd_wait = (status_dump == `D_WAIT)|(status_dump == `D_DRDF);
 
-assign u_read_req = dradr_cntup;
+assign u_read_req = dradr_cntup | dread_start;
 
 //reg i_ram_sel;
 

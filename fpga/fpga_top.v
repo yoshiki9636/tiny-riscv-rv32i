@@ -15,7 +15,7 @@ module fpga_top (
 	input interrupt_0,
 
 	output sck,
-	output ce_n,
+	output [2:0] ce_n,
 	inout [3:0] sio,
 
 	input rx,

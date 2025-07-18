@@ -36,7 +36,7 @@ module qspi_innermem (
 	);
 	
 wire sck;
-wire ce_n;
+wire [2:0] ce_n;
 wire [3:0] sio_i;
 wire [3:0] sio_o;
 
@@ -76,7 +76,7 @@ qspi_psram_model qspi_psram_model (
 	.clk(clk),
 	.rst_n(rst_n),
 	.sck(sck),
-	.ce_n(ce_n),
+	.ce_n(ce_n[0]),
 	.sio_i(sio_o),
 	.sio_o(sio_i),
 	.sio_oe(sio_oe2)

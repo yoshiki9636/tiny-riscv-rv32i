@@ -12,7 +12,7 @@ module qspi_if (
 	input clk,
 	input rst_n,
 	output reg sck,
-	output reg ce_n,
+	output reg [2:0] ce_n,
 	inout [3:0] sio,
 
 	input read_req,
@@ -210,12 +210,15 @@ wire state_rst = (qspi_state == `QS_RESET);
 wire next_state_rst = (next_qspi_state == `QS_RESET);
 
 wire ce_n_pre = (qspi_state == `QS_IDLE);
+wire ce_0_en = (word_adr[25:24] != 2'd0) | ce_n_pre;
+wire ce_1_en = (word_adr[25:24] != 2'd1) | ce_n_pre;
+wire ce_2_en = (word_adr[25:24] != 2'd2) | ce_n_pre;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		ce_n <= 1'b1;
+		ce_n <= 3'b111;
 	else
-		ce_n <= ce_n_pre;
+		ce_n <= { ce_2_en, ce_1_en, ce_0_en };
 end
 
 // command slicer

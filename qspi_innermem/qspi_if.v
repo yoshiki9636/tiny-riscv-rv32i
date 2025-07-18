@@ -12,11 +12,13 @@ module qspi_if (
 	input clk,
 	input rst_n,
 	output reg sck,
-	output reg ce_n,
+	output reg [2:0] ce_n,
     //inout [3:0] sio,
     input [3:0] sio_i,
     output [3:0] sio_o,
     output sio_oe,
+
+	input [1:0] init_latency,
 
 	input read_req,
 	input read_w,
@@ -50,7 +52,7 @@ module qspi_if (
 // input sampler
 reg word_w;
 reg word_hw;
-reg [23:0] word_adr;
+reg [25:0] word_adr;
 
 // tristate buffer of sio
 reg sio_out_enbl;
@@ -214,12 +216,15 @@ wire state_rst = (qspi_state == `QS_RESET);
 wire next_state_rst = (next_qspi_state == `QS_RESET);
 
 wire ce_n_pre = (qspi_state == `QS_IDLE);
+wire ce_0_en = (word_adr[25:24] != 2'd0) | ce_n_pre;
+wire ce_1_en = (word_adr[25:24] != 2'd1) | ce_n_pre;
+wire ce_2_en = (word_adr[25:24] != 2'd2) | ce_n_pre;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		ce_n <= 1'b1;
+		ce_n <= 3'b111;
 	else
-		ce_n <= ce_n_pre;
+		ce_n <= { ce_2_en, ce_1_en, ce_0_en };
 end
 
 // command slicer
@@ -260,7 +265,7 @@ always @ (posedge clk or negedge rst_n) begin
 		adr_ofs <= adr_ofs - 3'd1;
 end
 
-assign adr_rw = word_adr;
+assign adr_rw = word_adr[23:0];
 
 assign adr_slice = (adr_ofs == 3'd5) ? adr_rw[23:20] :
                    (adr_ofs == 3'd4) ? adr_rw[19:16] :
@@ -463,13 +468,13 @@ assign write_finish = write_data_end;
 
 wire word_w_pre = read_req ? read_w : write_w;
 wire word_hw_pre = read_req ? read_hw : write_hw;
-wire [23:0] word_adr_pre = read_req ? read_adr[23:0] : write_adr[23:0];
+wire [25:0] word_adr_pre = read_req ? read_adr[25:0] : write_adr[25:0];
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
 		word_w <= 1'b0;
 		word_hw <= 1'b0;
-		word_adr <= 24'd0;
+		word_adr <= 26'd0;
 	end
 	else if (read_req | write_req) begin
 		word_w <= word_w_pre;
@@ -477,6 +482,7 @@ always @ (posedge clk or negedge rst_n) begin
 		word_adr <= word_adr_pre;
 	end
 end
+
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)

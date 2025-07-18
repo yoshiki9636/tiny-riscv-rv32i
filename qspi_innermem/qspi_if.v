@@ -377,8 +377,6 @@ reg [3:0] read_latency_0;
 reg [3:0] read_latency_1;
 reg [3:0] read_latency_2;
 
-	input [1:0] init_latency,
-
 // causion!! need to change if default memory does not work
 wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'd7 :
                                   (init_latency == 2'd1) ? 4'd8 :

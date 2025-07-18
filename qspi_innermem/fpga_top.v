@@ -16,7 +16,9 @@ module fpga_top (
 
 	input rx,
 	output tx,
-	output [3:0] rgb_led
+	output [3:0] rgb_led,
+	input [1:0] init_latency,
+	input init_cpu_start
 
 	);
 
@@ -100,6 +102,8 @@ wire [31:0] dma_io_wdata = dma_io_we_u ? dma_io_wdata_u : dma_io_wdata_c;
 wire dma_io_radr_en = dma_io_radr_en_c | dma_io_radr_en_u;
 wire [15:2] dma_io_radr = dma_io_radr_en_u ? dma_io_radr_u : dma_io_radr_c;
 
+wire 
+
 clk_wiz_0 clk_wiz_0 (
 	.clk_out1(clk),
 	.reset(~rst_n),
@@ -111,6 +115,7 @@ cpu_top cpu_top (
 	.clk(clk),
 	.rst_n(rst_n),
 	.cpu_start(cpu_start),
+	.init_cpu_start(init_cpu_start),
 	.quit_cmd(quit_cmd),
 	.cpu_start_adr(cpu_start_adr),
 	.pc_data(pc_data),
@@ -210,6 +215,7 @@ uart_top uart_top (
 qspi_innermem qspi_innermem (
 	.clk(clk),
 	.rst_n(rst_n),
+	.init_latency(init_latency),
 	.read_req(read_req),
 	.read_w(read_w),
 	.read_hw(read_hw),

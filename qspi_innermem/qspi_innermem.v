@@ -11,6 +11,7 @@
 module qspi_innermem (
 	input clk,
 	input rst_n,
+	input [1:0] init_latency,
 
 	input read_req,
 	input read_w,
@@ -39,7 +40,6 @@ wire sck;
 wire [2:0] ce_n;
 wire [3:0] sio_i;
 wire [3:0] sio_o;
-wire [1:0] init_latency = 2'b00;
 
 wire sio_oe1;
 wire sio_oe2;

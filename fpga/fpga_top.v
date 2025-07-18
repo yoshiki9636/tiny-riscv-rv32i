@@ -22,7 +22,8 @@ module fpga_top (
 	output tx,
 	output [3:0] rgb_led,
 
-	input [1:0] init_latency
+	input [1:0] init_latency,
+	input init_cpu_start
 
 	);
 
@@ -121,6 +122,7 @@ cpu_top cpu_top (
 	.clk(clk),
 	.rst_n(rst_n),
 	.cpu_start(cpu_start),
+	.init_cpu_start(init_cpu_start),
 	.quit_cmd(quit_cmd),
 	.cpu_start_adr(cpu_start_adr),
 	.pc_data(pc_data),

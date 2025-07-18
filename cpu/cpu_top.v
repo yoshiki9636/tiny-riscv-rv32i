@@ -14,6 +14,7 @@ module cpu_top (
 	input clk,
 	input rst_n,
 	input cpu_start,
+	input init_cpu_start,
 	input quit_cmd,
 	input [31:2] cpu_start_adr,
 	output [31:0] pc_data,
@@ -149,6 +150,7 @@ cpu_status cpu_status (
 	.rst_n(rst_n),
 	.cpu_start(cpu_start),
 	.quit_cmd(quit_cmd),
+	.init_cpu_start(init_cpu_start),
 	.stall(stall)
 	);
 

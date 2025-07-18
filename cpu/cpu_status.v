@@ -15,6 +15,7 @@ module cpu_status (
 	// from control
 	input cpu_start,
 	input quit_cmd,
+	input init_cpu_start,
 	// to CPU
 	output stall
 	);
@@ -23,7 +24,7 @@ reg cpu_run_state;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		cpu_run_state <= 1'b0;
+		cpu_run_state <= init_cpu_start;
 	else if (quit_cmd)
 		cpu_run_state <= 1'b0;	
 	else if (cpu_start)

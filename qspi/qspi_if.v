@@ -26,11 +26,19 @@ module qspi_if (
 	input write_hw,
 	output write_finish,
 	input [31:0] write_adr,
-	input [31:0] write_data
+	input [31:0] write_data,
+
+	input dma_io_we,
+	input [15:2] dma_io_wadr,
+	input [31:0] dma_io_wdata,
+	input [15:2] dma_io_radr,
+	input dma_io_radr_en,
+	input [31:0] dma_io_rdata_in,
+	output [31:0] dma_io_rdata
 
 	);
 	
-`define TERM_SCK 4'd8
+`define TERM_SCK 4'd3
 `define CMD_FREADQ 8'hEB
 `define CMD_QWIRTE 8'h38
 `define CMD_RST_EN 8'h66
@@ -71,7 +79,6 @@ reg sck_sync;
 
 wire rise_edge = sck & ~sck_sync;
 wire fall_edge = ~sck & sck_sync;
-//wire fall_edge = ~sck & sck_sync;
 
 // SCK counter
 reg [9:0] sck_cntr;
@@ -342,6 +349,32 @@ end
 
 assign rst_end = (state_rsten | state_rst) & (rst_cntr == 4'd0) & fall_edge;
 
+// read latency register
+`define SYS_QSPI_LATENCY 14'h3D00
+
+wire we_qspi_latency = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY);
+wire re_qspi_latency = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY);
+
+reg [3:0] read_latency;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 read_latency <= 4'd7; // causion!! need to change if default memory does not work
+	else if (we_qspi_latency)
+		 read_latency <= dma_io_wdata[3:0];
+end
+
+reg re_qspi_latency_dly;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 re_qspi_latency_dly <= 1'b0;
+	else
+		 re_qspi_latency_dly <= re_qspi_latency;
+end
+
+assign dma_io_rdata = re_qspi_latency_dly ? { 28'd0, read_latency } : dma_io_rdata_in;
+
 // read wait counter
 reg [3:0] rwait_cntr;
 
@@ -349,7 +382,7 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		 rwait_cntr <= 4'd0;
 	else if (~state_rdwt & next_state_rdwt)
-		 rwait_cntr <= 4'd7; // causion!!
+		 rwait_cntr <= read_latency;
 	else if (rwait_cntr == 4'd0)
 		 rwait_cntr <= 4'd0;
 	else if (fall_edge)
@@ -440,7 +473,6 @@ always @ (posedge clk or negedge rst_n) begin
 		word_adr <= word_adr_pre;
 	end
 end
-
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)

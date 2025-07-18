@@ -39,6 +39,7 @@ wire sck;
 wire [2:0] ce_n;
 wire [3:0] sio_i;
 wire [3:0] sio_o;
+wire [1:0] init_latency = 2'b00;
 
 wire sio_oe1;
 wire sio_oe2;
@@ -51,6 +52,7 @@ qspi_if qspi_if (
 	.sio_i(sio_i),
 	.sio_o(sio_o),
 	.sio_oe(sio_oe1),
+	.init_latency(init_latency),
 	.read_req(read_req),
 	.read_w(read_w),
 	.read_hw(read_hw),

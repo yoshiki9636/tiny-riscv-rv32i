@@ -15,6 +15,8 @@ module qspi_if (
 	output reg [2:0] ce_n,
 	inout [3:0] sio,
 
+	input [1:0] init_latency,
+
 	input read_req,
 	input read_w,
 	input read_hw,
@@ -47,7 +49,7 @@ module qspi_if (
 // input sampler
 reg word_w;
 reg word_hw;
-reg [23:0] word_adr;
+reg [25:0] word_adr;
 
 // tristate buffer of sio
 reg sio_out_enbl;
@@ -210,9 +212,12 @@ wire state_rst = (qspi_state == `QS_RESET);
 wire next_state_rst = (next_qspi_state == `QS_RESET);
 
 wire ce_n_pre = (qspi_state == `QS_IDLE);
-wire ce_0_en = (word_adr[25:24] != 2'd0) | ce_n_pre;
-wire ce_1_en = (word_adr[25:24] != 2'd1) | ce_n_pre;
-wire ce_2_en = (word_adr[25:24] != 2'd2) | ce_n_pre;
+wire ce_0_dec = (word_adr[25:24] == 2'd0);
+wire ce_1_dec = (word_adr[25:24] == 2'd1);
+wire ce_2_dec = (word_adr[25:24] == 2'd2);
+wire ce_0_en = ~ce_0_dec | ce_n_pre;
+wire ce_1_en = ~ce_1_dec | ce_n_pre;
+wire ce_2_en = ~ce_2_dec | ce_n_pre;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
@@ -259,7 +264,7 @@ always @ (posedge clk or negedge rst_n) begin
 		adr_ofs <= adr_ofs - 3'd1;
 end
 
-assign adr_rw = word_adr;
+assign adr_rw = word_adr[23:0];
 
 assign adr_slice = (adr_ofs == 3'd5) ? adr_rw[23:20] :
                    (adr_ofs == 3'd4) ? adr_rw[19:16] :
@@ -353,30 +358,73 @@ end
 assign rst_end = (state_rsten | state_rst) & (rst_cntr == 4'd0) & fall_edge;
 
 // read latency register
-`define SYS_QSPI_LATENCY 14'h3D00
+`define SYS_QSPI_LATENCY0 14'h3D00
+`define SYS_QSPI_LATENCY1 14'h3D01
+`define SYS_QSPI_LATENCY2 14'h3D02
 
-wire we_qspi_latency = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY);
-wire re_qspi_latency = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY);
+wire we_qspi_latency0 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY0);
+wire re_qspi_latency0 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY0);
+wire we_qspi_latency1 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY1);
+wire re_qspi_latency1 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY1);
+wire we_qspi_latency2 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY2);
+wire re_qspi_latency2 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY2);
 
-reg [3:0] read_latency;
+reg [3:0] read_latency_0;
+reg [3:0] read_latency_1;
+reg [3:0] read_latency_2;
+
+	input [1:0] init_latency,
+
+// causion!! need to change if default memory does not work
+wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'd7 :
+                                  (init_latency == 2'd1) ? 4'd8 :
+                                  (init_latency == 2'd2) ? 4'd9 : 4'd6;
+
+wire [3:0] init_latency_value_1 = (init_latency == 2'd0) ? 4'd7 :
+                                  (init_latency == 2'd1) ? 4'd8 :
+                                  (init_latency == 2'd2) ? 4'd9 : 4'd6;
+
+wire [3:0] init_latency_value_2 = (init_latency == 2'd0) ? 4'd7 :
+                                  (init_latency == 2'd1) ? 4'd8 :
+                                  (init_latency == 2'd2) ? 4'd9 : 4'd6;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		 read_latency <= 4'd7; // causion!! need to change if default memory does not work
-	else if (we_qspi_latency)
-		 read_latency <= dma_io_wdata[3:0];
+		 read_latency_0 <= init_latency_value_0;
+	else if (we_qspi_latency0)
+		 read_latency_0 <= dma_io_wdata[3:0];
 end
 
-reg re_qspi_latency_dly;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 read_latency_1 <= init_latency_value_1;
+	else if (we_qspi_latency1)
+		 read_latency_1 <= dma_io_wdata[3:0];
+end
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		 re_qspi_latency_dly <= 1'b0;
+		 read_latency_2 <= init_latency_value_2;
+	else if (we_qspi_latency2)
+		 read_latency_2 <= dma_io_wdata[3:0];
+end
+
+
+reg [2:0] re_qspi_latency_dly;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 re_qspi_latency_dly <= 3'b000;
 	else
-		 re_qspi_latency_dly <= re_qspi_latency;
+		 re_qspi_latency_dly <= { re_qspi_latency2, re_qspi_latency1, re_qspi_latency0 };
 end
 
-assign dma_io_rdata = re_qspi_latency_dly ? { 28'd0, read_latency } : dma_io_rdata_in;
+assign dma_io_rdata = (re_qspi_latency_dly[0]) ? { 28'd0, read_latency_0 } :
+                      (re_qspi_latency_dly[1]) ? { 28'd0, read_latency_1 } :
+                      (re_qspi_latency_dly[2]) ? { 28'd0, read_latency_2 } : dma_io_rdata_in;
+
+wire [3:0] read_latency = ce_1_dec ? read_latency_1 :
+                          ce_2_dec ? read_latency_2 : read_latency_0;
 
 // read wait counter
 reg [3:0] rwait_cntr;
@@ -462,13 +510,13 @@ assign write_finish = write_data_end;
 
 wire word_w_pre = read_req ? read_w : write_w;
 wire word_hw_pre = read_req ? read_hw : write_hw;
-wire [23:0] word_adr_pre = read_req ? read_adr[23:0] : write_adr[23:0];
+wire [25:0] word_adr_pre = read_req ? read_adr[25:0] : write_adr[25:0];
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
 		word_w <= 1'b0;
 		word_hw <= 1'b0;
-		word_adr <= 24'd0;
+		word_adr <= 26'd0;
 	end
 	else if (read_req | write_req) begin
 		word_w <= word_w_pre;
@@ -476,6 +524,7 @@ always @ (posedge clk or negedge rst_n) begin
 		word_adr <= word_adr_pre;
 	end
 end
+
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)

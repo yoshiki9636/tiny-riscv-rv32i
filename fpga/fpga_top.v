@@ -20,7 +20,9 @@ module fpga_top (
 
 	input rx,
 	output tx,
-	output [3:0] rgb_led
+	output [3:0] rgb_led,
+
+	input [1:0] init_latency
 
 	);
 
@@ -221,6 +223,7 @@ qspi_if qspi_if (
 	.sck(sck),
 	.ce_n(ce_n),
 	.sio(sio),
+	.init_latency(init_latency),
 	.read_req(read_req),
 	.read_w(read_w),
 	.read_hw(read_hw),

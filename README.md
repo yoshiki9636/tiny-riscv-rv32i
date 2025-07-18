@@ -18,7 +18,8 @@ Japanese only
 - QSPI分周比1:6(v0.1現在)
 - uartはrx側モニター機能あり　ただし、普通のUARTとして使えない( v0.1現在 )
   ⇒　runコマンド実行時にrxとして使えないか検討
-
+- 40bit Free Run Counterを装備、タイマー割込みサポート(未検証)
+- GPIO out 4bitのみ。 in 4bit inout 4bit追加予定。
 
 FPGAでの使い方
 
@@ -69,6 +70,38 @@ w : write date to memory : format: w <start adderss> <data> ....<data> Ctrl-c
 r : read data from memory : format: r <start address> <end adderss>
 t : trashed memory data and 0 clear : format: t　(未検証)
 
+テスト向けアセンブラ使用方法
+
+・実行バイナリテキスト作成
+　./riscv-asm1.pl <finename>.asm > <filename>.txt
+
+・アドレスオフセット付き実行バイナリテキスト作成 (アドレスオフセット 0x100の場合　0x100くらいが限界)
+　./riscv-asm1.pl -p 0x100 <finename>.asm > <filename>.txt
+
+・ビット配列、アドレス等デバッグ情報ダンプ
+./riscv-asm1.pl -v <finename>.asm >
+
+
+テスト向けCプログラムコンパイル方法
+
+・事前準備　：　riscv-gnu-toolchainのインストール （linux環境)
+ (1) riscv-gnu-toolchainをgitのレポジトリからclone
+    https://github.com/riscv-collab/riscv-gnu-toolchain
+	他いくつかある模様
+ (2) README.mdに従いconfigure 
+     この時、①/opt/riscvあたりにprefixを置いて、②rv32iをターゲットにして、③newlibを作成するようにする
+ (3) makeとmake install
+ (4) tiny-riscv-rv32i/ctestの中の cmpl.shとcmph2.shのライブラリのパスを上記のインストールした場所に書き換える
+
+・コンパイル
+ ・*_test.c　のファイル（printfで浮動小数点を扱わないもの）
+ 　./cmpl.sh <filename>.c
+ ・*_test2.c *.test3.c　のファイル(printfで浮動小数点を扱うもの)
+  ./cmpl2.sh <filename>.c
+  
+・関連ファイル　適度に値を調整してください
+ start.s  : スタート番地とスタックポインタの設定をしている
+　link.ld  : リンク情報　各種メモリの位置を決めている
 
 RTLシミュレーション
 

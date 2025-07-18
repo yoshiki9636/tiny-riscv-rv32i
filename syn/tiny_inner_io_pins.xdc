@@ -31,6 +31,14 @@ set_property SLEW SLOW [get_ports tx]
 set_property PACKAGE_PIN D10 [get_ports tx]
 set_property IOSTANDARD LVCMOS33 [get_ports rst_n]
 set_property PACKAGE_PIN C2 [get_ports rst_n]
+
+set_property IOSTANDARD LVCMOS33 [get_ports {init_latency[0]}]
+set_property PACKAGE_PIN C9 [get_ports {init_latency[0]}]
+set_property IOSTANDARD LVCMOS33 [get_ports {init_latency[1]}]
+set_property PACKAGE_PIN B9 [get_ports {init_latency[1]}]
+set_property IOSTANDARD LVCMOS33 [get_ports init_cpu_start]
+set_property PACKAGE_PIN B8 [get_ports init_cpu_start]
+
 #revert back to original instance
 #current_instance -quiet
 
@@ -48,6 +56,11 @@ set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -min -add_delay 1
 set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -max -add_delay 1.000 [get_ports rx]
 set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -min -add_delay 1.000 [get_ports interrupt_0]
 set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -max -add_delay 1.000 [get_ports interrupt_0]
+set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -min -add_delay 1.000 [get_ports {init_latency[*]}]
+set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -max -add_delay 1.000 [get_ports {init_latency[*]}]
+set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -min -add_delay 1.000 [get_ports init_cpu_start]
+set_input_delay -clock [get_clocks -of_objects [get_nets clk]] -max -add_delay 1.000 [get_ports init_cpu_start]
+set_output_delay -clock [get_clocks -of_objects [get_nets clk]] -min -add_delay -3.000 [get_ports {rgb_led[*]}]
 set_output_delay -clock [get_clocks -of_objects [get_nets clk]] -min -add_delay -3.000 [get_ports {rgb_led[*]}]
 set_output_delay -clock [get_clocks -of_objects [get_nets clk]] -max -add_delay -3.000 [get_ports {rgb_led[*]}]
 set_output_delay -clock [get_clocks -of_objects [get_nets clk]] -min -add_delay -3.000 [get_ports tx]

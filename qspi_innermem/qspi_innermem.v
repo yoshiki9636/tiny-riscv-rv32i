@@ -23,7 +23,15 @@ module qspi_innermem (
 	input write_hw,
 	output write_finish,
 	input [31:0] write_adr,
-	input [31:0] write_data
+	input [31:0] write_data,
+
+	input dma_io_we,
+	input [15:2] dma_io_wadr,
+	input [31:0] dma_io_wdata,
+	input [15:2] dma_io_radr,
+	input dma_io_radr_en,
+	input [31:0] dma_io_rdata_in,
+	output [31:0] dma_io_rdata
 
 	);
 	
@@ -54,7 +62,14 @@ qspi_if qspi_if (
 	.write_hw(write_hw),
 	.write_finish(write_finish),
 	.write_adr(write_adr),
-	.write_data(write_data)
+	.write_data(write_data),
+	.dma_io_we(dma_io_we),
+	.dma_io_wadr(dma_io_wadr),
+	.dma_io_wdata(dma_io_wdata),
+	.dma_io_radr(dma_io_radr),
+	.dma_io_radr_en(dma_io_radr_en),
+	.dma_io_rdata_in(dma_io_rdata_in_4),
+	.dma_io_rdata(dma_io_rdata)
 	);
 
 qspi_psram_model qspi_psram_model (

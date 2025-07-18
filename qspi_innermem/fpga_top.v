@@ -86,6 +86,7 @@ wire [31:0] dma_io_rdata; // input
 wire [31:0] dma_io_rdata_in = 32'd0; // input
 wire [31:0] dma_io_rdata_in_2; // input
 wire [31:0] dma_io_rdata_in_3; // input
+wire [31:0] dma_io_rdata_in_4; // input
 
 // for free run counter signals
 wire csr_mtie;
@@ -220,7 +221,14 @@ qspi_innermem qspi_innermem (
 	.write_hw(write_hw),
 	.write_finish(write_finish),
 	.write_adr(write_adr),
-	.write_data(write_data)
+	.write_data(write_data),
+	.dma_io_we(dma_io_we),
+	.dma_io_wadr(dma_io_wadr),
+	.dma_io_wdata(dma_io_wdata),
+	.dma_io_radr(dma_io_radr),
+	.dma_io_radr_en(dma_io_radr_en),
+	.dma_io_rdata_in(dma_io_rdata_in_4),
+	.dma_io_rdata(dma_io_rdata)
 	);
 
 io_led io_led (
@@ -261,7 +269,7 @@ io_frc io_frc (
 	.dma_io_radr(dma_io_radr),
 	.dma_io_radr_en(dma_io_radr_en),
 	.dma_io_rdata_in(dma_io_rdata_in_3),
-	.dma_io_rdata(dma_io_rdata),
+	.dma_io_rdata(dma_io_rdata_in_4),
 	.csr_mtie(csr_mtie),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
 	.interrupt_clear(interrupt_clear)

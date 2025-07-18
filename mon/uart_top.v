@@ -30,6 +30,13 @@ module uart_top
 	output [31:0] u_write_adr,
 	output [31:0] u_write_data,
 
+	output dma_io_we,
+	output [15:2] dma_io_wadr,
+	output [31:0] dma_io_wdata,
+	output [15:2] dma_io_radr,
+	output dma_io_radr_en,
+	input [31:0] dma_io_rdata_in,
+
 	input [31:0] pc_data,
 	
 	output cpu_start,
@@ -53,9 +60,9 @@ wire [7:0] tx_wdata;
 wire flushing_wq;
 wire inst_address_set;
 wire inst_data_en;
-//wire pgm_end_set;
-//wire pgm_start_set;
-//wire pgm_stop;
+wire pgm_end_set;
+wire pgm_start_set;
+wire pgm_stop;
 wire rdata_snd_start;
 wire read_end_set;
 wire read_start_set;
@@ -145,9 +152,9 @@ uart_rec_char uart_rec_char (
 	.start_trush(start_trush),
 	.start_step(start_step),
 	.quit_cmd(quit_cmd),
-	//.pgm_start_set(pgm_start_set),
-	//.pgm_end_set(pgm_end_set),
-	//.pgm_stop(pgm_stop),
+	.pgm_start_set(pgm_start_set),
+	.pgm_end_set(pgm_end_set),
+	.pgm_stop(pgm_stop),
 	.inst_address_set(inst_address_set),
 	.inst_data_en(inst_data_en),
 	.pc_print(pc_print),
@@ -180,6 +187,12 @@ uart_logics uart_logics (
 	.write_finish(write_finish),
 	.u_write_adr(u_write_adr),
 	.u_write_data(u_write_data),
+	.dma_io_we(dma_io_we),
+	.dma_io_wadr(dma_io_wadr),
+	.dma_io_wdata(dma_io_wdata),
+	.dma_io_radr(dma_io_radr),
+	.dma_io_radr_en(dma_io_radr_en),
+	.dma_io_rdata_in(dma_io_rdata_in),
 	.uart_data(uart_data),
 	.start_adr(start_adr),
 	.write_address_set(write_address_set),
@@ -194,9 +207,9 @@ uart_logics uart_logics (
 	.start_trush(start_trush),
 	.trush_running(trush_running),
 	.start_step(start_step),
-	//.pgm_start_set(pgm_start_set),
-	//.pgm_end_set(pgm_end_set),
-	//.pgm_stop(pgm_stop),
+	.pgm_start_set(pgm_start_set),
+	.pgm_end_set(pgm_end_set),
+	.pgm_stop(pgm_stop),
 	.inst_address_set(inst_address_set),
 	.pc_print(pc_print),
 	.pc_print_sel(pc_print_sel),

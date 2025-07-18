@@ -69,13 +69,19 @@ wire [7:0] uart_io_char; // input
 wire uart_io_we; // input
 wire uart_io_full; // output
 
-// io bus
-wire dma_io_we; // output
-wire [15:2] dma_io_wadr; // output
-wire [31:0] dma_io_wdata; // output
-
-wire [15:2] dma_io_radr; // output
-wire dma_io_radr_en; // output
+// io bus for cpu
+wire dma_io_we_c; // output
+wire [15:2] dma_io_wadr_c; // output
+wire [31:0] dma_io_wdata_c; // output
+wire [15:2] dma_io_radr_c; // output
+wire dma_io_radr_en_c; // output
+// io bus for uart
+wire dma_io_we_u; // output
+wire [15:2] dma_io_wadr_u; // output
+wire [31:0] dma_io_wdata_u; // output
+wire [15:2] dma_io_radr_u; // output
+wire dma_io_radr_en_u; // output
+// io bus read datat
 wire [31:0] dma_io_rdata; // input
 wire [31:0] dma_io_rdata_in = 32'd0; // input
 wire [31:0] dma_io_rdata_in_2; // input
@@ -85,6 +91,13 @@ wire [31:0] dma_io_rdata_in_3; // input
 wire csr_mtie;
 wire frc_cntr_val_leq;
 wire interrupt_clear;
+
+// io bus logics
+wire dma_io_we = dma_io_we_c | dma_io_we_u;
+wire [15:2] dma_io_wadr = dma_io_we_u ? dma_io_wadr_u : dma_io_wadr_c;
+wire [31:0] dma_io_wdata = dma_io_we_u ? dma_io_wdata_u : dma_io_wdata_c;
+wire dma_io_radr_en = dma_io_radr_en_c | dma_io_radr_en_u;
+wire [15:2] dma_io_radr = dma_io_radr_en_u ? dma_io_radr_u : dma_io_radr_c;
 
 clk_wiz_0 clk_wiz_0 (
 	.clk_out1(clk),
@@ -120,11 +133,11 @@ cpu_top cpu_top (
 	.write_finish(write_finish),
 	.d_write_adr(d_write_adr),
 	.d_write_data(d_write_data),
-	.dma_io_we(dma_io_we),
-	.dma_io_wadr(dma_io_wadr),
-	.dma_io_wdata(dma_io_wdata),
-	.dma_io_radr(dma_io_radr),
-	.dma_io_radr_en(dma_io_radr_en),
+	.dma_io_we(dma_io_we_c),
+	.dma_io_wadr(dma_io_wadr_c),
+	.dma_io_wdata(dma_io_wdata_c),
+	.dma_io_radr(dma_io_radr_c),
+	.dma_io_radr_en(dma_io_radr_en_c),
 	.dma_io_rdata(dma_io_rdata)
 	);
 
@@ -177,6 +190,12 @@ uart_top uart_top (
 	.write_finish(write_finish),
 	.u_write_adr(u_write_adr),
 	.u_write_data(u_write_data),
+	.dma_io_we(dma_io_we_u),
+	.dma_io_wadr(dma_io_wadr_u),
+	.dma_io_wdata(dma_io_wdata_u),
+	.dma_io_radr(dma_io_radr_u),
+	.dma_io_radr_en(dma_io_radr_en_u),
+	.dma_io_rdata_in(dma_io_rdata),
 	.pc_data(pc_data),
 	.cpu_start(cpu_start),
 	.quit_cmd(quit_cmd),

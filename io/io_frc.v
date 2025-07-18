@@ -37,19 +37,19 @@ module io_frc(
 `define SYS_INT_CLEAR 14'h3E80
 
 wire we_frc_vallo = dma_io_we      & (dma_io_wadr == `SYS_FRC_VALLO);
-wire re_frc_vallo = dma_io_radr_en & (dma_io_wadr == `SYS_FRC_VALLO);
+wire re_frc_vallo = dma_io_radr_en & (dma_io_radr == `SYS_FRC_VALLO);
 
 wire we_frc_valhi = dma_io_we      & (dma_io_wadr == `SYS_FRC_VALHI);
-wire re_frc_valhi = dma_io_radr_en & (dma_io_wadr == `SYS_FRC_VALHI);
+wire re_frc_valhi = dma_io_radr_en & (dma_io_radr == `SYS_FRC_VALHI);
 
 wire we_frc_cmplo = dma_io_we      & (dma_io_wadr == `SYS_FRC_CMPLO);
-wire re_frc_cmplo = dma_io_radr_en & (dma_io_wadr == `SYS_FRC_CMPLO);
+wire re_frc_cmplo = dma_io_radr_en & (dma_io_radr == `SYS_FRC_CMPLO);
 
 wire we_frc_cmphi = dma_io_we      & (dma_io_wadr == `SYS_FRC_CMPHI);
-wire re_frc_cmphi = dma_io_radr_en & (dma_io_wadr == `SYS_FRC_CMPHI);
+wire re_frc_cmphi = dma_io_radr_en & (dma_io_radr == `SYS_FRC_CMPHI);
 
 wire we_frc_cntrl = dma_io_we      & (dma_io_wadr == `SYS_FRC_CNTRL);
-wire re_frc_cntrl = dma_io_radr_en & (dma_io_wadr == `SYS_FRC_CNTRL);
+wire re_frc_cntrl = dma_io_radr_en & (dma_io_radr == `SYS_FRC_CNTRL);
 
 wire we_frc_clear = dma_io_we      & (dma_io_wadr == `SYS_INT_CLEAR);
 
@@ -102,6 +102,23 @@ always @ (posedge clk or negedge rst_n) begin
 	else if ((frc_cntr_val <= frc_cmp_val) & run_cntr & csr_mtie)
         frc_cntr_val_leq <= 1'd1 ;
 end
+
+// bus read part
+reg [4:0] re_frc_dly;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		re_frc_dly <= 5'd0 ;
+	else
+		re_frc_dly <= { re_frc_cntrl, re_frc_cmphi, re_frc_cmplo, re_frc_valhi, re_frc_vallo } ;
+end
+
+//assign dma_io_rdata = dma_io_rdata_in;
+assign dma_io_rdata = (re_frc_dly[0]) ? frc_cntr_val[31:0] :
+                      (re_frc_dly[1]) ? { 24'd0, frc_cntr_val[39:32] } :
+                      (re_frc_dly[2]) ? frc_cmp_val[31:0] :
+                      (re_frc_dly[3]) ? { 24'd0, frc_cmp_val[39:32] } :
+                      (re_frc_dly[4]) ? { 29'd0, frc_cntr_val_leq, 1'b0, frc_cntrl_val } : dma_io_rdata_in;
 
 // for interrupt
 assign interrupt_clear = we_frc_clear;

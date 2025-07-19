@@ -421,9 +421,9 @@ always @ (posedge clk or negedge rst_n) begin
 		 re_qspi_latency_dly <= { re_qspi_latency2, re_qspi_latency1, re_qspi_latency0 };
 end
 
-assign dma_io_rdata = (re_qspi_latency_dly[0]) ? { 28'd0, read_latency_0 } :
-                      (re_qspi_latency_dly[1]) ? { 28'd0, read_latency_1 } :
-                      (re_qspi_latency_dly[2]) ? { 28'd0, read_latency_2 } : dma_io_rdata_in;
+assign dma_io_rdata = (re_qspi_latency_dly[0] == 1'b1) ? { 28'd0, read_latency_0 } :
+                      (re_qspi_latency_dly[1] == 1'b1) ? { 28'd0, read_latency_1 } :
+                      (re_qspi_latency_dly[2] == 1'b1) ? { 28'd0, read_latency_2 } : dma_io_rdata_in;
 
 wire [3:0] read_latency = ce_1_dec ? read_latency_1 :
                           ce_2_dec ? read_latency_2 : read_latency_0;

@@ -20,10 +20,13 @@ module fpga_top (
 
 	input rx,
 	output tx,
-	output [3:0] rgb_led,
+	output [2:0] rgb_led,
+	inout [3:0] gpio,
+	input gpi_in,
 
 	input [1:0] init_latency,
-	input init_cpu_start
+	input init_cpu_start,
+	input [1:0] init_uart
 
 	);
 
@@ -257,7 +260,12 @@ io_led io_led (
 	.dma_io_radr_en(dma_io_radr_en),
 	.dma_io_rdata_in(dma_io_rdata_in_2),
 	.dma_io_rdata(dma_io_rdata_in_3),
-	.rgb_led(rgb_led)
+	.rgb_led(rgb_led),
+	.init_uart(init_uart),
+	.init_latency(init_latency),
+	.init_cpu_start(init_cpu_start),
+	.gpi_in(gpi_in),
+	.gpio(gpio)
 	);
 
 io_uart_out io_uart_out (

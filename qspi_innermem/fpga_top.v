@@ -16,9 +16,13 @@ module fpga_top (
 
 	input rx,
 	output tx,
-	output [3:0] rgb_led,
+	output [2:0] rgb_led,
+	inout [3:0] gpio,
+	input gpi_in,
+
 	input [1:0] init_latency,
-	input init_cpu_start
+	input init_cpu_start,
+	input [1:0] init_uart
 
 	);
 
@@ -85,7 +89,8 @@ wire [15:2] dma_io_radr_u; // output
 wire dma_io_radr_en_u; // output
 // io bus read datat
 wire [31:0] dma_io_rdata; // input
-wire [31:0] dma_io_rdata_in = 32'd0; // input
+wire [31:0] dma_io_rdata_in = 32'hdeadbeef; // input
+//wire [31:0] dma_io_rdata_in = 32'd0; // input
 wire [31:0] dma_io_rdata_in_2; // input
 wire [31:0] dma_io_rdata_in_3; // input
 wire [31:0] dma_io_rdata_in_4; // input
@@ -201,6 +206,7 @@ uart_top uart_top (
 	.dma_io_radr(dma_io_radr_u),
 	.dma_io_radr_en(dma_io_radr_en_u),
 	.dma_io_rdata_in(dma_io_rdata),
+	//.dma_io_rdata_in(dma_io_rdata_in_4),
 	.pc_data(pc_data),
 	.cpu_start(cpu_start),
 	.quit_cmd(quit_cmd),
@@ -246,7 +252,12 @@ io_led io_led (
 	.dma_io_radr_en(dma_io_radr_en),
 	.dma_io_rdata_in(dma_io_rdata_in_2),
 	.dma_io_rdata(dma_io_rdata_in_3),
-	.rgb_led(rgb_led)
+	.rgb_led(rgb_led),
+	.init_uart(init_uart),
+	.init_latency(init_latency),
+	.init_cpu_start(init_cpu_start),
+	.gpi_in(gpi_in),
+	.gpio(gpio)
 	);
 
 io_uart_out io_uart_out (

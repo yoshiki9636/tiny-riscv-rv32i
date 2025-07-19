@@ -70,7 +70,7 @@ qspi_if qspi_if (
 	.dma_io_wdata(dma_io_wdata),
 	.dma_io_radr(dma_io_radr),
 	.dma_io_radr_en(dma_io_radr_en),
-	.dma_io_rdata_in(dma_io_rdata_in_4),
+	.dma_io_rdata_in(dma_io_rdata_in),
 	.dma_io_rdata(dma_io_rdata)
 	);
 

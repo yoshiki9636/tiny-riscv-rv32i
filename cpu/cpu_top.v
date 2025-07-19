@@ -20,7 +20,8 @@ module cpu_top (
 	output [31:0] pc_data,
 
 	input interrupt_0,
-	input interrupt_clear,
+	input ext_uart_interrpt_1shot,
+	//input interrupt_clear,
 	output csr_mtie,
 	input frc_cntr_val_leq,
 	output cpu_run_state,
@@ -47,7 +48,15 @@ module cpu_top (
 	output [31:0] dma_io_wdata,
 	output [15:2] dma_io_radr,
 	output dma_io_radr_en,
-	input [31:0] dma_io_rdata
+	input [31:0] dma_io_rdata,
+
+	input dma_io_we_i,
+	input [15:2] dma_io_wadr_i,
+	input [31:0] dma_io_wdata_i,
+	input [15:2] dma_io_radr_i,
+	input dma_io_radr_en_i,
+	input [31:0] dma_io_rdata_in_i,
+	output [31:0] dma_io_rdata_i
 
 	);
 
@@ -143,6 +152,7 @@ wire csr_meie; // output
 wire csr_msie; // output
 
 wire [31:2] pc_excep; // output
+wire [31:0] dma_io_rdata_int;
 
 assign pc_data = { pc, 2'd0 };
 
@@ -377,11 +387,17 @@ interrupter interrupter (
 	.clk(clk),
 	.rst_n(rst_n),
 	.interrupt_0(interrupt_0),
-	.interrupt_clear(interrupt_clear),
+	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
 	.csr_meie(csr_meie),
 	.g_interrupt_1shot(g_interrupt_1shot),
-	.g_interrupt(g_interrupt)
+	.g_interrupt(g_interrupt),
+	.dma_io_we(dma_io_we_i),
+	.dma_io_wadr(dma_io_wadr_i),
+	.dma_io_wdata(dma_io_wdata_i),
+	.dma_io_radr(dma_io_radr_i),
+	.dma_io_radr_en(dma_io_radr_en_i),
+	.dma_io_rdata_in(dma_io_rdata_in_i),
+	.dma_io_rdata(dma_io_rdata_i)
 	);
-
 
 endmodule

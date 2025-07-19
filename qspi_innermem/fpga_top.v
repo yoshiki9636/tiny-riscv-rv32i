@@ -98,11 +98,13 @@ wire [31:0] dma_io_rdata_in = 32'hdeadbeef; // input
 wire [31:0] dma_io_rdata_in_2; // input
 wire [31:0] dma_io_rdata_in_3; // input
 wire [31:0] dma_io_rdata_in_4; // input
+wire [31:0] dma_io_rdata_in_5; // input
 
 // for free run counter signals
 wire csr_mtie;
 wire frc_cntr_val_leq;
-wire interrupt_clear;
+//wire interrupt_clear;
+wire ext_uart_interrpt_1shot;
 
 // io bus logics
 wire dma_io_we = dma_io_we_c | dma_io_we_u;
@@ -128,7 +130,8 @@ cpu_top cpu_top (
 	.cpu_start_adr(cpu_start_adr),
 	.pc_data(pc_data),
 	.interrupt_0(interrupt_0),
-	.interrupt_clear(interrupt_clear),
+	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
+	//.interrupt_clear(interrupt_clear),
 	.csr_mtie(csr_mtie),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
 	.cpu_run_state(cpu_run_state),
@@ -153,7 +156,14 @@ cpu_top cpu_top (
 	.dma_io_wdata(dma_io_wdata_c),
 	.dma_io_radr(dma_io_radr_c),
 	.dma_io_radr_en(dma_io_radr_en_c),
-	.dma_io_rdata(dma_io_rdata)
+	.dma_io_rdata(dma_io_rdata),
+	.dma_io_we_i(dma_io_we),
+	.dma_io_wadr_i(dma_io_wadr),
+	.dma_io_wdata_i(dma_io_wdata),
+	.dma_io_radr_i(dma_io_radr),
+	.dma_io_radr_en_i(dma_io_radr_en),
+	.dma_io_rdata_in_i(dma_io_rdata_in_5),
+	.dma_io_rdata_i(dma_io_rdata)
 	);
 
 bus_gather bus_gather (
@@ -211,7 +221,6 @@ uart_top uart_top (
 	.dma_io_radr(dma_io_radr_u),
 	.dma_io_radr_en(dma_io_radr_en_u),
 	.dma_io_rdata_in(dma_io_rdata),
-	//.dma_io_rdata_in(dma_io_rdata_in_4),
 	.pc_data(pc_data),
 	.cpu_start(cpu_start),
 	.quit_cmd(quit_cmd),
@@ -247,7 +256,7 @@ qspi_innermem qspi_innermem (
 	.dma_io_radr(dma_io_radr),
 	.dma_io_radr_en(dma_io_radr_en),
 	.dma_io_rdata_in(dma_io_rdata_in_4),
-	.dma_io_rdata(dma_io_rdata)
+	.dma_io_rdata(dma_io_rdata_in_5)
 	);
 
 io_led io_led (
@@ -285,7 +294,8 @@ io_uart_out io_uart_out (
 	.uart_term(uart_term),
 	.cpu_run_state(cpu_run_state),
 	.rout_en(rout_en),
-	.rout(rout)
+	.rout(rout),
+	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot)
 	);
 
 
@@ -300,8 +310,7 @@ io_frc io_frc (
 	.dma_io_rdata_in(dma_io_rdata_in_3),
 	.dma_io_rdata(dma_io_rdata_in_4),
 	.csr_mtie(csr_mtie),
-	.frc_cntr_val_leq(frc_cntr_val_leq),
-	.interrupt_clear(interrupt_clear)
+	.frc_cntr_val_leq(frc_cntr_val_leq)
 	);
 
 endmodule

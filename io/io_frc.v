@@ -113,7 +113,6 @@ always @ (posedge clk or negedge rst_n) begin
 		re_frc_dly <= { re_frc_cntrl, re_frc_cmphi, re_frc_cmplo, re_frc_valhi, re_frc_vallo } ;
 end
 
-//assign dma_io_rdata = dma_io_rdata_in;
 assign dma_io_rdata = (re_frc_dly[0]) ? frc_cntr_val[31:0] :
                       (re_frc_dly[1]) ? { 24'd0, frc_cntr_val[39:32] } :
                       (re_frc_dly[2]) ? frc_cmp_val[31:0] :

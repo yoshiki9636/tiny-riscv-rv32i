@@ -74,6 +74,7 @@ wire [31:0] u_write_data; // input
 wire [7:0] uart_io_char; // input
 wire uart_io_we; // input
 wire uart_io_full; // output
+wire [15:0] uart_term;
 
 // io bus for cpu
 wire dma_io_we_c; // output
@@ -213,7 +214,8 @@ uart_top uart_top (
 	.start_adr(cpu_start_adr),
 	.uart_io_char(uart_io_char),
 	.uart_io_we(uart_io_we),
-	.uart_io_full(uart_io_full)
+	.uart_io_full(uart_io_full),
+	.uart_term(uart_term)
 	);
 
 
@@ -272,7 +274,9 @@ io_uart_out io_uart_out (
 	.dma_io_rdata(dma_io_rdata_in_2),
 	.uart_io_char(uart_io_char),
 	.uart_io_we(uart_io_we),
-	.uart_io_full(uart_io_full)
+	.uart_io_full(uart_io_full),
+	.init_uart(init_uart),
+	.uart_term(uart_term)
 	);
 
 

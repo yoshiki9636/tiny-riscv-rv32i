@@ -75,6 +75,9 @@ wire [7:0] uart_io_char; // input
 wire uart_io_we; // input
 wire uart_io_full; // output
 wire [15:0] uart_term;
+wire rout_en;
+wire [7:0] rout;
+wire cpu_run_state;
 
 // io bus for cpu
 wire dma_io_we_c; // output
@@ -128,6 +131,7 @@ cpu_top cpu_top (
 	.interrupt_clear(interrupt_clear),
 	.csr_mtie(csr_mtie),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
+	.cpu_run_state(cpu_run_state),
 	.i_read_req(i_read_req),
 	.i_read_w(i_read_w),
 	.i_read_hw(i_read_hw),
@@ -215,7 +219,9 @@ uart_top uart_top (
 	.uart_io_char(uart_io_char),
 	.uart_io_we(uart_io_we),
 	.uart_io_full(uart_io_full),
-	.uart_term(uart_term)
+	.uart_term(uart_term),
+	.rout_en(rout_en),
+	.rout(rout)
 	);
 
 
@@ -276,7 +282,10 @@ io_uart_out io_uart_out (
 	.uart_io_we(uart_io_we),
 	.uart_io_full(uart_io_full),
 	.init_uart(init_uart),
-	.uart_term(uart_term)
+	.uart_term(uart_term),
+	.cpu_run_state(cpu_run_state),
+	.rout_en(rout_en),
+	.rout(rout)
 	);
 
 

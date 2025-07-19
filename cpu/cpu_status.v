@@ -17,6 +17,7 @@ module cpu_status (
 	input quit_cmd,
 	input init_cpu_start,
 	// to CPU
+	output reg cpu_run_state,
 	output stall
 	);
 

@@ -23,6 +23,7 @@ module cpu_top (
 	input interrupt_clear,
 	output csr_mtie,
 	input frc_cntr_val_leq,
+	output cpu_run_state,
 
 	output i_read_req,
 	output i_read_w,
@@ -151,6 +152,7 @@ cpu_status cpu_status (
 	.cpu_start(cpu_start),
 	.quit_cmd(quit_cmd),
 	.init_cpu_start(init_cpu_start),
+	.cpu_run_state(cpu_run_state),
 	.stall(stall)
 	);
 

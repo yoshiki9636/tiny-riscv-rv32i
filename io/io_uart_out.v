@@ -79,8 +79,21 @@ wire [15:0] uart_term_reset_value = (init_uart == 2'd0) ? `TERM_0 :
                                     (init_uart == 2'd1) ? `TERM_1 :
                                     (init_uart == 2'd2) ? `TERM_2 : `TERM_3;
 
+reg [1:0] first_edge_lat;
+
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
+		first_edge_lat <= 2'b11;
+	else
+		first_edge_lat <= { first_edge_lat[0], 1'b0 };
+end
+
+wire first_edge = first_edge_lat[1];
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n)
+        uart_term <= 16'd0 ;
+	else if ( first_edge )
         uart_term <= uart_term_reset_value ;
 	else if ( we_uart_term )
 		uart_term <= dma_io_wdata[15:0];

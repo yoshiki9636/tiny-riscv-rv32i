@@ -386,8 +386,21 @@ wire [3:0] init_latency_value_2 = (init_latency == 2'd0) ? 4'd7 :
                                   (init_latency == 2'd1) ? 4'd8 :
                                   (init_latency == 2'd2) ? 4'd9 : 4'd6;
 
+reg [1:0] first_edge_lat;
+
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
+		first_edge_lat <= 2'b11;
+	else
+		first_edge_lat <= { first_edge_lat[0], 1'b0 };
+end
+
+wire first_edge = first_edge_lat[1];
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 read_latency_0 <= 4'd0;
+	else if (first_edge)
 		 read_latency_0 <= init_latency_value_0;
 	else if (we_qspi_latency0)
 		 read_latency_0 <= dma_io_wdata[3:0];
@@ -395,6 +408,8 @@ end
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
+		 read_latency_1 <= 4'd0;
+	else if (first_edge)
 		 read_latency_1 <= init_latency_value_1;
 	else if (we_qspi_latency1)
 		 read_latency_1 <= dma_io_wdata[3:0];
@@ -402,6 +417,8 @@ end
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
+		 read_latency_2 <= 4'd0;
+	else if (first_edge)
 		 read_latency_2 <= init_latency_value_2;
 	else if (we_qspi_latency2)
 		 read_latency_2 <= dma_io_wdata[3:0];

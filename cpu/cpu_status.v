@@ -21,10 +21,21 @@ module cpu_status (
 	output stall
 	);
 
-reg cpu_run_state;
+reg [1:0] first_edge_lat;
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n)
+        first_edge_lat <= 2'b11;
+    else
+        first_edge_lat <= { first_edge_lat[0], 1'b0 };
+end
+
+wire first_edge = first_edge_lat[1];
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
+		cpu_run_state <= 1'b0;	
+	else if (first_edge)
 		cpu_run_state <= init_cpu_start;
 	else if (quit_cmd)
 		cpu_run_state <= 1'b0;	

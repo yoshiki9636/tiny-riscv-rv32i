@@ -23,8 +23,8 @@ module io_frc(
 
 	// from/to Execution/CSR
 	input csr_mtie,
-	output reg frc_cntr_val_leq,
-	output interrupt_clear
+	output reg frc_cntr_val_leq
+	//output interrupt_clear
 
 	);
 
@@ -34,7 +34,7 @@ module io_frc(
 `define SYS_FRC_CMPHI 14'h3E03
 `define SYS_FRC_CNTRL 14'h3E04
 // temporary for interrupt clear
-`define SYS_INT_CLEAR 14'h3E80
+//`define SYS_INT_CLEAR 14'h3E80
 
 wire we_frc_vallo = dma_io_we      & (dma_io_wadr == `SYS_FRC_VALLO);
 wire re_frc_vallo = dma_io_radr_en & (dma_io_radr == `SYS_FRC_VALLO);
@@ -51,7 +51,7 @@ wire re_frc_cmphi = dma_io_radr_en & (dma_io_radr == `SYS_FRC_CMPHI);
 wire we_frc_cntrl = dma_io_we      & (dma_io_wadr == `SYS_FRC_CNTRL);
 wire re_frc_cntrl = dma_io_radr_en & (dma_io_radr == `SYS_FRC_CNTRL);
 
-wire we_frc_clear = dma_io_we      & (dma_io_wadr == `SYS_INT_CLEAR);
+//wire we_frc_clear = dma_io_we      & (dma_io_wadr == `SYS_INT_CLEAR);
 
 wire run_cntr;
 wire frc_cntr_rst;
@@ -120,6 +120,6 @@ assign dma_io_rdata = (re_frc_dly[0]) ? frc_cntr_val[31:0] :
                       (re_frc_dly[4]) ? { 29'd0, frc_cntr_val_leq, 1'b0, frc_cntrl_val } : dma_io_rdata_in;
 
 // for interrupt
-assign interrupt_clear = we_frc_clear;
+//assign interrupt_clear = we_frc_clear;
 
 endmodule

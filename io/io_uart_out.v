@@ -1,9 +1,9 @@
 /*
  * My RISC-V RV32I CPU
- *   FPGA LED output Module for Tang Premier
+ *   FPGA uart input/output Module
  *    Verilog code
  * @auther		Yoshiki Kurokawa <yoshiki.k963@gmail.com>
- * @copylight	2024 Yoshiki Kurokawa
+ * @copylight	2025 Yoshiki Kurokawa
  * @license		https://opensource.org/licenses/MIT     MIT license
  * @version		0.1
  */
@@ -28,7 +28,8 @@ module io_uart_out(
 	output reg [15:0] uart_term,
 	input cpu_run_state,
 	input rout_en,
-	input [7:0] rout
+	input [7:0] rout,
+	output ext_uart_interrpt_1shot
 
 
 	);
@@ -95,6 +96,7 @@ always @ (posedge clk or negedge rst_n) begin
 		rx_data_latch <= rout;
 end
 
+assign ext_uart_interrpt_1shot = cpu_run_state & rout_en;
 
 // polling bit for rx data
 reg rx_first_read;

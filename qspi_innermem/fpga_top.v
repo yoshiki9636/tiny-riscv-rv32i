@@ -105,6 +105,9 @@ wire csr_mtie;
 wire frc_cntr_val_leq;
 //wire interrupt_clear;
 wire ext_uart_interrpt_1shot;
+wire csr_meie;
+wire g_interrupt_1shot;
+wire g_interrupt;
 
 // io bus logics
 wire dma_io_we = dma_io_we_c | dma_io_we_u;
@@ -129,12 +132,13 @@ cpu_top cpu_top (
 	.quit_cmd(quit_cmd),
 	.cpu_start_adr(cpu_start_adr),
 	.pc_data(pc_data),
-	.interrupt_0(interrupt_0),
-	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
-	//.interrupt_clear(interrupt_clear),
 	.csr_mtie(csr_mtie),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
 	.cpu_run_state(cpu_run_state),
+	.csr_meie(csr_meie),
+	.g_interrupt_1shot(g_interrupt_1shot),
+	.g_interrupt(g_interrupt),
+
 	.i_read_req(i_read_req),
 	.i_read_w(i_read_w),
 	.i_read_hw(i_read_hw),
@@ -156,14 +160,7 @@ cpu_top cpu_top (
 	.dma_io_wdata(dma_io_wdata_c),
 	.dma_io_radr(dma_io_radr_c),
 	.dma_io_radr_en(dma_io_radr_en_c),
-	.dma_io_rdata(dma_io_rdata),
-	.dma_io_we_i(dma_io_we),
-	.dma_io_wadr_i(dma_io_wadr),
-	.dma_io_wdata_i(dma_io_wdata),
-	.dma_io_radr_i(dma_io_radr),
-	.dma_io_radr_en_i(dma_io_radr_en),
-	.dma_io_rdata_in_i(dma_io_rdata_in_5),
-	.dma_io_rdata_i(dma_io_rdata)
+	.dma_io_rdata(dma_io_rdata)
 	);
 
 bus_gather bus_gather (
@@ -311,6 +308,23 @@ io_frc io_frc (
 	.dma_io_rdata(dma_io_rdata_in_4),
 	.csr_mtie(csr_mtie),
 	.frc_cntr_val_leq(frc_cntr_val_leq)
+	);
+
+interrupter interrupter (
+	.clk(clk),
+	.rst_n(rst_n),
+	.interrupt_0(interrupt_0),
+	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
+	.csr_meie(csr_meie),
+	.g_interrupt_1shot(g_interrupt_1shot),
+	.g_interrupt(g_interrupt),
+	.dma_io_we(dma_io_we),
+	.dma_io_wadr(dma_io_wadr),
+	.dma_io_wdata(dma_io_wdata),
+	.dma_io_radr(dma_io_radr),
+	.dma_io_radr_en(dma_io_radr_en),
+	.dma_io_rdata_in(dma_io_rdata_in_5),
+	.dma_io_rdata(dma_io_rdata)
 	);
 
 endmodule

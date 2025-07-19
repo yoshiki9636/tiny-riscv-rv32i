@@ -19,12 +19,12 @@ module cpu_top (
 	input [31:2] cpu_start_adr,
 	output [31:0] pc_data,
 
-	input interrupt_0,
-	input ext_uart_interrpt_1shot,
-	//input interrupt_clear,
 	output csr_mtie,
 	input frc_cntr_val_leq,
 	output cpu_run_state,
+	output csr_meie,
+	input g_interrupt_1shot,
+	input g_interrupt,
 
 	output i_read_req,
 	output i_read_w,
@@ -48,15 +48,7 @@ module cpu_top (
 	output [31:0] dma_io_wdata,
 	output [15:2] dma_io_radr,
 	output dma_io_radr_en,
-	input [31:0] dma_io_rdata,
-
-	input dma_io_we_i,
-	input [15:2] dma_io_wadr_i,
-	input [31:0] dma_io_wdata_i,
-	input [15:2] dma_io_radr_i,
-	input dma_io_radr_en_i,
-	input [31:0] dma_io_rdata_in_i,
-	output [31:0] dma_io_rdata_i
+	input [31:0] dma_io_rdata
 
 	);
 
@@ -117,9 +109,6 @@ wire [31:0] wbk_data_wb; // input
 wire [31:0] rs1_data; // output
 wire [31:0] rs2_data; // output
 
-//wire [31:2] pc_ex; // input
-//wire wbk_rd_reg_ex; // input
-
 wire cmd_ld_ma; // output
 wire cmd_st_ma; // output
 wire [4:0] rd_adr_ma; // output
@@ -128,8 +117,6 @@ wire [31:0] st_data_ma; // output
 wire [2:0] ldst_code_ma; // output
 wire [1:0] g_interrupt_priv = `M_MODE; // temp
 wire [1:0] g_current_priv = `M_MODE; // temp
-wire g_interrupt; // input
-wire g_interrupt_1shot; // input
 wire g_exception; // input
 wire jmp_condition_ex; // input
 
@@ -148,7 +135,6 @@ wire cmd_alui; // output
 wire cmd_alui_shamt; // output
 wire cmd_alu; // output
 wire cmd_alu_add; // output
-wire csr_meie; // output
 wire csr_msie; // output
 
 wire [31:2] pc_excep; // output
@@ -381,23 +367,6 @@ data_rw_mem data_rw_mem (
 	.dma_io_rdata(dma_io_rdata),
 	.cpu_stat_dmrw(cpu_stat_dmrw),
 	.dmrw_run(dmrw_run)
-	);
-
-interrupter interrupter (
-	.clk(clk),
-	.rst_n(rst_n),
-	.interrupt_0(interrupt_0),
-	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
-	.csr_meie(csr_meie),
-	.g_interrupt_1shot(g_interrupt_1shot),
-	.g_interrupt(g_interrupt),
-	.dma_io_we(dma_io_we_i),
-	.dma_io_wadr(dma_io_wadr_i),
-	.dma_io_wdata(dma_io_wdata_i),
-	.dma_io_radr(dma_io_radr_i),
-	.dma_io_radr_en(dma_io_radr_en_i),
-	.dma_io_rdata_in(dma_io_rdata_in_i),
-	.dma_io_rdata(dma_io_rdata_i)
 	);
 
 endmodule

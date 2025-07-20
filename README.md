@@ -45,6 +45,8 @@ Ctrl-c : quit from any command : format: Ctrl-c
 w : write date to memory : format: w <start adderss> <data> ....<data> Ctrl-c
 r : read data from memory : format: r <start address> <end adderss>
 t : trashed memory data and 0 clear : format: t　(未検証)
+p : read I/O memory : format: p <start address> <end adderss>
+i : write I/O memory : format: i <start adderss> <data> ....<data> Ctrl-c
 
 2. FPGAのQSPIメモリでの動作 (未検証、まだ動かない）
 

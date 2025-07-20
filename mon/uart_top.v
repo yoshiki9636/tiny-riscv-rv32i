@@ -45,14 +45,17 @@ module uart_top
 	output [31:2] start_adr,
     input [7:0] uart_io_char,
     input uart_io_we,
-    output uart_io_full
+    output uart_io_full,
+	input [15:0] uart_term,
+	output rout_en,
+	output [7:0] rout
 
 	);
 
 
 wire [31:0] uart_data;
 wire [31:0] rdata_snd;
-wire [7:0] rout;
+//wire [7:0] rout;
 wire [7:0] rx_rdata;
 wire [7:0] send_char;
 wire [7:0] tx_wdata;
@@ -67,7 +70,7 @@ wire rdata_snd_start;
 wire read_end_set;
 wire read_start_set;
 wire read_stop;
-wire rout_en;
+//wire rout_en;
 wire rx_fifo_dvalid;
 wire rx_fifo_full;
 wire rx_fifo_overrun;
@@ -108,7 +111,8 @@ uart_if uart_if (
 	.tx_fifo_full(tx_fifo_full),
 	.tx_fifo_overrun(tx_fifo_overrun),
 	.tx_fifo_underrun(tx_fifo_underrun),
-	.rx_fifo_rcntrs(rx_fifo_rcntr)
+	.rx_fifo_rcntrs(rx_fifo_rcntr),
+	.uart_term(uart_term)
 	);
 
 uart_loop uart_loop (

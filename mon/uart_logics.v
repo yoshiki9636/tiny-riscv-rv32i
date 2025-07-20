@@ -130,7 +130,7 @@ end
 assign dump_end =(cmd_read_adr >= {1'b0, cmd_read_end});
 
 assign u_read_adr = { cmd_read_adr[31:2], 2'b00 };
-assign io_read_adr = u_read_adr;
+//assign io_read_adr = u_read_adr;
 
 
 `define D_IDLE 3'd0
@@ -228,10 +228,10 @@ end
 
 //assign radr_cntup = (status_dump == `D_RED1)|(status_dump == `D_RED2);
 //wire radr_cntup = (status_dump != `D_RED1)|(next_status_dump == `D_RED1);
-assign radr_enable = (status_dump == `D_RED1);
+wire radr_enable = (status_dump == `D_RED1);
 assign radr_cntup = (status_dump == `D_RED2);
 assign dradr_cntup = (status_dump == `D_DRWT)&(next_status_dump == `D_DRDF);
-assign dread_start = ((status_dump == `D_IDLE)|(status_dump == `D_DRDF))&(next_status_dump == `D_DRWT);
+wire dread_start = ((status_dump == `D_IDLE)|(status_dump == `D_DRDF))&(next_status_dump == `D_DRWT);
 assign dump_running = (status_dump != `D_IDLE);
 //wire read_running1 = (status_dump != `D_RED1)|(next_status_dump == `D_RED1);
 //wire read_running2 = (status_dump == `D_RED1)|(next_status_dump == `D_RED2);

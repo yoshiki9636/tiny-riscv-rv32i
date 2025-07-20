@@ -38,6 +38,7 @@ int main() {
 	}
 	e = 0;
 	for (c = 8400; c > 0; c -= 14) {
+		*led = (unsigned int)c;
 		d = 0;
 		for (b = c - 1; b > 0; b--) {
 			g = 2 * b - 1;
@@ -49,7 +50,6 @@ int main() {
 		int length = sprintf(cbuf2, "%04d", e + d / a);
 		uprint( cbuf2, length, 0 );
     	e = d % a;
-		*led = (unsigned int)c;
 	}
 	pass();
 	return 0;

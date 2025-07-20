@@ -6,9 +6,9 @@
 //#define LP 10
 #define LP 1000
 #define LP2 200
-#define YSIZE 8
-#define XSIZE 8
-#define ZSIZE 8
+#define YSIZE 4
+#define XSIZE 4
+#define ZSIZE 4
 // workaround for libm_nano.a
 int __errno;
 

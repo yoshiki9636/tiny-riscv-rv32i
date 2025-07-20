@@ -12,11 +12,11 @@ void uprint( char* buf, int length, int ret );
 // workaround for libm_nano.a
 int __errno;
 
-char* heap_end = (char*)0x8000;
+char* heap_end = (char*)0x10000;
 //void _sbrk_r(void) {}
 char* _sbrk(int incr) {
- char* heap_low = (char*)0x8000;
- char* heap_top = (char*)0xc000;
+ char* heap_low = (char*)0x10000;
+ char* heap_top = (char*)0x18000;
  char *prev_heap_end;
 
  if (heap_end == 0) {

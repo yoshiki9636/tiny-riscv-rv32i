@@ -110,7 +110,7 @@ int main() {
 	edge_bottom->next = NULL;
 	t_EDGE_LIST* edge_entry = edge_bottom;
 
-	for (int i = 0; i < 1000; i++) {
+	for (int i = 0; i < 100; i++) {
 		t_NODE_LIST* node_tmp = (t_NODE_LIST*)malloc(sizeof(t_NODE_LIST));
 		node_tmp->na = i+200000;
 		node_tmp->next = node_entry;

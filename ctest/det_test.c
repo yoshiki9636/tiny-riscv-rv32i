@@ -6,7 +6,7 @@
 //#define LP 10
 #define LP 1000
 #define LP2 200
-#define SIZE 7
+#define SIZE 4
 // workaround for libm_nano.a
 int __errno;
 void pass();

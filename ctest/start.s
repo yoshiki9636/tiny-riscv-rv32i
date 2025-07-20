@@ -7,11 +7,8 @@ _start:
         nop ;
         nop ;
         nop ;
-	lui sp,0x08000
-	lui gp,0x00800
-	lui tp,0x00600
-    lui ra,0x00000
-    lui s0,0x00800
+	lui sp,0x00020
+	lui gp,0x00010
         j main
         nop ;
         nop ;

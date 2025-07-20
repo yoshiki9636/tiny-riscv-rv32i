@@ -15,11 +15,11 @@ void uprint( char* buf, int length, int ret );
 // workaround for libm_nano.a
 int __errno;
 
-char* heap_end = (char*)0x8000;
+char* heap_end = (char*)0x10000;
 //void _sbrk_r(void) {}
 char* _sbrk(int incr) {
- char* heap_low = (char*)0x8000;
- char* heap_top = (char*)0xc000;
+ char* heap_low = (char*)0x10000;
+ char* heap_top = (char*)0x18000;
  char *prev_heap_end;
 
  if (heap_end == 0) {
@@ -64,6 +64,7 @@ typedef struct{
 }complex;
 
 int main() {
+    unsigned int* led = (unsigned int*)0xc000fe00;
 	char cbuf[32];
 
 	int n,k;
@@ -72,10 +73,12 @@ int main() {
  	complex x[128], X;
 
  	for(n=0; n<128; n++){
+		*led = n & 0x7777;
  		x[n].r=0.5+sin(0.1*n)+0.3*sin(0.3*n)+0.15*sin(0.5*n);
  		x[n].i=0.0;
  	}
  	for(n=0; n<128; n++){
+		*led = n & 0x7777;
  		//length = sprintf(cbuf, "sin[%d]=%3.3lf\n",n,x[n].r);
 		//uprint( cbuf, length, 0 );
  		printf("sin[%d]=%3.3lf\n",n,x[n].r);
@@ -83,6 +86,7 @@ int main() {
 	uprint( "\n", 2, 0 );
 
  	for(n=0; n<128; n++){
+		*led = n & 0x7777;
  		for(k=0; k<30+x[n].r*25; k++)
 			uprint( "*", 1, 0 );
 		uprint( "\n", 2, 0 );
@@ -95,6 +99,7 @@ int main() {
  		X.r=0;
  		X.i=0;
  		for(k=0; k<N; k++){
+			*led = k & 0x7777;
  			X.r += x[k].r*cos(2.0*PI*n*k/N) + x[k].i*sin(2.0*PI*n*k/N);
  			X.i += x[k].i*cos(2.0*PI*n*k/N) - x[k].r*sin(2.0*PI*n*k/N);
  		}
@@ -108,6 +113,7 @@ int main() {
  	//length = sprintf(cbuf, "Fourie transform graph\n");
  	printf("Fourie transform graph\n");
  	for(n=0; n<N; n++){
+		*led = n & 0x7777;
  		for( k=0; k<R[n]*60/max; k++)
 			uprint( "*", 1, 0 );
 		uprint( "\n", 2, 0 );

@@ -100,11 +100,13 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 wire [3:0] gpio_in;
+reg [5:0] gpi_init_lat2;
+reg [3:0] gpio_in_lat2;
 
 assign dma_io_rdata = (re_led_value_dly == 1'b1) ? { 29'd0, led_value[2:0] } : 
-                      (re_gpio_value_dly[0] == 1'b1) ? { 26'd0, init_uart[1:0], init_cpu_start, init_latency[1:0], gpi_in } :
+                      (re_gpio_value_dly[0] == 1'b1) ? { 26'd0, gpi_init_lat2 } :
                       (re_gpio_value_dly[1] == 1'b1) ? { 26'd0, gpio_out_value } :
-                      (re_gpio_value_dly[2] == 1'b1) ? { 26'd0, gpio_in } :
+                      (re_gpio_value_dly[2] == 1'b1) ? { 26'd0, gpio_in_lat2 } :
                       (re_gpio_value_dly[3] == 1'b1) ? { 26'd0, gpio_en_value } : dma_io_rdata_in;
 
 // inout port
@@ -114,6 +116,26 @@ assign gpio[2] = (gpio_en_value[2]) ? gpio_out_value[2] : 1'bz;
 assign gpio[3] = (gpio_en_value[3]) ? gpio_out_value[3] : 1'bz;
 
 assign gpio_in = gpio; 
+
+// double latch for input signals
+reg [5:0] gpi_init_lat1;
+reg [3:0] gpio_in_lat1;
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n) begin
+        gpi_init_lat1 <= 6'd0 ;
+        gpi_init_lat2 <= 6'd0 ;
+        gpio_in_lat1 <= 4'd0 ;
+        gpio_in_lat2 <= 4'd0 ;
+	end
+	else begin
+        gpi_init_lat1 <= { init_uart[1:0], init_cpu_start, init_latency[1:0], gpi_in };
+        gpi_init_lat2 <= gpi_init_lat1;
+        gpio_in_lat1 <= gpio_in;
+        gpio_in_lat2 <= gpio_in_lat1;
+	end
+end
+
 
 
 endmodule

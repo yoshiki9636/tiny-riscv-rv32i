@@ -40,6 +40,7 @@ module uart_top
 	input [31:0] pc_data,
 	
 	output cpu_start,
+	input cpu_run_state,
 	output quit_cmd,
 
 	output [31:2] start_adr,
@@ -148,6 +149,7 @@ uart_rec_char uart_rec_char (
 	.trush_running(trush_running),
 	.uart_data(uart_data),
 	.cpu_start(cpu_start),
+	.cpu_run_state(cpu_run_state),
 	.write_address_set(write_address_set),
 	.write_data_en(write_data_en),
 	.read_start_set(read_start_set),

@@ -21,6 +21,7 @@ module uart_rec_char (
 	// to ctrl logics
 	output [31:0] uart_data,
 	output reg cpu_start,
+	input cpu_run_state,
 	output write_address_set,
 	output write_data_en,
 	output read_start_set,
@@ -349,7 +350,12 @@ wire i_crlf = ( cmd_status == `C_IWTADRN ) & ( next_cmd_status == `C_IWTDATA );
 assign pc_print_sel = (cmd_status == `C_PCPRINT);
 assign pc_print = idle_status & (next_cmd_status == `C_PCPRINT);
 
-assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | cmd_t | cmd_s | p_crlf | i_crlf | cmd_crlf | cmd_j | cmd_z;
+wire cmd_t_crlf = cmd_t & ~cpu_run_state;
+wire cmd_s_crlf = cmd_s & ~cpu_run_state;
+wire cmd_j_crlf = cmd_j & ~cpu_run_state;
+wire cmd_z_crlf = cmd_z & ~cpu_run_state;
+
+assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | cmd_t_crlf | cmd_s_crlf | p_crlf | i_crlf | cmd_crlf | cmd_j_crlf | cmd_z_crlf;
 
 // data setter
 

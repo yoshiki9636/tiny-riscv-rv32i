@@ -223,6 +223,7 @@ uart_top uart_top (
 	.dma_io_rdata_in(dma_io_rdata),
 	.pc_data(pc_data),
 	.cpu_start(cpu_start),
+	.cpu_run_state(cpu_run_state),
 	.quit_cmd(quit_cmd),
 	.start_adr(cpu_start_adr),
 	.uart_io_char(uart_io_char),

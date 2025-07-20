@@ -164,6 +164,14 @@ Arty A7向けのPLLモジュールをバイパスすればどのシミュレー�
 0xFE14 [3:0] RO  GPIO input value  current pin value
 0xFE18 [3:0] RW  GPIO enable value    write: out enable each pin  read: current out enable status
 
-
+3. FPGAピン割り当て仕様
+　GPO : 3色LED 一番右 LD0
+ GPIO[2:0] : 3色LED 右から２番目 LD1
+ GPIO[3]   : 3色LED 右から3番目 LD2の青
+ Interrupt0 : 一番右のボタン BTN0
+ init_latency : 真ん中2つのボタン BTN2 BTN1
+ GPI[0] : 一番左のボタン BTN3
+ init_uart : 右2つのスイッチ　SW1,SW0
+ 
 
 

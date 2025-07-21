@@ -113,58 +113,58 @@ Arty A7向けのPLLモジュールをバイパスすればどのシミュレー�
 
 1.メモリマップ
 
-0x0000_0000 – 0x00FF_FFFF : メモリ0領域　ce_n[0]が出力される
+- 0x0000_0000 – 0x00FF_FFFF : メモリ0領域　ce_n[0]が出力される
 
-0x0100_0000 – 0x01FF_FFFF : メモリ1領域　ce_n[1]が出力される
+- 0x0100_0000 – 0x01FF_FFFF : メモリ1領域　ce_n[1]が出力される
 
-0x0200_0000 – 0x02FF_FFFF : メモリ3領域　ce_n[2]が出力される
+- 0x0200_0000 – 0x02FF_FFFF : メモリ3領域　ce_n[2]が出力される
 
-0x0300_0000 – 0xBFFF_FFFF : 不使用領域
+- 0x0300_0000 – 0xBFFF_FFFF : 不使用領域
 
-0xC000_0000 – 0xC000_FFFF :  I/Oバス領域　内部I/Oレジスタ向けI/Oバスに接続
+- 0xC000_0000 – 0xC000_FFFF :  I/Oバス領域　内部I/Oレジスタ向けI/Oバスに接続
 
-0xC001_0000 – 0xFFFF_FFFF : 不使用領域
+- 0xC001_0000 – 0xFFFF_FFFF : 不使用領域
 
 2.I/Oレジスタマップ
 
 0xC000_XXXX下位16ビットの表記
 
 
-0xF400  [3:0] RW  QSPI read latency 0  メモリ領域0向けレイテンシ値
-0xF404  [3:0] RW QSPI read latency 1  メモリ領域1向けレイテンシ値
-0xF408  [3:0] RW QSPI read latency 2  メモリ領域2向けレイテンシ値
+- 0xF400  [3:0] RW  QSPI read latency 0  メモリ領域0向けレイテンシ値
+- 0xF404  [3:0] RW QSPI read latency 1  メモリ領域1向けレイテンシ値
+- 0xF408  [3:0] RW QSPI read latency 2  メモリ領域2向けレイテンシ値
 
-0xF800 [31:0] 　RW  Free Run Counter Lower 32bit  read:現在値　write:即時反映
-0xF804 [7:0]   RW  Free Run Counter Upper 32bit  read:現在値　write:即時反映
-0xF808 [31:0] 　RW  Free Run Counter 比較値 Lower 32bit  read:現在値　write:即時反映
-0xF80C [7:0]   RW  Free Run Counter 比較値 Upper 32bit  read:現在値　write:即時反映
+- 0xF800 [31:0] 　RW  Free Run Counter Lower 32bit  read:現在値　write:即時反映
+- 0xF804 [7:0]   RW  Free Run Counter Upper 32bit  read:現在値　write:即時反映
+- 0xF808 [31:0] 　RW  Free Run Counter 比較値 Lower 32bit  read:現在値　write:即時反映
+- 0xF80C [7:0]   RW  Free Run Counter 比較値 Upper 32bit  read:現在値　write:即時反映
                    Free Run Counter 比較値はFree Run Counterと比較され、
                    現在値が比較値以上となった時点でタイマー割込み信号が発信される
-0xF810 [2:0]  RW   Free Run Counterコントロールレジスタ
+- 0xF810 [2:0]  RW   Free Run Counterコントロールレジスタ
                      [0] : enable bit　1:enable 0:disable
          　           [1] : WO 1書き込みでカウンタリセット
                      [2] : 割込み状態ビット read: 1:タイマー割込み発生 0:タイマー割込みなし
                                                                     write : 0:割込み状態クリア
-0xFA00  [1:0] RW External Interrupt Enable   1:enable 0:disable
+- 0xFA00  [1:0] RW External Interrupt Enable   1:enable 0:disable
                    [0] : RX受付インタラプト
                    [1] : Interrupt_0 ピンインタラプト
-0xFA04  [1:0] RW External Interrupt Status/Clear   ビット配置はenableと同一
+- 0xFA04  [1:0] RW External Interrupt Status/Clear   ビット配置はenableと同一
                   read : 1:インタラプト受信　0:インタラプト未受信
                   write : 1:クリアマスク 0: クリア　例：双方のビットをクリアしたい場合は2’b00を書き込む
 
-0xFC00 [7:0]  RW uart tx 出力キャラクタ　　write : txに即時出力　read : 最後に書いた値が読める
-0xFC04 [0]     RO  uart tx FIFO full  tx fifoの状態を確認できる 1:full
-0xFC08 [15:0] RW uart 通信周波数比　write: 周波数比の変更　read: 現在の値が読める
+- 0xFC00 [7:0]  RW uart tx 出力キャラクタ　　write : txに即時出力　read : 最後に書いた値が読める
+- 0xFC04 [0]     RO  uart tx FIFO full  tx fifoの状態を確認できる 1:full
+- 0xFC08 [15:0] RW uart 通信周波数比　write: 周波数比の変更　read: 現在の値が読める
 　　　　　　　　　通信周波数比計算式　？？
-0xFC0C [9:0]  RO uart rx 入力キャラクタ　[7:0]最後に入力されたキャラクタ
+- 0xFC0C [9:0]  RO uart rx 入力キャラクタ　[7:0]最後に入力されたキャラクタ
                 [8]　以前に読まれていない場合1
 				[9] 読まれる前に上書きされたとき1
 
-0xFE00 [2:0] RW  GPOut  wirte: out value read: current out value
-0xFE04 [5:0] RO  GPIn read: currnt in value ただし [5:4] init_uart, [3] init_cpu_start, [2:1] init_latency, [0] gpi
-0xFE10 [3:0] RW GPIO output value     write: out value  read: current out value
-0xFE14 [3:0] RO  GPIO input value  current pin value
-0xFE18 [3:0] RW  GPIO enable value    write: out enable each pin  read: current out enable status
+- 0xFE00 [2:0] RW  GPOut  wirte: out value read: current out value
+- 0xFE04 [5:0] RO  GPIn read: currnt in value ただし [5:4] init_uart, [3] init_cpu_start, [2:1] init_latency, [0] gpi
+- 0xFE10 [3:0] RW GPIO output value     write: out value  read: current out value
+- 0xFE14 [3:0] RO  GPIO input value  current pin value
+- 0xFE18 [3:0] RW  GPIO enable value    write: out enable each pin  read: current out enable status
 
 3. FPGAピン割り当て仕様
 　GPO : 3色LED 一番右 LD0

@@ -14,10 +14,12 @@ module pc_stage (
 	input cpu_start,
 	input stall,
 	input cpu_stat_pc,
+	input cpu_stat_ex,
 	input ecall_condition_ex,
 	input g_interrupt,
 	input g_interrupt_1shot,
 	input g_exception,
+	input frc_cntr_val_leq,
 	input jmp_condition_ex,
 	input cmd_mret_ex,
 	input cmd_sret_ex,
@@ -35,8 +37,9 @@ module pc_stage (
 // PC
 
 reg g_interrupt_latch;
+reg frc_cntr_val_leq_latch;
 
-wire intr_ecall_exception = ecall_condition_ex | g_interrupt_latch | g_exception ;
+wire intr_ecall_exception = ecall_condition_ex | g_interrupt_latch | g_exception | frc_cntr_val_leq_latch ;
 wire jump_cmd_cond = jmp_condition_ex | cmd_mret_ex | cmd_sret_ex | cmd_uret_ex;
 
 wire jmp_cond = intr_ecall_exception | jump_cmd_cond;
@@ -91,16 +94,37 @@ always @ (posedge clk or negedge rst_n) begin
 		pc_ecall <= pc;
 end
 
-assign pc_excep = (ecall_condition_ex & ~g_interrupt) ? pc_ecall : pc_p1;
+assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall : pc_p1;
 
 // interrupter latch
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		g_interrupt_latch <= 1'b0;
-	else if (cpu_stat_pc)
-		g_interrupt_latch <= 1'b0;
 	else if (g_interrupt_1shot)
 		g_interrupt_latch <= 1'b1;
+	else if (cpu_stat_pc)
+		g_interrupt_latch <= 1'b0;
+end
+
+// frc edge latch
+reg frc_cntr_val_leq_lat;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		frc_cntr_val_leq_lat <= 1'b0;
+	else
+		frc_cntr_val_leq_lat <= frc_cntr_val_leq;
+end
+
+wire frc_cntr_val_leq_1shot = frc_cntr_val_leq & ~frc_cntr_val_leq_lat;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		frc_cntr_val_leq_latch <= 1'b0;
+	else if (frc_cntr_val_leq_1shot)
+		frc_cntr_val_leq_latch <= 1'b1;
+	else if (cpu_stat_pc)
+		frc_cntr_val_leq_latch <= 1'b0;
 end
 
 endmodule

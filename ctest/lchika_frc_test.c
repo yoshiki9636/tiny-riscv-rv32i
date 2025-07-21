@@ -58,33 +58,49 @@ int main() {
 	register int mask __asm__("x21");
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* int_enable = (unsigned int*)0xc000fa00;
+    unsigned int* frc_cmp_low  = (unsigned int*)0xc000f808;
+    unsigned int* frc_cmp_high = (unsigned int*)0xc000f80c;
+    unsigned int* frc_ctrl = (unsigned int*)0xc000f810;
 
 	*led = 7;
 
-	// for external interrupt enable
-	*int_enable = 2;
+	// for frc setup
+	*frc_cmp_low = 0x2faf080; // 1sec @ 50MHz
+	*frc_cmp_high = 0;
+	// start frc
+	*frc_ctrl = 3;
 
 	p_func = inturrpt;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
-	// enable MEIE
-	unsigned int value = 0x800;
+	// enable MTIE
+	unsigned int value = 0x80;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
 
 	uprint( "start\n", 7);
 	*led = 6;
-	pass();
+	while(1) { wait(); }
 	return 0;
 
 }
 
 void inturrpt() {
-    unsigned int* int_clr = (unsigned int*)0xc000fa04;
+    unsigned int* led = (unsigned int*)0xc000fe00;
+    unsigned int* frc_low  = (unsigned int*)0xc000f800;
+    unsigned int* frc_high = (unsigned int*)0xc000f804;
+    unsigned int* frc_ctrl = (unsigned int*)0xc000f810;
 	//register int mask __asm__("x21");
-	static int flg;
-	flg = (flg == 0) ? 1 : 0;
-	mask = (flg == 0) ? 0x7777 : 0x1111;
-	uprint( "pushed\n", 8);
-	*int_clr = 0;
+	static int value;
+	uprint( "ringing timer!\n", 16);
+
+	printf("low  counter = %d\n",*frc_low);
+	printf("high counter = %d\n",*frc_high);
+
+	// clear both frc counter & interrupt bit
+	*frc_ctrl = 3;
+
+	value++;
+	*led = value;
+	
 	// workaround
 	__asm__ volatile("lw  ra,28(sp)");
 	__asm__ volatile("lw  s0,24(sp)");
@@ -107,19 +123,6 @@ void uprint( char* buf, int length ) {
 		*led = i;
 	}
 	//return 0;
-}
-
-void pass() {
-    unsigned int* led = (unsigned int*)0xc000fe00;
-    unsigned int val;
-	//register int mask __asm__("x21");
-	mask = 0x7777;
-    val = 0;
-    while(1) {
-		wait();
-		val++;
-		*led = val & mask;
-    }
 }
 
 void wait() {

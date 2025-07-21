@@ -97,9 +97,9 @@ assign frc_cntr_rst = we_frc_cntrl & dma_io_wdata[1];
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
         frc_cntr_val_leq <= 1'd0 ;
-	else if (we_frc_cntrl & dma_io_wdata[2])
+	else if (we_frc_cntrl & ~dma_io_wdata[2])
         frc_cntr_val_leq <= 1'd0 ;
-	else if ((frc_cntr_val <= frc_cmp_val) & run_cntr & csr_mtie)
+	else if ((frc_cntr_val >= frc_cmp_val) & run_cntr & csr_mtie)
         frc_cntr_val_leq <= 1'd1 ;
 end
 

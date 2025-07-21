@@ -48,7 +48,7 @@ wire re_uart_full = dma_io_radr_en & (dma_io_radr == `SYS_UART_FULL);
 wire we_uart_term = dma_io_we      & (dma_io_wadr == `SYS_UART_TERM);
 wire re_uart_term = dma_io_radr_en & (dma_io_radr == `SYS_UART_TERM);
 
-wire re_uart_rxch = dma_io_radr_en & (dma_io_radr == `SYS_UART_TERM);
+wire re_uart_rxch = dma_io_radr_en & (dma_io_radr == `SYS_UART_RXCH);
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)

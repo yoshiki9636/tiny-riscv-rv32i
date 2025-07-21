@@ -95,19 +95,21 @@ void inturrpt() {
 	int char_reg;
 	// for normal case
 	char_reg = *rx_char;
-	// for overwrite case
-	//if(flg == 0) { char_reg = *rx_char; }
+	// for overread error case : reead twice
+	//char_reg = *rx_char;
+	// for overwrite error case
+	//char_reg = (flg == 0) ? *rx_char : 0; 
 
 	if ((char_reg & 0x100) == 0) {
 		uprint( "error!! double read\n", 21);
+		printf("%x\n",char_reg);
 	}
 	else if ((char_reg & 0x200) != 0) {
 		uprint( "error!! double write\n", 22);
+		printf("%x\n",char_reg);
 	}
 	else {
 		printf("%x\n",char_reg);
-		// echo back to tx
-		//*tx_char = char_reg & 0xff;
 	}
 
 	// workaround

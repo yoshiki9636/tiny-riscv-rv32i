@@ -47,7 +47,7 @@ int _getpid_r(void) { return -1; }
 int _fstat_r(void) { return -1; }
 int _isatty_r(void) { return -1; }
 int _isatty(void) { return -1; }
-void inturrpt();
+void interrupt();
 void pass();
 void wait();
 
@@ -64,7 +64,7 @@ int main() {
 	// for external interrupt enable
 	*int_enable = 2;
 
-	p_func = inturrpt;
+	p_func = interrupt;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	// enable MEIE
 	unsigned int value = 0x800;
@@ -77,7 +77,7 @@ int main() {
 
 }
 
-void inturrpt() {
+void interrupt() {
     unsigned int* int_clr = (unsigned int*)0xc000fa04;
 	//register int mask __asm__("x21");
 	static int flg;
@@ -88,7 +88,7 @@ void inturrpt() {
 	// workaround
 	__asm__ volatile("lw  ra,28(sp)");
 	__asm__ volatile("lw  s0,24(sp)");
-	__asm__ volatile("lw  s5,20(sp)");
+	//__asm__ volatile("lw  s5,20(sp)");
 	__asm__ volatile("addi    sp,sp,32");
 	__asm__ volatile("mret");
 }

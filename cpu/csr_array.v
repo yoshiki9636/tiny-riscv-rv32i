@@ -37,6 +37,7 @@ module csr_array(
     input cmd_ecall_ex,
 	input [31:2] pc_excep,
 	input cpu_stat_ex,
+	input cpu_stat_pc,
 	input frc_cntr_val_leq
 	);
 
@@ -279,12 +280,23 @@ assign csr_mtvec_ex = (csr_mtvec[1:0] == 2'd0) ? csr_mtvec[31:2] :
 
 // mepc
 // capture PC when ecall occured
+wire m_interrupt_in_stat_pc = m_interrupt & cpu_stat_pc;
+wire m_interrupt_not_stat_pc = m_interrupt & ~cpu_stat_pc;
+reg m_interrupt_in_stat_pc_dly;
+
+always @ ( posedge clk or negedge rst_n) begin   
+	if (~rst_n)
+		m_interrupt_in_stat_pc_dly <= 1'b0;
+	else
+		m_interrupt_in_stat_pc_dly <= m_interrupt_in_stat_pc;
+end
+
 
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin
 		csr_mepc <= 30'd0;
 	end
-	else if (cmd_ecall_ex | m_interrupt | g_exception) begin
+	else if (cmd_ecall_ex | m_interrupt_not_stat_pc | m_interrupt_in_stat_pc_dly | g_exception) begin
 		csr_mepc <= pc_excep;
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mepc)) begin

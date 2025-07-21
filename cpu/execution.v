@@ -86,6 +86,7 @@ module execution (
     output csr_msie,
 	// status
 	input cpu_stat_ex,
+	input cpu_stat_pc,
 	input frc_cntr_val_leq
 
 	);
@@ -218,6 +219,7 @@ csr_array csr_array (
     .cmd_ecall_ex(cmd_ecall_ex),
 	.pc_excep(pc_excep),
 	.cpu_stat_ex(cpu_stat_ex),
+	.cpu_stat_pc(cpu_stat_pc),
 	.frc_cntr_val_leq(frc_cntr_val_leq)
 	);
 

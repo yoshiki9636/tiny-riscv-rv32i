@@ -93,8 +93,9 @@ always @ (posedge clk or negedge rst_n) begin
 		pc_ecall <= pc;
 end
 
-//assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall : pc_p1;
-assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall : pc;
+assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :
+                  (cpu_stat_pc) ? pc : pc_p1;
+                  //(jmp_cond & cpu_stat_pc) ? jmp_adr : pc_p1;
 
 // interrupter latch
 always @ (posedge clk or negedge rst_n) begin

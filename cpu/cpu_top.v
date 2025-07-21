@@ -332,6 +332,7 @@ execution execution (
 	.csr_mtie(csr_mtie),
 	.csr_msie(csr_msie),
 	.cpu_stat_ex(cpu_stat_ex),
+	.cpu_stat_pc(cpu_stat_pc),
 	.frc_cntr_val_leq(frc_cntr_val_leq)
 	);
 

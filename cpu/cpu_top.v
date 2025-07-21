@@ -172,7 +172,6 @@ pc_stage pc_stage (
 	.cpu_start(cpu_start),
 	.stall(stall),
 	.cpu_stat_pc(cpu_stat_pc),
-	.cpu_stat_ex(cpu_stat_ex),
 	.ecall_condition_ex(ecall_condition_ex),
 	.g_interrupt(g_interrupt),
 	.g_interrupt_1shot(g_interrupt_1shot),

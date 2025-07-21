@@ -14,7 +14,6 @@ module pc_stage (
 	input cpu_start,
 	input stall,
 	input cpu_stat_pc,
-	input cpu_stat_ex,
 	input ecall_condition_ex,
 	input g_interrupt,
 	input g_interrupt_1shot,

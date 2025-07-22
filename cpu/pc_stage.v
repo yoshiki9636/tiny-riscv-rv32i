@@ -36,9 +36,10 @@ module pc_stage (
 // PC
 
 reg g_interrupt_latch;
+wire frc_cntr_val_leq_1shot;
 reg frc_cntr_val_leq_latch;
 
-wire intr_ecall_exception = ecall_condition_ex | g_interrupt_latch | g_exception | frc_cntr_val_leq_latch ;
+wire intr_ecall_exception = ecall_condition_ex | g_interrupt_latch  | g_exception | frc_cntr_val_leq_latch; 
 wire jump_cmd_cond = jmp_condition_ex | cmd_mret_ex | cmd_sret_ex | cmd_uret_ex;
 
 wire jmp_cond = intr_ecall_exception | jump_cmd_cond;
@@ -70,6 +71,8 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 wire [31:2] pc_p1 = pc + 30'd1;
+//wire [31:2] pc_p2 = pc + 30'd2;
+//wire [31:2] jmp_adr_p1 = jmp_adr + 30'd1;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
@@ -94,7 +97,10 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :
-                  (cpu_stat_pc) ? pc : pc_p1;
+                  (jmp_condition_ex) ? jmp_adr_ex : pc_p1;
+
+                  //(jmp_cond & cpu_stat_pc) ? jmp_adr :
+                  //(cpu_stat_pc) ? pc_p2 : pc_p1;
                   //(jmp_cond & cpu_stat_pc) ? jmp_adr : pc_p1;
 
 // interrupter latch
@@ -117,7 +123,7 @@ always @ (posedge clk or negedge rst_n) begin
 		frc_cntr_val_leq_lat <= frc_cntr_val_leq;
 end
 
-wire frc_cntr_val_leq_1shot = frc_cntr_val_leq & ~frc_cntr_val_leq_lat;
+assign frc_cntr_val_leq_1shot = frc_cntr_val_leq & ~frc_cntr_val_leq_lat;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)

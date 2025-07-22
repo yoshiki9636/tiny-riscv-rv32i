@@ -64,6 +64,7 @@ wire imr_run; // input
 wire id_rfr_run; // input
 wire dmrw_run; // input
 
+wire cpu_stat_before_exec;
 wire cpu_stat_pc; // output
 wire cpu_stat_imr; // output
 wire cpu_stat_idrfr; // output
@@ -159,6 +160,7 @@ cpu_state_machine cpu_state_machine (
 	.imr_run(imr_run),
 	.id_rfr_run(id_rfr_run),
 	.dmrw_run(dmrw_run),
+	.cpu_stat_before_exec(cpu_stat_before_exec),
 	.cpu_stat_pc(cpu_stat_pc),
 	.cpu_stat_imr(cpu_stat_imr),
 	.cpu_stat_idrfr(cpu_stat_idrfr),
@@ -332,7 +334,7 @@ execution execution (
 	.csr_mtie(csr_mtie),
 	.csr_msie(csr_msie),
 	.cpu_stat_ex(cpu_stat_ex),
-	.cpu_stat_pc(cpu_stat_pc),
+	.cpu_stat_before_exec(cpu_stat_before_exec),
 	.frc_cntr_val_leq(frc_cntr_val_leq)
 	);
 

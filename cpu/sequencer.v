@@ -16,6 +16,7 @@ module cpu_state_machine (
 	input id_rfr_run,
 	input dmrw_run,
 
+	output cpu_stat_before_exec,
 	output cpu_stat_pc,
 	output cpu_stat_imr,
 	output cpu_stat_idrfr,
@@ -84,5 +85,7 @@ assign cpu_stat_imr = (cpu_state == `CPU_IMR);
 assign cpu_stat_idrfr = (cpu_state == `CPU_IDRFR);
 assign cpu_stat_ex = (cpu_state == `CPU_EX);
 assign cpu_stat_dmrw = (cpu_state == `CPU_DMRW);
+
+assign cpu_stat_before_exec = cpu_stat_pc | cpu_stat_imr | cpu_stat_idrfr;
 
 endmodule

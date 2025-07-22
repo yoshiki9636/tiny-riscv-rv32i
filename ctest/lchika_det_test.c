@@ -206,6 +206,45 @@ void wait() {
 }
 
 void interrupt() {
+
+	__asm__ volatile("addi    sp,sp,-128");
+
+	__asm__ volatile("sw  ra,124(sp)");
+
+	__asm__ volatile("sw  t0,120(sp)");
+	__asm__ volatile("sw  t1,116(sp)");
+	__asm__ volatile("sw  t2,112(sp)");
+	__asm__ volatile("sw  t3,108(sp)");
+	__asm__ volatile("sw  t4,104(sp)");
+	__asm__ volatile("sw  t5,100(sp)");
+	__asm__ volatile("sw  t6,96(sp)");
+
+	__asm__ volatile("sw  a0,92(sp)");
+	__asm__ volatile("sw  a1,88(sp)");
+	__asm__ volatile("sw  a2,84(sp)");
+	__asm__ volatile("sw  a3,80(sp)");
+	__asm__ volatile("sw  a4,76(sp)");
+	__asm__ volatile("sw  a5,72(sp)");
+	__asm__ volatile("sw  a6,68(sp)");
+	__asm__ volatile("sw  a7,64(sp)");
+
+	__asm__ volatile("sw  s0,60(sp)");
+	__asm__ volatile("sw  s1,56(sp)");
+	__asm__ volatile("sw  s2,52(sp)");
+	__asm__ volatile("sw  s3,48(sp)");
+	__asm__ volatile("sw  s4,44(sp)");
+	__asm__ volatile("sw  s5,40(sp)");
+	__asm__ volatile("sw  s6,36(sp)");
+	__asm__ volatile("sw  s7,32(sp)");
+	__asm__ volatile("sw  s8,28(sp)");
+	__asm__ volatile("sw  s9,24(sp)");
+	__asm__ volatile("sw  s10,20(sp)");
+	__asm__ volatile("sw  s11,16(sp)");
+	__asm__ volatile("sw  tp,12(sp)");
+	__asm__ volatile("sw  gp,8(sp)");
+
+	__asm__ volatile("addi    s0,sp,128");
+
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* frc_low  = (unsigned int*)0xc000f800;
     unsigned int* frc_high = (unsigned int*)0xc000f804;
@@ -223,11 +262,48 @@ void interrupt() {
 	value++;
 	*led = value;
 	
+	__asm__ volatile("lw  ra,124(sp)");
+
+	__asm__ volatile("lw  t0,120(sp)");
+	__asm__ volatile("lw  t1,116(sp)");
+	__asm__ volatile("lw  t2,112(sp)");
+	__asm__ volatile("lw  t3,108(sp)");
+	__asm__ volatile("lw  t4,104(sp)");
+	__asm__ volatile("lw  t5,100(sp)");
+	__asm__ volatile("lw  t6,96(sp)");
+
+	__asm__ volatile("lw  a0,92(sp)");
+	__asm__ volatile("lw  a1,88(sp)");
+	__asm__ volatile("lw  a2,84(sp)");
+	__asm__ volatile("lw  a3,80(sp)");
+	__asm__ volatile("lw  a4,76(sp)");
+	__asm__ volatile("lw  a5,72(sp)");
+	__asm__ volatile("lw  a6,68(sp)");
+	__asm__ volatile("lw  a7,64(sp)");
+
+	__asm__ volatile("lw  s0,60(sp)");
+	__asm__ volatile("lw  s1,56(sp)");
+	__asm__ volatile("lw  s2,52(sp)");
+	__asm__ volatile("lw  s3,48(sp)");
+	__asm__ volatile("lw  s4,44(sp)");
+	__asm__ volatile("lw  s5,40(sp)");
+	__asm__ volatile("lw  s6,36(sp)");
+	__asm__ volatile("lw  s7,32(sp)");
+	__asm__ volatile("lw  s8,28(sp)");
+	__asm__ volatile("lw  s9,24(sp)");
+	__asm__ volatile("lw  s10,20(sp)");
+	__asm__ volatile("lw  s11,16(sp)");
+	__asm__ volatile("lw  tp,12(sp)");
+	__asm__ volatile("lw  gp,8(sp)");
+
+	__asm__ volatile("addi    sp,sp,128");
+
 	// workaround
+
 	__asm__ volatile("lw  ra,28(sp)");
 	__asm__ volatile("lw  s0,24(sp)");
-	//__asm__ volatile("lw  s5,20(sp)");
 	__asm__ volatile("addi    sp,sp,32");
 	__asm__ volatile("mret");
+
 }
 

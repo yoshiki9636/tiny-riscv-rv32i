@@ -133,6 +133,7 @@ Arty A7向けのPLLモジュールをバイパスすればどのシミュレー�
 - 0xF400  [3:0] RW  QSPI read latency 0  メモリ領域0向けレイテンシ値
 - 0xF404  [3:0] RW QSPI read latency 1  メモリ領域1向けレイテンシ値
 - 0xF408  [3:0] RW QSPI read latency 2  メモリ領域2向けレイテンシ値
+- 0xF40C  [9:0] RW QSPI sck 分周比　デフォルト6分周（値0x3）
 
 - 0xF800 [31:0] 　RW  Free Run Counter Lower 32bit  read:現在値　write:即時反映
 - 0xF804 [31:0]   RW  Free Run Counter Upper 32bit  read:現在値　write:即時反映

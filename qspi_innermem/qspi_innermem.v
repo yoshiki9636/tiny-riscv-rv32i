@@ -51,7 +51,7 @@ qspi_if qspi_if (
 	.ce_n(ce_n),
 	.sio_i(sio_i),
 	.sio_o(sio_o),
-	.sio_oe(sio_oe1),
+	.sio_en(sio_oe1),
 	.init_latency(init_latency),
 	.read_req(read_req),
 	.read_w(read_w),

@@ -135,9 +135,9 @@ Arty A7向けのPLLモジュールをバイパスすればどのシミュレー�
 - 0xF408  [3:0] RW QSPI read latency 2  メモリ領域2向けレイテンシ値
 
 - 0xF800 [31:0] 　RW  Free Run Counter Lower 32bit  read:現在値　write:即時反映
-- 0xF804 [7:0]   RW  Free Run Counter Upper 32bit  read:現在値　write:即時反映
+- 0xF804 [31:0]   RW  Free Run Counter Upper 32bit  read:現在値　write:即時反映
 - 0xF808 [31:0] 　RW  Free Run Counter 比較値 Lower 32bit  read:現在値　write:即時反映
-- 0xF80C [7:0]   RW  Free Run Counter 比較値 Upper 32bit  read:現在値　write:即時反映
+- 0xF80C [31:0]   RW  Free Run Counter 比較値 Upper 32bit  read:現在値　write:即時反映
                    Free Run Counter 比較値はFree Run Counterと比較され、
                    現在値が比較値以上となった時点でタイマー割込み信号が発信される
 - 0xF810 [2:0]  RW   Free Run Counterコントロールレジスタ

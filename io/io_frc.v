@@ -56,30 +56,30 @@ wire re_frc_cntrl = dma_io_radr_en & (dma_io_radr == `SYS_FRC_CNTRL);
 wire run_cntr;
 wire frc_cntr_rst;
 
-reg [39:0] frc_cntr_val;
+reg [63:0] frc_cntr_val;
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
-        frc_cntr_val <= 40'd0 ;
+        frc_cntr_val <= 64'd0 ;
 	else if (frc_cntr_rst)
-        frc_cntr_val <= 40'd0 ;
+        frc_cntr_val <= 64'd0 ;
 	else if (we_frc_vallo)
-        frc_cntr_val <= { frc_cntr_val[39:32], dma_io_wdata };
+        frc_cntr_val <= { frc_cntr_val[63:32], dma_io_wdata };
 	else if (we_frc_valhi)
-        frc_cntr_val <= { dma_io_wdata[7:0], frc_cntr_val[31:0] };
+        frc_cntr_val <= { dma_io_wdata, frc_cntr_val[31:0] };
 	else if (run_cntr)
-		frc_cntr_val <= frc_cntr_val + 40'd1;
+		frc_cntr_val <= frc_cntr_val + 64'd1;
 end
 
-reg [39:0] frc_cmp_val;
+reg [63:0] frc_cmp_val;
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
-        frc_cmp_val <= 40'd0 ;
+        frc_cmp_val <= 64'd0 ;
 	else if (we_frc_cmplo)
-        frc_cmp_val <= { frc_cmp_val[39:32], dma_io_wdata };
+        frc_cmp_val <= { frc_cmp_val[63:32], dma_io_wdata };
 	else if (we_frc_cmphi)
-        frc_cmp_val <= { dma_io_wdata[7:0], frc_cmp_val[31:0] };
+        frc_cmp_val <= { dma_io_wdata, frc_cmp_val[31:0] };
 end
 
 reg frc_cntrl_val;
@@ -114,9 +114,9 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 assign dma_io_rdata = (re_frc_dly[0]) ? frc_cntr_val[31:0] :
-                      (re_frc_dly[1]) ? { 24'd0, frc_cntr_val[39:32] } :
+                      (re_frc_dly[1]) ? frc_cntr_val[63:32] :
                       (re_frc_dly[2]) ? frc_cmp_val[31:0] :
-                      (re_frc_dly[3]) ? { 24'd0, frc_cmp_val[39:32] } :
+                      (re_frc_dly[3]) ? frc_cmp_val[63:32] :
                       (re_frc_dly[4]) ? { 29'd0, frc_cntr_val_leq, 1'b0, frc_cntrl_val } : dma_io_rdata_in;
 
 // for interrupt

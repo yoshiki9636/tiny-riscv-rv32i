@@ -6,7 +6,7 @@
 //#define LP 10
 #define LP 1000
 #define LP2 200
-#define SIZE 4
+#define SIZE 5
 // workaround for libm_nano.a
 int __errno;
 void pass();
@@ -243,7 +243,7 @@ void interrupt() {
 	__asm__ volatile("sw  tp,12(sp)");
 	__asm__ volatile("sw  gp,8(sp)");
 
-	__asm__ volatile("addi    s0,sp,128");
+	__asm__ volatile("addi    s0,sp,0");
 
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* frc_low  = (unsigned int*)0xc000f800;
@@ -262,6 +262,7 @@ void interrupt() {
 	value++;
 	*led = value;
 	
+	// pop from stack
 	__asm__ volatile("lw  ra,124(sp)");
 
 	__asm__ volatile("lw  t0,120(sp)");
@@ -299,10 +300,10 @@ void interrupt() {
 	__asm__ volatile("addi    sp,sp,128");
 
 	// workaround
-
 	__asm__ volatile("lw  ra,28(sp)");
 	__asm__ volatile("lw  s0,24(sp)");
 	__asm__ volatile("addi    sp,sp,32");
+
 	__asm__ volatile("mret");
 
 }

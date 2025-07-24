@@ -149,24 +149,28 @@ end
 wire [31:0] ext_read_mem;
 reg req_w_dly;
 reg req_hw_dly;
+reg unsigned_bit_dly;
+
+wire unsigned_bit = ldst_code_ma[2];
 
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin
 		req_w_dly <= 1'b0;
 		req_hw_dly <= 1'b0;
+		unsigned_bit_dly <= 1'b0;
 	end
 	else if (ld_mem_req) begin
 		req_w_dly <= req_w;
 		req_hw_dly <= req_hw;
+		unsigned_bit_dly <= unsigned_bit;
 	end
 end
 
-wire unsigned_bit = ldst_code_ma[2];
 
 assign ext_read_mem = (req_w_dly) ? read_data :
-                      (req_hw_dly & ~unsigned_bit) ? { { 16{ read_data[15] }}, read_data[15:0] } :
-                      (req_hw_dly &  unsigned_bit) ? { 16'd0, read_data[15:0] } :
-                      (~unsigned_bit) ? { { 24{ read_data[7] }}, read_data[7:0] } :
+                      (req_hw_dly & ~unsigned_bit_dly) ? { { 16{ read_data[15] }}, read_data[15:0] } :
+                      (req_hw_dly &  unsigned_bit_dly) ? { 16'd0, read_data[15:0] } :
+                      (~unsigned_bit_dly) ? { { 24{ read_data[7] }}, read_data[7:0] } :
                                         { 24'd0, read_data[7:0] } ;
  
 

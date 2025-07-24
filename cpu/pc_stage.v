@@ -93,7 +93,7 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		pc_ecall <= 30'd0;
 	else if (ecall_condition_ex & cpu_stat_pc)
-		pc_ecall <= pc;
+		pc_ecall <= pc_p1;
 end
 
 assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :

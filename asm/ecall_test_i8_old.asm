@@ -122,23 +122,31 @@ sw x1, 0x0(x2) ; set LED
 ; test ecall
 :fail_test7
 lui x3, 0x00000 ;
-addi x3, x3, 0x194
+addi x3, x3, 0x190
 csrrw x4, 0x305, x3
 csrrw x5, 0x305, x3
 bne x5, x3, fail_test7
-addi x11, x0, 0x55
-addi x12, x0, 0x77
 ecall
-addi x12, x0, 0xaa
-bne x11, x12, fail_test7
-jalr x0, x0, pass
-; 0x0194
-:dummy_label
-addi x11, x0, 0xaa
-mret
+jalr x0, x0, fail_test7
+jalr x0, x0, fail_test7
+jalr x0, x0, fail_test7
+jalr x0, x0, fail_test7
+; 0x0190
+addi x1, x0, 0 ; LED value
+sw x1, 0x0(x2) ; set LED
+ori x6, x0, 0x17c
+ori x7, x0, 3
 nop
 nop
-:pass
+csrrs x4, 0x341, x0
+csrrs x5, 0x342, x0
+bne x4, x6, fail_test7
+; next value
+addi x1, x0, 1 ; LED value
+sw x1, 0x0(x2) ; set LED
+bne x5, x7, fail_test7
+nop
+nop
 lui x2, 10 ; loop max
 ;ori x2, x0, 10 ; small loop for sim
 and x3, x0, x3 ; LED value

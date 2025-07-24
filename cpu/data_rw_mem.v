@@ -161,9 +161,13 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 end
 
-assign ext_read_mem = req_w_dly ? read_data :
-                      req_hw_dly ? { { 16{ read_data[15] }}, read_data[15:0] } :
-                                   { { 24{ read_data[7] }}, read_data[7:0] } ;
+wire unsigned_bit = ldst_code_ma[2];
+
+assign ext_read_mem = (req_w_dly) ? read_data :
+                      (req_hw_dly & ~unsigned_bit) ? { { 16{ read_data[15] }}, read_data[15:0] } :
+                      (req_hw_dly &  unsigned_bit) ? { 16'd0, read_data[15:0] } :
+                      (~unsigned_bit) ? { { 24{ read_data[7] }}, read_data[7:0] } :
+                                        { 24'd0, read_data[7:0] } ;
  
 
 // read data selector

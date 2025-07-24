@@ -16,7 +16,7 @@ addi x2, x2, 0xe00 ;
 sw x1, 0x0(x2) ; set LED
 
 lui x6, 0x00000 ; destiation
-lui x7, 0x04000 ;
+lui x7, 0x00010 ;
 addi x7, x7, 0xfff ;
 lui x8, 0x00000 ; counter
 
@@ -31,10 +31,10 @@ sw x1, 0x0(x2) ; set LED
 
 lui x5, 0x00000 ; source
 addi x5, x5, 0x000 ;
-lui x6, 0x10000 ; destiation
+lui x6, 0x00020 ; destiation
 addi x6, x6, 0xffe ;
-lui x7, 0x04000 ;
-addi x7, x7, 0xfff ;
+lui x7, 0x00000 ;
+addi x7, x7, 0x7ff ;
 lui x8, 0x00000 ; counter
 
 :label_loop2
@@ -50,10 +50,10 @@ sw x1, 0x0(x2) ; set LED
 
 lui x5, 0x00000 ; source
 addi x5, x5, 0x000 ;
-lui x6, 0x10000 ; destiation
+lui x6, 0x00020 ; destiation
 addi x6, x6, 0xffe ;
-lui x7, 0x04000 ;
-addi x7, x7, 0xfff ;
+lui x7, 0x00000 ;
+addi x7, x7, 0x7ff ;
 lui x8, 0x00000 ; counter
 
 :label_loop3
@@ -74,7 +74,7 @@ nop
 nop
 
 :label_pass
-lui x2, 01000 ; loop max
+lui x2, 10 ; loop max
 ;addi x2, x0, 0x10
 and x3, x0, x3 ; LED value
 and x4, x0, x4 ; 

@@ -34,7 +34,7 @@ blt x8, x7, label_loop1
 nop
 nop
 
-lui x2, 01000 ; loop max
+lui x2, 10 ; loop max
 and x3, x0, x3 ; LED value
 and x4, x0, x4 ; 
 lui x4, 0xc0010 ; LED address

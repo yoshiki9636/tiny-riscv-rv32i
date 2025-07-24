@@ -13,7 +13,7 @@ addi x7, x0, 0x64 ; trap vector
 csrrw x7, 0x305, x7 ; wirte to mtvec
 ori x7, x0, 0x800 ; set meip bit on mie 
 csrrw x7, 0x304, x7 ; wirte to mtvec
-lui x2, 01000 ; loop max
+lui x2, 10 ; loop max
 ;addi x2, x0, 10 ; loop max
 and x3, x0, x3 ; LED value
 and x4, x0, x4 ; 

@@ -13,7 +13,7 @@ addi x7, x0, 0x64 ; trap vector
 csrrw x7, 0x305, x7 ; wirte to mtvec
 ori x7, x0, 0x800 ; set meip bit on mie 
 csrrw x7, 0x304, x7 ; wirte to mtvec
-lui x2, 01000 ; loop max
+lui x2, 10 ; loop max
 ;addi x2, x0, 10 ; loop max
 and x3, x0, x3 ; LED value
 and x4, x0, x4 ; 
@@ -28,14 +28,14 @@ and x3, x0, x3 ; legal ops
 and x3, x0, x3 ; legal ops
 and x3, x0, x3 ; legal ops
 ;and x3, x0, x3 ; legal ops
-addi x5, x0, 1 ; LED mask value
+addi x5, x0, 7 ; LED mask value
 jalr x0, x0, label_led
 illegal_ops
 nop
 nop
 nop
 nop
-addi x5, x0, 7 ; LED mask value
+addi x5, x0, 1 ; LED mask value
 :label_led
 and x1, x0, x1 ; loop counter
 :label_waitloop

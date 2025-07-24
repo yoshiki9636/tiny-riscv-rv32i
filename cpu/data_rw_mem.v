@@ -57,8 +57,8 @@ module data_rw_mem (
 wire sel_mem =  (rd_data_ma[31:30] != 2'b11);
 wire st_mem_req = cmd_st_ma & sel_mem;
 wire ld_mem_req = cmd_ld_ma & sel_mem;
-wire req_w =  (ldst_code_ma == 3'b010) & sel_mem;
-wire req_hw = (ldst_code_ma == 3'b001) & sel_mem;
+wire req_w =  (ldst_code_ma[1:0] == 2'b10) & sel_mem;
+wire req_hw = (ldst_code_ma[1:0] == 2'b01) & sel_mem;
 
 assign d_read_req = ld_mem_req;
 assign d_read_w = req_w;

@@ -134,6 +134,14 @@ Arty A7向けのPLLモジュールをバイパスすればどのシミュレー�
 - 0xF404  [3:0] RW QSPI read latency 1  メモリ領域1向けレイテンシ値
 - 0xF408  [3:0] RW QSPI read latency 2  メモリ領域2向けレイテンシ値
 - 0xF40C  [9:0] RW QSPI sck 分周比　デフォルト6分周（値0x3）
+- 0xF410  [7:0] RW QSPI 第1リードコマンド(psram向け) リセット時　0xEB(psram)  
+- 0xF414  [7:0] RW QSPI 第2リードコマンド(flash向け) リセット時　0x6B(flash)
+- 0xF418  [7:0] RW QSPI 第1リードコマンド(psram向け) リセット時　0x38(psram)  
+- 0xF41C  [7:0] RW QSPI 第2リードコマンド(flash向け) リセット時　0x38(使わないためpsramと同一)
+- 0xF420  [5:0] RW read/wirte コマンド選択レジスタ [0]:ce_n[0] 向けread  [1]:ce_n[0]向けwrite
+                               [2]:ce_n[1] 向けread  [3]:ce_n[1]向けwrite [4]:ce_n[2] 向けread  [5]:ce_n[2]向けwrite
+ 　　　　　　　　　リセット時にqspi_init[2]の値で[1:0]の初期値を変更　sqpi_init[2]:0  2’b00, qspi_init[2]:1 2’b11
+
 
 - 0xF800 [31:0] 　RW  Free Run Counter Lower 32bit  read:現在値　write:即時反映
 - 0xF804 [31:0]   RW  Free Run Counter Upper 32bit  read:現在値　write:即時反映
@@ -175,6 +183,6 @@ Arty A7向けのPLLモジュールをバイパスすればどのシミュレー�
  - init_latency : 真ん中2つのボタン BTN2 BTN1
  - init_cpu_start : 一番左のボタン BTN3
  - init_uart : 右2つのスイッチ　SW1,SW0
- - GPI[0] : 右3番目のスイッチ SW2
+ - init_qspicmd : 右3番目のスイッチ SW2
 
 

@@ -19,6 +19,7 @@ module qspi_if (
 	//output sio_en,
 
 	input [1:0] init_latency,
+	input init_qspicmd,
 
 	input read_req,
 	input read_w,
@@ -44,8 +45,10 @@ module qspi_if (
 	);
 	
 `define TERM_SCK 10'd3
-`define CMD_FREADQ 8'hEB
-`define CMD_QWIRTE 8'h38
+`define CMD_DFREADQ 8'hEB
+`define CMD_FFREADQ 8'h6B
+`define CMD_DQWIRTE 8'h38
+`define CMD_FQWIRTE 8'h38
 `define CMD_RST_EN 8'h66
 `define CMD_RESET  8'h99
 
@@ -250,8 +253,27 @@ end
 
 wire cmd_rsten = 1'b0; // temp
 
-assign cmd_byte = (cmd_freadq) ? `CMD_FREADQ :
-                  (cmd_qwrite) ? `CMD_QWIRTE :
+reg [7:0] rdcmd0;
+reg [7:0] rdcmd1;
+reg [7:0] wrcmd0;
+reg [7:0] wrcmd1;
+
+reg [5:0] rdwrch;
+
+wire [7:0] cmd_read_ce_n0 =  (rdwrch[0]) ? rdcmd1 : rdcmd0;
+wire [7:0] cmd_write_ce_n0 = (rdwrch[1]) ? wrcmd1 : wrcmd0;
+wire [7:0] cmd_read_ce_n1 =  (rdwrch[2]) ? rdcmd1 : rdcmd0;
+wire [7:0] cmd_write_ce_n1 = (rdwrch[3]) ? wrcmd1 : wrcmd0;
+wire [7:0] cmd_read_ce_n2 =  (rdwrch[4]) ? rdcmd1 : rdcmd0;
+wire [7:0] cmd_write_ce_n2 = (rdwrch[5]) ? wrcmd1 : wrcmd0;
+
+wire [7:0] cmd_read_sel =  (~ce_2_en) ? cmd_read_ce_n2 :
+                           (~ce_1_en) ? cmd_read_ce_n1 : cmd_read_ce_n0;
+wire [7:0] cmd_write_sel =  (~ce_2_en) ? cmd_write_ce_n2 :
+                            (~ce_1_en) ? cmd_write_ce_n1 : cmd_write_ce_n0;
+
+assign cmd_byte = (cmd_freadq) ? cmd_read_sel :
+                  (cmd_qwrite) ? cmd_write_sel :
                   (cmd_rsten) ? `CMD_RST_EN : `CMD_RESET;
 
 assign cmd_bit =  cmd_byte[cmd_ofs];
@@ -370,6 +392,11 @@ assign rst_end = (state_rsten | state_rst) & (rst_cntr == 4'd0) & fall_edge;
 `define SYS_QSPI_LATENCY1 14'h3D01
 `define SYS_QSPI_LATENCY2 14'h3D02
 `define SYS_QSPI_SCKDIV   14'h3D03
+`define SYS_QSPI_RDCMD0   14'h3D04
+`define SYS_QSPI_RDCMD1   14'h3D05
+`define SYS_QSPI_WRCMD0   14'h3D06
+`define SYS_QSPI_WRCMD1   14'h3D07
+`define SYS_QSPI_RDWTCH   14'h3D08
 
 wire we_qspi_latency0 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY0);
 wire re_qspi_latency0 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY0);
@@ -379,6 +406,18 @@ wire we_qspi_latency2 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY2);
 wire re_qspi_latency2 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY2);
 wire we_qspi_sckdiv = dma_io_we      & (dma_io_wadr == `SYS_QSPI_SCKDIV);
 wire re_qspi_sckdiv = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_SCKDIV);
+
+wire we_qspi_rdcmd0 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_RDCMD0);
+wire re_qspi_rdcmd0 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_RDCMD0);
+wire we_qspi_rdcmd1 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_RDCMD1);
+wire re_qspi_rdcmd1 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_RDCMD1);
+wire we_qspi_wrcmd0 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_WRCMD0);
+wire re_qspi_wrcmd0 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_WRCMD0);
+wire we_qspi_wrcmd1 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_WRCMD1);
+wire re_qspi_wrcmd1 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_WRCMD1);
+wire we_qspi_rdwrch = dma_io_we      & (dma_io_wadr == `SYS_QSPI_RDWTCH);
+wire re_qspi_rdwrch = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_RDWTCH);
+
 
 reg [3:0] read_latency_0;
 reg [3:0] read_latency_1;
@@ -442,19 +481,64 @@ always @ (posedge clk or negedge rst_n) begin
 		 sck_div <= dma_io_wdata[9:0];
 end
 
-reg [3:0] re_qspi_latency_dly;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 rdcmd0 <= `CMD_DFREADQ;
+	else if (we_qspi_rdcmd0)
+		 rdcmd0 <= dma_io_wdata[7:0];
+end
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		 re_qspi_latency_dly <= 4'b0000;
+		 rdcmd1 <= `CMD_FFREADQ;
+	else if (we_qspi_rdcmd1)
+		 rdcmd1 <= dma_io_wdata[7:0];
+end
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 wrcmd0 <= `CMD_DQWIRTE;
+	else if (we_qspi_wrcmd0)
+		 wrcmd0 <= dma_io_wdata[7:0];
+end
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 wrcmd1 <= `CMD_FQWIRTE;
+	else if (we_qspi_wrcmd1)
+		 wrcmd1 <= dma_io_wdata[7:0];
+end
+
+wire [5:0] init_rdwrch = init_qspicmd ? 6'b000011 : 6'b000000;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 rdwrch <= 6'd0;
+	else if (first_edge)
+		 rdwrch <= init_rdwrch;
+	else if (we_qspi_rdwrch)
+		 rdwrch <= dma_io_wdata[5:0];
+end
+
+reg [8:0] re_qspi_latency_dly;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 re_qspi_latency_dly <= 9'd0;
 	else
-		 re_qspi_latency_dly <= { re_qspi_sckdiv, re_qspi_latency2, re_qspi_latency1, re_qspi_latency0 };
+		 re_qspi_latency_dly <= { re_qspi_rdwrch, re_qspi_wrcmd1, re_qspi_wrcmd0, re_qspi_rdcmd1, re_qspi_rdcmd0,
+                                  re_qspi_sckdiv, re_qspi_latency2, re_qspi_latency1, re_qspi_latency0 };
 end
 
 assign dma_io_rdata = (re_qspi_latency_dly[0] == 1'b1) ? { 28'd0, read_latency_0 } :
                       (re_qspi_latency_dly[1] == 1'b1) ? { 28'd0, read_latency_1 } :
                       (re_qspi_latency_dly[2] == 1'b1) ? { 28'd0, read_latency_2 } :
-                      (re_qspi_latency_dly[3] == 1'b1) ? { 22'd0, sck_div } : dma_io_rdata_in;
+                      (re_qspi_latency_dly[3] == 1'b1) ? { 22'd0, sck_div } :
+                      (re_qspi_latency_dly[4] == 1'b1) ? { 24'd0, rdcmd0 } :
+                      (re_qspi_latency_dly[5] == 1'b1) ? { 24'd0, rdcmd1 } :
+                      (re_qspi_latency_dly[6] == 1'b1) ? { 24'd0, wrcmd0 } :
+                      (re_qspi_latency_dly[7] == 1'b1) ? { 24'd0, wrcmd1 } :
+                      (re_qspi_latency_dly[8] == 1'b1) ? { 26'd0, rdwrch } : dma_io_rdata_in;
 
 wire [3:0] read_latency = ce_1_dec ? read_latency_1 :
                           ce_2_dec ? read_latency_2 : read_latency_0;

@@ -12,6 +12,7 @@ module qspi_innermem (
 	input clk,
 	input rst_n,
 	input [1:0] init_latency,
+	input init_qspicmd,
 
 	input read_req,
 	input read_w,
@@ -53,6 +54,7 @@ qspi_if qspi_if (
 	.sio_o(sio_o),
 	.sio_en(sio_oe1),
 	.init_latency(init_latency),
+	.init_qspicmd(init_qspicmd),
 	.read_req(read_req),
 	.read_w(read_w),
 	.read_hw(read_hw),

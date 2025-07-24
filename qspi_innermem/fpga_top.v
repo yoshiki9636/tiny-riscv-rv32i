@@ -18,9 +18,10 @@ module fpga_top (
 	output tx,
 	output [2:0] rgb_led,
 	inout [3:0] gpio,
-	input gpi_in,
+	//input gpi_in,
 
 	input [1:0] init_latency,
+	input init_qspicmd,
 	input init_cpu_start,
 	input [1:0] init_uart
 
@@ -236,6 +237,7 @@ qspi_innermem qspi_innermem (
 	.clk(clk),
 	.rst_n(rst_n),
 	.init_latency(init_latency),
+	.init_qspicmd(init_qspicmd),
 	.read_req(read_req),
 	.read_w(read_w),
 	.read_hw(read_hw),
@@ -271,7 +273,7 @@ io_led io_led (
 	.init_uart(init_uart),
 	.init_latency(init_latency),
 	.init_cpu_start(init_cpu_start),
-	.gpi_in(gpi_in),
+	.gpi_in(init_qspicmd),
 	.gpio(gpio)
 	);
 

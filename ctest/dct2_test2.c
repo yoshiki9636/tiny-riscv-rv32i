@@ -7,7 +7,7 @@
 #define LP2 200
 #define T 8
 #define K 8
-#define S 16
+#define S 8
 #define MY_PI 3.141592653589793238462643
 
 //#include "lenna.txt"
@@ -86,10 +86,10 @@ int main() {
 		for (int x = 0; x < S; x = x + T) {
 			get_tile( &lenna[0], &cmat1[0], S, x, y, T);
 			uchar2double(&cmat1[0], &mat1[0], T*T);
-			//uprint( "dct mat1 ", 9, 1 );
+			uprint( "dct mat1 ", 9, 1 );
 			uprint( "d", 1, 0 );
 			print_coodinate(x, y, 2);
-			//matrix_print( &mat1[0], T, T);
+			matrix_print( &mat1[0], T, T);
 			*led = 0x01;
 
 			put_dctval(&mat1[0], &dct_data[0], S, x, y, 0, T);
@@ -103,7 +103,7 @@ int main() {
 
 			uprint( "dct mat2 ", 9, 1 );
 			print_coodinate(x, y, 2);
-			//matrix_print( &mat2[0], T, T);
+			matrix_print( &mat2[0], T, T);
 
 			put_dctval(&mat2[0], &dct_data[0], S, x, y, 0, T);
 		}
@@ -128,7 +128,7 @@ int main() {
 		}
 	}
 
-	//uprint( "mat2", 4, 2 );
+	uprint( "mat2", 4, 2 );
 	//for ( int i = 0; i < S*S; i++) {
 
 	pass();
@@ -174,7 +174,7 @@ int put_dctval(double* indata, double* outdata, int xsize, int x, int y, int dum
 	char cbuf2[64];
     unsigned int* led = (unsigned int*)0xc000fe00;
 	//*led = dummy >> 3;
-	*led = dummy;
+	//*led = dummy;
 	int length = int_print( cbuf2, dummy, 0 );
 	//uprint_dummy( cbuf2, length, 2 );
 	uprint( cbuf2, length, 2 );

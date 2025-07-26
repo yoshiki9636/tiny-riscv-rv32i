@@ -6,7 +6,7 @@
 //#define LP 10
 #define LP 1000
 #define LP2 200
-#define SIZE 8
+#define SIZE 4
 // workaround for libm_nano.a
 int __errno;
 
@@ -65,9 +65,10 @@ int main() {
 		}
 	}
 
+	uprint( "mat1\n", 6, 0 );
+
 	double det = det_cal( mat1, SIZE);
 
-	uprint( "mat1\n", 6, 0 );
 	matrix_print( mat1, SIZE, SIZE);
 	int length = sprintf(cbuf, "\ndet = %e\n",  det);
 	uprint( cbuf, length, 0 );
@@ -108,7 +109,7 @@ double det_cal( double* mat, int s) {
 		double pmat[(s-1)*(s-1)];
 		for (int i = 0; i < s; i++) {
 			part_mat( mat, pmat, s, i );
-			//matrix_print( pmat, s-1, s-1);
+			matrix_print( pmat, s-1, s-1);
 			//int length = sprintf(cbuf, "%e\n",  mat[i]);
 			//uprint( cbuf, length, 0 );
 			det = det + sign * mat[i] * det_cal( pmat, s - 1 );

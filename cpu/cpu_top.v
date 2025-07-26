@@ -120,6 +120,8 @@ wire [1:0] g_interrupt_priv = `M_MODE; // temp
 wire [1:0] g_current_priv = `M_MODE; // temp
 wire g_exception; // input
 wire jmp_condition_ex; // input
+wire csr_rmie;
+wire interrupts_in_pc_state;
 
 wire [31:2] csr_mtvec_ex; // input
 wire [31:2] csr_mepc_ex; // input
@@ -174,11 +176,13 @@ pc_stage pc_stage (
 	.cpu_start(cpu_start),
 	.stall(stall),
 	.cpu_stat_pc(cpu_stat_pc),
+	.csr_rmie(csr_rmie),
 	.ecall_condition_ex(ecall_condition_ex),
 	.g_interrupt(g_interrupt),
 	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_exception(g_exception),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
+	.interrupts_in_pc_state(interrupts_in_pc_state),
 	.jmp_condition_ex(jmp_condition_ex),
 	.cmd_mret_ex(cmd_mret),
 	.cmd_sret_ex(cmd_sret),
@@ -330,6 +334,8 @@ execution execution (
 	.g_interrupt_priv(g_interrupt_priv),
 	.g_current_priv(g_current_priv),
 	.g_exception(g_exception),
+	.interrupts_in_pc_state(interrupts_in_pc_state),
+	.csr_rmie(csr_rmie),
 	.csr_meie(csr_meie),
 	.csr_mtie(csr_mtie),
 	.csr_msie(csr_msie),

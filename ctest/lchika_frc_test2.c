@@ -75,6 +75,9 @@ int main() {
 	// enable MTIE
 	unsigned int value = 0x80;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
+	// mstatus
+	value = 0x8;
+	__asm__ volatile("csrw mstatus, %0" : "=r"(value));
 
 	uprint( "start\n", 7);
 	*led = 6;
@@ -104,7 +107,6 @@ void interrupt() {
 	// workaround
 	__asm__ volatile("lw  ra,28(sp)");
 	__asm__ volatile("lw  s0,24(sp)");
-	//__asm__ volatile("lw  s5,20(sp)");
 	__asm__ volatile("addi    sp,sp,32");
 	__asm__ volatile("mret");
 }
@@ -120,7 +122,7 @@ void uprint( char* buf, int length ) {
 			flg = *uart_status;
 		}
 		*uart_out = (i == length) ? 0 : buf[i];
-		*led = i;
+		//*led = i;
 	}
 	//return 0;
 }

@@ -14,11 +14,13 @@ module pc_stage (
 	input cpu_start,
 	input stall,
 	input cpu_stat_pc,
+	input csr_rmie,
 	input ecall_condition_ex,
 	input g_interrupt,
 	input g_interrupt_1shot,
 	input g_exception,
 	input frc_cntr_val_leq,
+	output interrupts_in_pc_state,
 	input jmp_condition_ex,
 	input cmd_mret_ex,
 	input cmd_sret_ex,
@@ -39,7 +41,10 @@ reg g_interrupt_latch;
 wire frc_cntr_val_leq_1shot;
 reg frc_cntr_val_leq_latch;
 
-wire intr_ecall_exception = ecall_condition_ex | g_interrupt_latch  | g_exception | frc_cntr_val_leq_latch; 
+assign interrupts_in_pc_state = (g_interrupt_latch | frc_cntr_val_leq_latch) & cpu_stat_pc;
+
+wire interrupt_mskd = (g_interrupt_latch  | g_exception | frc_cntr_val_leq_latch) & csr_rmie;
+wire intr_ecall_exception = ecall_condition_ex | interrupt_mskd;
 wire jump_cmd_cond = jmp_condition_ex | cmd_mret_ex | cmd_sret_ex | cmd_uret_ex;
 
 wire jmp_cond = intr_ecall_exception | jump_cmd_cond;

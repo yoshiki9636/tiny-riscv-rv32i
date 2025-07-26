@@ -69,6 +69,9 @@ int main() {
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	unsigned int value = 0x800;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
+	// mstatus
+	value = 0x8;
+	__asm__ volatile("csrw mstatus, %0" : "=r"(value));
 
 	// clear char buffer
 	*rx_char = 0;

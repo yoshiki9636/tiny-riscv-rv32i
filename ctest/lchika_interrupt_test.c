@@ -69,6 +69,9 @@ int main() {
 	// enable MEIE
 	unsigned int value = 0x800;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
+	// mstatus
+	value = 0x8;
+	__asm__ volatile("csrw mstatus, %0" : "=r"(value));
 
 	uprint( "start\n", 7);
 	*led = 6;

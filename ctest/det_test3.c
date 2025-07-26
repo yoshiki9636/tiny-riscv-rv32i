@@ -6,7 +6,7 @@
 //#define LP 10
 #define LP 1000
 #define LP2 200
-#define SIZE 8
+#define SIZE 4
 
 void uprint( char* buf, int length, int ret );
 // workaround for libm_nano.a
@@ -65,6 +65,7 @@ int main() {
 	char cbuf[64];
 	double mat1[SIZE*SIZE];
 	//clearbss();
+	uprint( "start\n", 6, 0 );
 	
 	for (int j = 0; j < SIZE; j++) {
 		for (int i = 0; i < SIZE; i++) {
@@ -72,6 +73,8 @@ int main() {
 			mat1[j*SIZE+i] = sqrt((double)(j*SIZE+i+1));
 		}
 	}
+
+	matrix_print( mat1, SIZE, SIZE);
 
 	double det = det_cal( mat1, SIZE);
 
@@ -117,7 +120,7 @@ double det_cal( double* mat, int s) {
 		double pmat[(s-1)*(s-1)];
 		for (int i = 0; i < s; i++) {
 			part_mat( mat, pmat, s, i );
-			//matrix_print( pmat, s-1, s-1);
+			matrix_print( pmat, s-1, s-1);
 			//int length = sprintf(cbuf, "%e\n",  mat[i]);
 			//uprint( cbuf, length, 0 );
 			det = det + sign * mat[i] * det_cal( pmat, s - 1 );

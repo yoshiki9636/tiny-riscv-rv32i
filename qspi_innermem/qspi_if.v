@@ -44,7 +44,7 @@ module qspi_if (
 
 	);
 	
-`define TERM_SCK 10'd3
+`define TERM_SCK 10'd0
 `define CMD_DFREADQ 8'hEB
 `define CMD_FFREADQ 8'h6B
 `define CMD_DQWIRTE 8'h38
@@ -421,7 +421,8 @@ reg [3:0] read_latency_1;
 reg [3:0] read_latency_2;
 
 // causion!! need to change if default memory does not work
-wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'd7 :
+//wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'd7 :
+wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'd10 :
                                   (init_latency == 2'd1) ? 4'd8 :
                                   (init_latency == 2'd2) ? 4'd9 : 4'd6;
 

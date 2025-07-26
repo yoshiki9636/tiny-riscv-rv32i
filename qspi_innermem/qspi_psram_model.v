@@ -183,6 +183,7 @@ always @ (posedge clk or negedge rst_n) begin
 		 cmd_cntr <= 4'd0;
 	else if (~ce_n_sync & ce_n_sync_dly)
 		 cmd_cntr <= 4'd8;
+		 //cmd_cntr <= 4'd7;
 	else if (cmd_cntr == 4'd0)
 		 cmd_cntr <= 4'd0;
 	else if (rise_edge)
@@ -261,6 +262,8 @@ reg [15:0] write_byte_cntr;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		write_half_byte <= 1'b1;
+	else if (~state_write)
+		write_half_byte <= 1'b1;
 	else if (state_write & rise_edge)
 		write_half_byte <= ~write_half_byte;
 end
@@ -288,6 +291,8 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		read_half_byte <= 1'b1;
 	//else if (state_read & fall_edge)
+	else if (~state_read)
+		read_half_byte <= 1'b1;
 	else if (~ce_n_sync & state_read & rise_edge)
 		read_half_byte <= ~read_half_byte;
 end

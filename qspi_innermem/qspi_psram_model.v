@@ -185,8 +185,8 @@ always @ (posedge clk or negedge rst_n) begin
 		 cmd_cntr <= 4'd0;
 	//else if (~ce_n_sync & ce_n_sync_dly)
 	else if (~ce_n & ce_n_sync)
-		 //cmd_cntr <= 4'd8;
-		 cmd_cntr <= 4'd7;
+		 cmd_cntr <= 4'd8;
+		 //cmd_cntr <= 4'd7;
 	else if (cmd_cntr == 4'd0)
 		 cmd_cntr <= 4'd0;
 	else if (rise_edge)

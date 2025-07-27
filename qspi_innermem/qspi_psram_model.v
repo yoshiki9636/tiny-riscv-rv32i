@@ -131,11 +131,12 @@ wire [3:0] next_main_state = main_machine( main_state,
 										   cmd_end,
 										   adr_end,
 										   rst_end,
-										   ce_n_sync,
+										   ce_n,
 										   cmd_freadq,
 										   cmd_qwrite,
 										   cmd_rst_en,
 										   read_wait_end);
+										   //ce_n_sync,
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
@@ -168,7 +169,8 @@ always @ (posedge clk or negedge rst_n) begin
 	else if (~state_cmd & next_state_cmd & rise_edge)
 		byte_cmd <= { 7'd0, sio_in_sync[0] };
 	else if (state_cmd & rise_edge & ~cmd_end)
-		byte_cmd <= { byte_cmd[6:0], sio_in_sync[0] };
+		//byte_cmd <= { byte_cmd[6:0], sio_in_sync[0] };
+		byte_cmd <= { byte_cmd[6:0], sio_in[0] };
 end
 
 assign cmd_freadq = (byte_cmd == `CMD_FREADQ);
@@ -181,7 +183,8 @@ reg [3:0] cmd_cntr;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		 cmd_cntr <= 4'd0;
-	else if (~ce_n_sync & ce_n_sync_dly)
+	//else if (~ce_n_sync & ce_n_sync_dly)
+	else if (~ce_n & ce_n_sync)
 		 cmd_cntr <= 4'd8;
 		 //cmd_cntr <= 4'd7;
 	else if (cmd_cntr == 4'd0)
@@ -293,7 +296,8 @@ always @ (posedge clk or negedge rst_n) begin
 	//else if (state_read & fall_edge)
 	else if (~state_read)
 		read_half_byte <= 1'b1;
-	else if (~ce_n_sync & state_read & rise_edge)
+	//else if (~ce_n_sync & state_read & rise_edge)
+	else if (~ce_n & state_read & rise_edge)
 		read_half_byte <= ~read_half_byte;
 end
 
@@ -303,13 +307,15 @@ always @ (posedge clk or negedge rst_n) begin
 	else if (~state_read & next_state_read)
 		read_byte_cntr <= word_adr[15:0];
 	//else if (state_read & ~read_half_byte & fall_edge)
-	else if (~ce_n_sync & state_read & ~read_half_byte & rise_edge)
+	//else if (~ce_n_sync & state_read & ~read_half_byte & rise_edge)
+	else if (~ce_n & state_read & ~read_half_byte & rise_edge)
 		read_byte_cntr <= read_byte_cntr + 16'd1;
 end
 
 wire [16:0] read_address = { read_byte_cntr, read_half_byte };
 
-assign sio_out_enbl = state_read & ~ce_n_sync;
+//assign sio_out_enbl = state_read & ~ce_n_sync;
+assign sio_out_enbl = state_read & ~ce_n;
 
 // memory
 

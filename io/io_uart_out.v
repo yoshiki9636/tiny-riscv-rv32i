@@ -112,6 +112,8 @@ end
 assign ext_uart_interrpt_1shot = cpu_run_state & rout_en;
 
 // polling bit for rx data
+reg [3:0] re_uart_rdflg_dly;
+
 reg rx_first_read;
 
 always @ (posedge clk or negedge rst_n) begin
@@ -138,7 +140,6 @@ end
 
 // read part
 
-reg [3:0] re_uart_rdflg_dly;
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)

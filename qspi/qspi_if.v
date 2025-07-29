@@ -44,7 +44,7 @@ module qspi_if (
 
 	);
 	
-`define TERM_SCK 10'h7
+`define TERM_SCK 10'h3
 `define CMD_DFREADQ 8'hEB
 `define CMD_FFREADQ 8'h6B
 `define CMD_DQWIRTE 8'h38
@@ -91,12 +91,15 @@ reg sck_pre;
 reg sck_dly1;
 reg sck_sync;
 
-wire rise_edge = sck_pre & ~sck_sync;
-wire fall_edge = ~sck_pre & sck_sync;
+//wire rise_edge = sck_pre & ~sck_dly1;
+//wire fall_edge = ~sck_pre & sck_dly1;
+//wire rise_edge = sck_pre & ~sck_sync;
+//wire fall_edge = ~sck_pre & sck_sync;
 
 // SCK counter
 reg [9:0] sck_cntr;
 reg [9:0] sck_div;
+//wire sck_mask;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
@@ -119,16 +122,27 @@ end
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
 		sck_sync <= 1'd1;
+		sck_dly1 <= 1'd1;
 	end
 	else begin
-		sck_sync <= sck_pre;
+		//sck_sync <= sck_pre;
+		//sck_dly1 <= sck_pre;
+		sck_dly1 <= sck_pre;
+		sck_sync <= sck_dly1;
 	end
 end
 
+//
+//wire rise_edge = half_sck & ~sck_pre;
+//wire rise_edge = sck_pre & ~sck_sync;
+wire rise_edge = sck_dly1 & ~sck_sync;
+//wire fall_edge = half_sck & sck_pre;
+wire fall_edge = ~sck_pre & sck_dly1;
 //assign sck = sck_sync;
-wire sck_mask;
 
-assign sck = sck_pre & ~sck_mask;
+//assign sck = sck_sync & ~sck_mask;
+//assign sck = sck_dly1;
+assign sck = sck_pre;
 
 // state machine control signals
 
@@ -153,6 +167,7 @@ wire write_data_end;
 `define QS_RSTEN 4'b1000
 `define QS_RESET 4'b1001
 `define QS_CETRT 4'b1010
+`define QS_CMDW  4'b1011
 
 reg [3:0] qspi_state;
 //reg [3:0] qspi_state_dly;
@@ -172,8 +187,9 @@ input write_data_end;
 
 begin
 	case(qspi_state)
-		`QS_IDLE: if (cmd_freadq | cmd_qwrite | cmd_rst_en) qspi_machine = `QS_CMD;
+		`QS_IDLE: if (cmd_freadq | cmd_qwrite | cmd_rst_en) qspi_machine = `QS_CMDW;
 				  else qspi_machine = `QS_IDLE;
+		`QS_CMDW: qspi_machine = `QS_CMD;
 		`QS_CMD: if (cmd_end & (cmd_freadq | cmd_qwrite)) qspi_machine = `QS_ADR;
 				 else if (cmd_end & cmd_rst_en) qspi_machine = `QS_RSTEN;
 				 else qspi_machine = `QS_CMD;
@@ -233,8 +249,10 @@ wire next_state_rsten = (next_qspi_state == `QS_RSTEN);
 wire state_rst = (qspi_state == `QS_RESET);
 wire next_state_rst = (next_qspi_state == `QS_RESET);
 
-assign sck_mask = (qspi_state == `QS_IDLE) | (next_qspi_state == `QS_CETRT);
-wire ce_n_pre = (next_qspi_state == `QS_IDLE) | (next_qspi_state == `QS_CETRT);
+//assign sck_mask = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CETRT);
+//wire ce_n_pre = (next_qspi_state == `QS_IDLE) | (next_qspi_state == `QS_CETRT) |  (qspi_state == `QS_CETRT);
+wire ce_n_pre = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CMDW) | (qspi_state == `QS_CETRT);
+//wire ce_n_pre = (next_qspi_state == `QS_IDLE) & (qspi_state != `QS_CETRT);
 wire ce_0_dec = (word_adr[25:24] == 2'd0);
 wire ce_1_dec = (word_adr[25:24] == 2'd1);
 wire ce_2_dec = (word_adr[25:24] == 2'd2);
@@ -290,7 +308,8 @@ assign cmd_byte = (cmd_freadq) ? cmd_read_sel :
 
 assign cmd_bit =  cmd_byte[cmd_ofs];
 
-assign cmd_end = state_cmd & (cmd_ofs == 3'd0) & fall_edge;
+//assign cmd_end = state_cmd & (cmd_ofs == 3'd0) & fall_edge;
+assign cmd_end = state_cmd & (cmd_ofs == 3'd0);
 
 // adr slicer
 wire [23:0] adr_rw;
@@ -315,7 +334,8 @@ assign adr_slice = (adr_ofs == 3'd5) ? adr_rw[23:20] :
                    (adr_ofs == 3'd2) ? adr_rw[11:8] :
                    (adr_ofs == 3'd1) ? adr_rw[7:4] : adr_rw[3:0];
 
-assign adr_end = state_adr & (adr_ofs == 3'b0) & fall_edge;
+//assign adr_end = state_adr & (adr_ofs == 3'b0) & fall_edge;
+assign adr_end = state_adr & (adr_ofs == 3'b0);
 
 // write data slicer
 reg [31:0] write_data_lat;
@@ -359,11 +379,11 @@ assign wdata_slice = (wdata_ofs == 3'd1) ? ext_wdata[31:28] :
 assign write_data_end = state_write & (wdata_ofs == 3'b0) & fall_edge;
 
 // final selector
-wire [3:0] sio_out_pre = (next_state_cmd) ? { 3'b000, cmd_bit } :
-                         (next_state_adr) ? adr_slice :
-                         (next_state_write) ? wdata_slice : 4'd0;
+wire [3:0] sio_out_pre = (next_state_cmd | state_cmd) ? { 3'b000, cmd_bit } :
+                         (state_adr) ? adr_slice :
+                         (state_write) ? wdata_slice : 4'd0;
 
-wire sio_out_enbl_pre = next_state_cmd | next_state_adr | next_state_write;
+wire sio_out_enbl_pre = next_state_cmd | next_state_adr | state_adr | next_state_write;
 
 reg [3:0] sio_out_dly;
 reg sio_out_enbl_dly;
@@ -451,7 +471,7 @@ reg [3:0] read_latency_1;
 reg [3:0] read_latency_2;
 
 // causion!! need to change if default memory does not work
-wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h5 :
+wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h4 :
                                   (init_latency == 2'd1) ? 4'd8 :
                                   (init_latency == 2'd2) ? 4'd9 : 4'd6;
 
@@ -584,7 +604,8 @@ always @ (posedge clk or negedge rst_n) begin
 		 rwait_cntr <= rwait_cntr - 4'd1;
 end
 
-assign read_wait_end = state_rdwt & (rwait_cntr == 4'd0) & fall_edge;
+//assign read_wait_end = state_rdwt & (rwait_cntr == 4'd0) & fall_edge;
+assign read_wait_end = state_rdwt & (rwait_cntr == 4'd0);
 
 // read end counter
 wire [3:0] read_length = word_w ? 4'd8 :
@@ -599,7 +620,8 @@ always @ (posedge clk or negedge rst_n) begin
 		 read_cntr <= read_length;
 	else if (read_cntr == 4'd0)
 		 read_cntr <= 4'd0;
-	else if (rise_edge)
+	//else if (rise_edge)
+	else if (fall_edge)
 		 read_cntr <= read_cntr - 4'd1;
 end
 

@@ -201,7 +201,7 @@ always @ (posedge clk or negedge rst_n) begin
 		 adr_cntr <= adr_cntr - 4'd1;
 end
 
-assign adr_end = state_adr & (adr_cntr == 4'd0) & rise_edge;
+assign adr_end = state_adr & (adr_cntr == 4'd0);
 
 // reset cntr
 reg [3:0] rst_cntr;
@@ -226,14 +226,14 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		 rwait_cntr <= 4'd0;
 	else if (~state_rdwt & next_state_rdwt)
-		 rwait_cntr <= 4'd6; // causion!!
+		 rwait_cntr <= 4'd3; // causion!!
 	else if (rwait_cntr == 4'd0)
 		 rwait_cntr <= 4'd0;
 	else if (rise_edge)
 		 rwait_cntr <= rwait_cntr - 4'd1;
 end
 
-assign read_wait_end = state_rdwt & (rwait_cntr == 0) & rise_edge;
+assign read_wait_end = state_rdwt & (rwait_cntr == 0);
 
 
 // address sampler
@@ -283,7 +283,7 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		read_half_byte <= 1'b1;
 	//else if (state_read & fall_edge)
-	else if (~ce_n_sync & state_read & rise_edge)
+	else if (~ce_n_sync & state_read & fall_edge)
 		read_half_byte <= ~read_half_byte;
 end
 
@@ -293,13 +293,13 @@ always @ (posedge clk or negedge rst_n) begin
 	else if (~state_read & next_state_read)
 		read_byte_cntr <= word_adr[15:0];
 	//else if (state_read & ~read_half_byte & fall_edge)
-	else if (~ce_n_sync & state_read & ~read_half_byte & rise_edge)
+	else if (~ce_n_sync & state_read & ~read_half_byte & fall_edge)
 		read_byte_cntr <= read_byte_cntr + 16'd1;
 end
 
 wire [16:0] read_address = { read_byte_cntr, read_half_byte };
 
-assign sio_out_enbl = state_read & ~ce_n_sync;
+assign sio_out_enbl = (next_state_read | state_read) & ~ce_n_sync;
 
 // memory
 

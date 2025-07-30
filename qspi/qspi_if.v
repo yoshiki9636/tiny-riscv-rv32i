@@ -437,9 +437,11 @@ reg [31:0] word_data;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		word_data <= 32'd0;
-	else if (~state_read & next_state_read & fall_edge)
-		word_data <= 32'd0;
-	else if ( state_read & rise_edge)
+	else if (~state_read & next_state_read & rise_edge)
+		//word_data <= 32'd0;
+		word_data <= { 28'd0, sio_in_sync } ;
+	//else if ( state_read & rise_edge)
+	else if (state_read & rise_edge)
 		word_data <= { word_data[27:0], sio_in_sync } ;
 end
 
@@ -502,7 +504,7 @@ reg [3:0] read_latency_1;
 reg [3:0] read_latency_2;
 
 // causion!! need to change if default memory does not work
-wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h5 :
+wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h4 :
                                   (init_latency == 2'd1) ? 4'd8 :
                                   (init_latency == 2'd2) ? 4'd9 : 4'd6;
 
@@ -647,8 +649,8 @@ end
 assign read_wait_end = state_rdwt & (rwait_cntr == 4'd0);
 
 // read end counter
-wire [3:0] read_length = word_w ? 4'd8 :
-                         word_hw ? 4'd4 : 4'd2;
+wire [3:0] read_length = word_w ? 4'd7 :
+                         word_hw ? 4'd3 : 4'd1;
 
 reg [3:0] read_cntr;
 
@@ -664,7 +666,8 @@ always @ (posedge clk or negedge rst_n) begin
 		 read_cntr <= read_cntr - 4'd1;
 end
 
-assign read_data_end = state_read & (read_cntr == 4'd0) & fall_edge;
+//assign read_data_end = state_read & (read_cntr == 4'd0) & fall_edge;
+assign read_data_end = state_read & (read_cntr == 4'd0);
 
 // inner i/f state machine
 `define IN_IDLE  2'b00

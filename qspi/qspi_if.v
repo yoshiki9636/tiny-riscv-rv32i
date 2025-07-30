@@ -504,7 +504,7 @@ reg [3:0] read_latency_1;
 reg [3:0] read_latency_2;
 
 // causion!! need to change if default memory does not work
-wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h4 :
+wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h6 :
                                   (init_latency == 2'd1) ? 4'd8 :
                                   (init_latency == 2'd2) ? 4'd9 : 4'd6;
 

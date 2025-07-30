@@ -44,7 +44,7 @@ module qspi_if (
 
 	);
 	
-`define TERM_SCK 10'h3
+`define TERM_SCK 10'h1f
 `define CMD_DFREADQ 8'hEB
 `define CMD_FFREADQ 8'h6B
 `define CMD_DQWIRTE 8'h38
@@ -89,7 +89,12 @@ end
 
 reg sck_pre;
 reg sck_dly1;
-reg sck_sync;
+reg sck_dly2;
+reg sck_dly3;
+reg sck_dly4;
+reg sck_dly5;
+reg sck_dly6;
+reg sck_dly7;
 
 //wire rise_edge = sck_pre & ~sck_dly1;
 //wire fall_edge = ~sck_pre & sck_dly1;
@@ -121,21 +126,43 @@ end
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
-		sck_sync <= 1'd1;
 		sck_dly1 <= 1'd1;
+		sck_dly2 <= 1'd1;
+		sck_dly3 <= 1'd1;
+		sck_dly4 <= 1'd1;
+		sck_dly5 <= 1'd1;
+		sck_dly6 <= 1'd1;
+		sck_dly7 <= 1'd1;
 	end
 	else begin
 		//sck_sync <= sck_pre;
 		//sck_dly1 <= sck_pre;
 		sck_dly1 <= sck_pre;
-		sck_sync <= sck_dly1;
+		sck_dly2 <= sck_dly1;
+		sck_dly3 <= sck_dly2;
+		sck_dly4 <= sck_dly3;
+		sck_dly5 <= sck_dly4;
+		sck_dly6 <= sck_dly5;
+		sck_dly7 <= sck_dly6;
 	end
 end
 
-//
+// select read data edge timing
+reg [3:0] rdedge;
+
+wire rise_edge = (rdedge == 3'd0) ? half_sck & ~sck_pre :
+                 (rdedge == 3'd1) ? sck_pre & ~sck_dly1 :
+                 (rdedge == 3'd2) ? sck_dly1 & ~sck_dly2 :
+                 (rdedge == 3'd3) ? sck_dly2 & ~sck_dly3 :
+                 (rdedge == 3'd4) ? sck_dly3 & ~sck_dly4 :
+                 (rdedge == 3'd5) ? sck_dly4 & ~sck_dly5 :
+                 (rdedge == 3'd6) ? sck_dly5 & ~sck_dly6 : sck_dly6 & ~sck_dly7;
+
 //wire rise_edge = half_sck & ~sck_pre;
-//wire rise_edge = sck_pre & ~sck_sync;
-wire rise_edge = sck_dly1 & ~sck_sync;
+//wire rise_edge = sck_pre & ~sck_dly1;
+//wire rise_edge = sck_dly1 & ~sck_dly2;
+//wire rise_edge = sck_dly2 & ~sck_sync;
+
 //wire fall_edge = half_sck & sck_pre;
 wire fall_edge = ~sck_pre & sck_dly1;
 //assign sck = sck_sync;
@@ -252,6 +279,7 @@ wire next_state_rst = (next_qspi_state == `QS_RESET);
 //assign sck_mask = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CETRT);
 //wire ce_n_pre = (next_qspi_state == `QS_IDLE) | (next_qspi_state == `QS_CETRT) |  (qspi_state == `QS_CETRT);
 wire ce_n_pre = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CMDW) | (qspi_state == `QS_CETRT);
+//wire ce_n_pre = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CMDW) | (next_qspi_state == `QS_IDLE);
 //wire ce_n_pre = (next_qspi_state == `QS_IDLE) & (qspi_state != `QS_CETRT);
 wire ce_0_dec = (word_adr[25:24] == 2'd0);
 wire ce_1_dec = (word_adr[25:24] == 2'd1);
@@ -444,6 +472,7 @@ assign rst_end = (state_rsten | state_rst) & (rst_cntr == 4'd0) & fall_edge;
 `define SYS_QSPI_WRCMD0   14'h3D06
 `define SYS_QSPI_WRCMD1   14'h3D07
 `define SYS_QSPI_RDWTCH   14'h3D08
+`define SYS_QSPI_RDEDGE   14'h3D09
 
 wire we_qspi_latency0 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_LATENCY0);
 wire re_qspi_latency0 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_LATENCY0);
@@ -464,6 +493,8 @@ wire we_qspi_wrcmd1 = dma_io_we      & (dma_io_wadr == `SYS_QSPI_WRCMD1);
 wire re_qspi_wrcmd1 = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_WRCMD1);
 wire we_qspi_rdwrch = dma_io_we      & (dma_io_wadr == `SYS_QSPI_RDWTCH);
 wire re_qspi_rdwrch = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_RDWTCH);
+wire we_qspi_rdedge = dma_io_we      & (dma_io_wadr == `SYS_QSPI_RDEDGE);
+wire re_qspi_rdedge = dma_io_radr_en & (dma_io_radr == `SYS_QSPI_RDEDGE);
 
 
 reg [3:0] read_latency_0;
@@ -471,7 +502,7 @@ reg [3:0] read_latency_1;
 reg [3:0] read_latency_2;
 
 // causion!! need to change if default memory does not work
-wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h4 :
+wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h5 :
                                   (init_latency == 2'd1) ? 4'd8 :
                                   (init_latency == 2'd2) ? 4'd9 : 4'd6;
 
@@ -567,13 +598,20 @@ always @ (posedge clk or negedge rst_n) begin
 		 rdwrch <= dma_io_wdata[5:0];
 end
 
-reg [8:0] re_qspi_latency_dly;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 rdedge <= 3'd0;
+	else if (we_qspi_rdedge)
+		 rdedge <= dma_io_wdata[2:0];
+end
+
+reg [9:0] re_qspi_latency_dly;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		 re_qspi_latency_dly <= 9'd0;
+		 re_qspi_latency_dly <= 10'd0;
 	else
-		 re_qspi_latency_dly <= { re_qspi_rdwrch, re_qspi_wrcmd1, re_qspi_wrcmd0, re_qspi_rdcmd1, re_qspi_rdcmd0,
+		 re_qspi_latency_dly <= { re_qspi_rdedge, re_qspi_rdwrch, re_qspi_wrcmd1, re_qspi_wrcmd0, re_qspi_rdcmd1, re_qspi_rdcmd0,
                                   re_qspi_sckdiv, re_qspi_latency2, re_qspi_latency1, re_qspi_latency0 };
 end
 
@@ -585,7 +623,8 @@ assign dma_io_rdata = (re_qspi_latency_dly[0] == 1'b1) ? { 28'd0, read_latency_0
                       (re_qspi_latency_dly[5] == 1'b1) ? { 24'd0, rdcmd1 } :
                       (re_qspi_latency_dly[6] == 1'b1) ? { 24'd0, wrcmd0 } :
                       (re_qspi_latency_dly[7] == 1'b1) ? { 24'd0, wrcmd1 } :
-                      (re_qspi_latency_dly[8] == 1'b1) ? { 26'd0, rdwrch } : dma_io_rdata_in;
+                      (re_qspi_latency_dly[8] == 1'b1) ? { 26'd0, rdwrch } :
+                      (re_qspi_latency_dly[9] == 1'b1) ? { 29'd0, rdedge } : dma_io_rdata_in;
 
 wire [3:0] read_latency = ce_1_dec ? read_latency_1 :
                           ce_2_dec ? read_latency_2 : read_latency_0;
@@ -620,8 +659,8 @@ always @ (posedge clk or negedge rst_n) begin
 		 read_cntr <= read_length;
 	else if (read_cntr == 4'd0)
 		 read_cntr <= 4'd0;
-	//else if (rise_edge)
-	else if (fall_edge)
+	else if (rise_edge)
+	//else if (fall_edge)
 		 read_cntr <= read_cntr - 4'd1;
 end
 

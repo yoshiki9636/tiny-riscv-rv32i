@@ -148,7 +148,7 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 // select read data edge timing
-reg [3:0] rdedge;
+reg [2:0] rdedge;
 
 wire rise_edge = (rdedge == 3'd0) ? half_sck & ~sck_pre :
                  (rdedge == 3'd1) ? sck_pre & ~sck_dly1 :
@@ -169,7 +169,16 @@ wire fall_edge = ~sck_pre & sck_dly1;
 
 //assign sck = sck_sync & ~sck_mask;
 //assign sck = sck_dly1;
-assign sck = sck_pre;
+//assign sck = sck_pre;
+reg [2:0] wredge;
+
+assign sck = (wredge == 3'd0) ? sck_pre :
+             (wredge == 3'd1) ? sck_dly1 :
+             (wredge == 3'd2) ? sck_dly2 :
+             (wredge == 3'd3) ? sck_dly3 :
+             (wredge == 3'd4) ? sck_dly4 :
+             (wredge == 3'd5) ? sck_dly5 :
+             (wredge == 3'd6) ? sck_dly6 : sck_dly7;
 
 // state machine control signals
 
@@ -601,10 +610,14 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 always @ (posedge clk or negedge rst_n) begin
-	if (~rst_n)
+	if (~rst_n) begin
 		 rdedge <= 3'd0;
-	else if (we_qspi_rdedge)
+		 wredge <= 3'd0;
+	end
+	else if (we_qspi_rdedge) begin
 		 rdedge <= dma_io_wdata[2:0];
+		 wredge <= dma_io_wdata[6:4];
+	end
 end
 
 reg [9:0] re_qspi_latency_dly;
@@ -626,7 +639,7 @@ assign dma_io_rdata = (re_qspi_latency_dly[0] == 1'b1) ? { 28'd0, read_latency_0
                       (re_qspi_latency_dly[6] == 1'b1) ? { 24'd0, wrcmd0 } :
                       (re_qspi_latency_dly[7] == 1'b1) ? { 24'd0, wrcmd1 } :
                       (re_qspi_latency_dly[8] == 1'b1) ? { 26'd0, rdwrch } :
-                      (re_qspi_latency_dly[9] == 1'b1) ? { 29'd0, rdedge } : dma_io_rdata_in;
+                      (re_qspi_latency_dly[9] == 1'b1) ? { 25'd0, wredge, 1'b0, rdedge } : dma_io_rdata_in;
 
 wire [3:0] read_latency = ce_1_dec ? read_latency_1 :
                           ce_2_dec ? read_latency_2 : read_latency_0;

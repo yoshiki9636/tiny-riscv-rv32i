@@ -22,10 +22,13 @@ lui x9, 0xc0010 ; global interrupt set enable address
 addi x9, x9, 0xa00 ;
 addi x10, x0, 0x2 ; enable interrupt pin
 sw x10, 0x0(x9)
-ori x7, x0, 0x0070 ; interrupt tvector address
+ori x7, x0, 0x007c ; interrupt tvector address
 csrrw x7, 0x305, x7 ; wirte to mtvec
+lui x7, 1 ; set meip bit on mie 
 ori x7, x0, 0x800 ; set meip bit on mie 
-csrrw x7, 0x304, x7 ; wirte to mtvec
+csrrw x7, 0x304, x7 ; wirte to mie
+ori x7, x0, 0x8 ; set mie bit on mstatus 
+csrrw x7, 0x300, x7 ; wirte to mstatus
 :label_led
 and x1, x0, x1 ; loop counter
 :label_waitloop
@@ -39,7 +42,7 @@ nop
 nop
 nop
 nop
-;0x0070
+;0x007c
 bne x5, x8, label_ne_7
 ori x5, x0, 1
 jalr x0, x0, label_eq_7

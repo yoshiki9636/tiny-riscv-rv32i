@@ -39,7 +39,7 @@ int main() {
 	p_func = interrupt;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	// enable MTIE
-	unsigned int value = 0x80;
+	unsigned int value = 0x880;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
 	// mstatus
 	value = 0x8;

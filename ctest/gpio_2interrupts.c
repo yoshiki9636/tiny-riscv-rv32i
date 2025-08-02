@@ -264,7 +264,7 @@ void interrupt() {
 	__asm__ volatile("addi    s0,sp,128");
 
 	char cbuf[64];
-    unsigned int* int_status = (unsigned int*)0xc000fa04;
+    unsigned int* int_status  = (unsigned int*)0xc000fa04;
     unsigned int* gpio_value  = (unsigned int*)0xc000fe10;
     unsigned int* gpio_input  = (unsigned int*)0xc000fe14;
     unsigned int* gpio_enable = (unsigned int*)0xc000fe18;
@@ -272,58 +272,61 @@ void interrupt() {
     //unsigned int* frc_high = (unsigned int*)0xc000f804;
     unsigned int* frc_ctrl = (unsigned int*)0xc000f810;
 	//register int mask __asm__("x21");
-	static int value = 0xf;
-	static int enable = 0xf;
+	static int value;
+	static int enable;
 
 	//uprint( "ringing timer!\n", 16, 0);
 	//printf("low  counter = %d\n",*frc_low);
 	//printf("high counter = %d\n",*frc_high);
-	*gpio_enable = enable;
-	*gpio_value = value;
+	//*gpio_enable = enable;
+	//*gpio_value = value;
 
+	uprint( "int_status = ", 13, 0);
 	unsigned int int_stat = *int_status & 0x2;
+	unsigned int frc_stat = *frc_ctrl & 0x4;
+
 	int len = int_print(cbuf, int_stat, 1);
 	uprint( cbuf, len, 2);
 	if (int_stat == 0x2) {
 		//unsigned int val = *int_status;
 		//*int_status = val & 0xfffffffd;
-		*int_status = 0x0;
 
 		enable = (enable == 0x1) ? 0xf : 0x1;
 		*gpio_enable = enable;
 	}
-	unsigned int mepc;
-	__asm__ volatile("csrr %0, mepc" : "=r"(mepc));
-	__asm__ volatile("csrr %0, mepc" : "=r"(mepc));
-	//printf("mepc : %x\n",mepc);
-	len = int_print(cbuf, mepc, 1);
-	uprint( cbuf, len, 2);
-	unsigned int mcause;
-	__asm__ volatile("csrr %0, mcause" : "=r"(mcause));
-	__asm__ volatile("csrr %0, mcause" : "=r"(mcause));
-	len = int_print(cbuf, mcause, 1);
-	uprint( cbuf, len, 2);
-	
 	//unsigned int frc_stat = *frc_ctrl & 0x4;
-	unsigned int frc_stat = *frc_ctrl & 0x4;
+	uprint( "frc_stat = ", 11, 0);
 	len = int_print(cbuf, frc_stat, 1);
 	uprint( cbuf, len, 2);
 	if (frc_stat == 0x4) {
 		// clear frc counter bit
 		//unsigned int val = *frc_ctrl;
 		//*frc_ctrl = (val & 0xfffffff9) | 0x2;
-		*frc_ctrl = 0x3;
 		value++;
 		*gpio_value = value;
 	}
 
-
-
-
+	unsigned int mcause;
+	uprint( "mcause = ", 9, 0);
+	__asm__ volatile("csrr %0, mcause" : "=r"(mcause));
+	__asm__ volatile("csrr %0, mcause" : "=r"(mcause));
+	len = int_print(cbuf, mcause, 1);
+	uprint( cbuf, len, 2);
 	
+	unsigned int mepc;
+	uprint( "mepc = ", 7, 0);
+	__asm__ volatile("csrr %0, mepc" : "=r"(mepc));
+	__asm__ volatile("csrr %0, mepc" : "=r"(mepc));
+	//printf("mepc : %x\n",mepc);
+	len = int_print(cbuf, mepc, 1);
+	uprint( cbuf, len, 2);
+
+	*int_status = 0x0; // clear interrupt status
+	*frc_ctrl = 0x3; // clear interrupt status
+
 	// pop from stack
 	//__asm__ volatile("addi    sp,sp,-128");
-	__asm__ volatile("lw  ra,124(sp)");
+	__asm__ volatile("lw  ra,124(zero)");
 
 	__asm__ volatile("lw  t0,120(zero)");
 	__asm__ volatile("lw  t1,116(zero)");

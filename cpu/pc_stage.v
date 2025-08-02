@@ -41,7 +41,7 @@ reg g_interrupt_latch;
 wire frc_cntr_val_leq_1shot;
 reg frc_cntr_val_leq_latch;
 
-assign interrupts_in_pc_state = (g_interrupt_latch | frc_cntr_val_leq_latch) & cpu_stat_pc;
+assign interrupts_in_pc_state = (g_interrupt_latch | frc_cntr_val_leq_latch) & csr_rmie & cpu_stat_pc;
 
 wire interrupt_mskd = (g_interrupt_latch  | g_exception | frc_cntr_val_leq_latch) & csr_rmie;
 wire intr_ecall_exception = ecall_condition_ex | interrupt_mskd;

@@ -3,10 +3,10 @@ ENTRY(_start)
 
 MEMORY
 {
-stack : ORIGIN = 0x00040000, LENGTH = 1K
+stack : ORIGIN = 0x00010000, LENGTH = 1K
 }
 
-_min_stack = 0x040000;
+_min_stack = 0x10000;
 _stack_len = LENGTH(stack);
 _stack_start = ORIGIN(stack) + LENGTH(stack);
 

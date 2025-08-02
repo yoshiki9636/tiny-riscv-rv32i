@@ -44,7 +44,7 @@ module qspi_if (
 
 	);
 	
-`define TERM_SCK 10'h1f
+`define TERM_SCK 10'd1
 `define CMD_DFREADQ 8'hEB
 `define CMD_FFREADQ 8'h6B
 `define CMD_DQWIRTE 8'h38
@@ -506,7 +506,7 @@ reg [3:0] read_latency_1;
 reg [3:0] read_latency_2;
 
 // causion!! need to change if default memory does not work
-wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h6 :
+wire [3:0] init_latency_value_0 = (init_latency == 2'd0) ? 4'h7 :
                                   (init_latency == 2'd1) ? 4'd8 :
                                   (init_latency == 2'd2) ? 4'd9 : 4'd6;
 
@@ -604,8 +604,8 @@ end
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
-		 rdedge <= 3'd0;
-		 wredge <= 3'd0;
+		 rdedge <= 3'd2;
+		 wredge <= 3'd2;
 	end
 	else if (we_qspi_rdedge) begin
 		 rdedge <= dma_io_wdata[2:0];

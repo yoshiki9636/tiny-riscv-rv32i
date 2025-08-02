@@ -405,13 +405,6 @@ assign wdata_slice = (wdata_ofs == 3'd1) ? ext_wdata[31:28] :
                      (wdata_ofs == 3'd5) ? ext_wdata[15:12] :
                      (wdata_ofs == 3'd4) ? ext_wdata[11:8] :
                      (wdata_ofs == 3'd7) ? ext_wdata[7:4] : ext_wdata[3:0];
-//assign wdata_slice = (wdata_ofs == 3'd2) ? ext_wdata[31:28] :
-                     //(wdata_ofs == 3'd1) ? ext_wdata[27:24] :
-                     //(wdata_ofs == 3'd4) ? ext_wdata[23:20] :
-                     //(wdata_ofs == 3'd3) ? ext_wdata[19:16] :
-                     //(wdata_ofs == 3'd6) ? ext_wdata[15:12] :
-                     //(wdata_ofs == 3'd5) ? ext_wdata[11:8] :
-                     //(wdata_ofs == 3'd8) ? ext_wdata[7:4] : ext_wdata[3:0];
 
 assign write_data_end = state_write & (wdata_ofs == 3'b0) & fall_edge;
 
@@ -450,7 +443,7 @@ always @ (posedge clk or negedge rst_n) begin
 		//word_data <= 32'd0;
 		word_data <= { 28'd0, sio_in_sync } ;
 	//else if ( state_read & rise_edge)
-	else if (state_read & rise_edge)
+	else if (state_read & ~read_data_end & rise_edge)
 		word_data <= { word_data[27:0], sio_in_sync } ;
 end
 
@@ -724,7 +717,7 @@ end
 
 assign cmd_freadq = (inner_state == `IN_READ);
 assign cmd_qwrite = (inner_state == `IN_WRITE);
-assign read_valid = read_data_end;
+assign read_valid = read_data_end & fall_edge;
 assign write_finish = write_data_end;
 
 // input signal sampler

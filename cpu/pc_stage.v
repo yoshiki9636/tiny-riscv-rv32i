@@ -112,7 +112,7 @@ assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_e
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		g_interrupt_latch <= 1'b0;
-	else if (g_interrupt_1shot)
+	else if (g_interrupt_1shot & csr_rmie)
 		g_interrupt_latch <= 1'b1;
 	else if (cpu_stat_pc)
 		g_interrupt_latch <= 1'b0;
@@ -133,7 +133,7 @@ assign frc_cntr_val_leq_1shot = frc_cntr_val_leq & ~frc_cntr_val_leq_lat;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		frc_cntr_val_leq_latch <= 1'b0;
-	else if (frc_cntr_val_leq_1shot)
+	else if (frc_cntr_val_leq_1shot & csr_rmie)
 		frc_cntr_val_leq_latch <= 1'b1;
 	else if (cpu_stat_pc)
 		frc_cntr_val_leq_latch <= 1'b0;

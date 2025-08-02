@@ -106,21 +106,22 @@ wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        32'd0;
 
 // output delay latch
-reg [31:0] csr_rd_data_prev;
+//reg [31:0] csr_rd_data_prev;
 
-always @ ( posedge clk or negedge rst_n) begin   
-	if (~rst_n) begin
-		csr_rd_data_prev <= 32'd0;
-	end
-	else if (cpu_stat_ex & cmd_csr_ex) begin
-		csr_rd_data_prev <= csr_rsel;
-	end
-end
+//always @ ( posedge clk or negedge rst_n) begin   
+	//if (~rst_n) begin
+		//csr_rd_data_prev <= 32'd0;
+	//end
+	//else if (cpu_stat_ex & cmd_csr_ex) begin
+		//csr_rd_data_prev <= csr_rsel;
+	//end
+//end
 
 
 //immidiate
 //assign csr_rd_data = (cmd_rw | cmd_rs) ? csr_rd_data_prev : csr_rsel;
-assign csr_rd_data = csr_rd_data_prev;
+//assign csr_rd_data = csr_rd_data_prev;
+assign csr_rd_data = csr_rsel;
 
 // wirte data selector 
 wire [31:0] wdata_rw = immidiate ? { 27'd0, csr_uimm_ex } : rs1_sel;

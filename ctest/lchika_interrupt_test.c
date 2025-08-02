@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 //#define LP 10
-#define LP 1000
+#define LP 10
 #define LP2 200
 #define TESTNUM 0x3c00
 void uprint( char* buf, int length );

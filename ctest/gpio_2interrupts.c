@@ -22,7 +22,7 @@ void interrupt();
 int main() {
 
 	void (*p_func)();
-	register int mask __asm__("x21");
+	//register int mask __asm__("x21");
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* int_enable = (unsigned int*)0xc000fa00;
     unsigned int* frc_cmp_low  = (unsigned int*)0xc000f808;
@@ -316,6 +316,10 @@ void interrupt() {
 		value++;
 		*gpio_value = value;
 	}
+
+
+
+
 	
 	// pop from stack
 	//__asm__ volatile("addi    sp,sp,-128");

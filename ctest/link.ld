@@ -6,7 +6,7 @@ MEMORY
 stack : ORIGIN = 0x00040000, LENGTH = 1K
 }
 
-_min_stack = 0x040000;
+_min_stack = 0x004000;
 _stack_len = LENGTH(stack);
 _stack_start = ORIGIN(stack) + LENGTH(stack);
 

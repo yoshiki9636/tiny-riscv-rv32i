@@ -11,7 +11,7 @@ _start:
 	lui gp,0x00020
 	lui tp,0x00018
     lui ra,0x00000
-    lui s0,0x00010
+    lui s0,0x00040
         j main
         nop ;
         nop ;

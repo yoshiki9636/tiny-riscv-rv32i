@@ -7,7 +7,7 @@
 #define LP 1000
 #define LP2 200
 #define T 8
-#define K 8
+#define K 4
 #define MY_PI 3.141592653589793238462643
 // workaround for libm_nano.a
 int __errno;

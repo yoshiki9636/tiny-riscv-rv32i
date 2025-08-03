@@ -255,7 +255,7 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 end
 
-assign csr_mstatus = { 18'd0, csr_mpp, 2'b00, csr_spp, 1'b0, csr_mpie,
+assign csr_mstatus = { 19'd0, csr_mpp, 1'b0, csr_spp, 1'b0, csr_mpie,
                        1'b0, csr_spie, 1'b0, csr_rmie, 1'b0, csr_sie, 1'b0 } ;
 // MPRV, MXR : is not implemented becase no U-MODE now
 // SUM : is not implemented becase no S-MODE and virturalzation now
@@ -324,7 +324,8 @@ assign mcause_code = g_interrupt ? 31'd11 :
                     illegal_ops_ex ? 31'd2 :
                     cmd_ecall_ex ?  31'd3 : 31'd0;
 //wire mcause_write = cmd_ecall_ex | g_interrupt_1shot | g_exception | frc_cntr_val_leq_1shot | illegal_ops_ex;
-wire mcause_write = cmd_ecall_ex | g_exception | (interrupts_in_pc_state & csr_rmie) | illegal_ops_ex;
+//wire mcause_write = cmd_ecall_ex | g_exception | (interrupts_in_pc_state & csr_rmie) | illegal_ops_ex;
+wire mcause_write = cmd_ecall_ex | g_exception | (interrupts_in_pc_state & csr_rmie);
 
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin

@@ -275,6 +275,15 @@ void interrupt() {
 	static int value;
 	static int enable;
 
+	unsigned int int_stat = *int_status & 0x2;
+	unsigned int frc_stat = *frc_ctrl & 0x4;
+
+	unsigned int mstatus;
+	uprint( "mstatus = ", 9, 0);
+	__asm__ volatile("csrr %0, mstatus" : "=r"(mstatus));
+	int len = int_print(cbuf, mstatus, 1);
+	uprint( cbuf, len, 2);
+
 	//uprint( "ringing timer!\n", 16, 0);
 	//printf("low  counter = %d\n",*frc_low);
 	//printf("high counter = %d\n",*frc_high);
@@ -282,10 +291,7 @@ void interrupt() {
 	//*gpio_value = value;
 
 	uprint( "int_status = ", 13, 0);
-	unsigned int int_stat = *int_status & 0x2;
-	unsigned int frc_stat = *frc_ctrl & 0x4;
-
-	int len = int_print(cbuf, int_stat, 1);
+	len = int_print(cbuf, int_stat, 1);
 	uprint( cbuf, len, 2);
 	if (int_stat == 0x2) {
 		//unsigned int val = *int_status;
@@ -309,13 +315,11 @@ void interrupt() {
 	unsigned int mcause;
 	uprint( "mcause = ", 9, 0);
 	__asm__ volatile("csrr %0, mcause" : "=r"(mcause));
-	__asm__ volatile("csrr %0, mcause" : "=r"(mcause));
 	len = int_print(cbuf, mcause, 1);
 	uprint( cbuf, len, 2);
 	
 	unsigned int mepc;
 	uprint( "mepc = ", 7, 0);
-	__asm__ volatile("csrr %0, mepc" : "=r"(mepc));
 	__asm__ volatile("csrr %0, mepc" : "=r"(mepc));
 	//printf("mepc : %x\n",mepc);
 	len = int_print(cbuf, mepc, 1);

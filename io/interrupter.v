@@ -66,7 +66,7 @@ reg [1:0] int_enable;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		int_enable <= 1'b0;
+		int_enable <= 2'b00;
 	else if ( we_int_enable )
 		int_enable <= dma_io_wdata[1:0];
 end

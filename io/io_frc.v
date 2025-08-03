@@ -94,10 +94,24 @@ end
 assign run_cntr = frc_cntrl_val;
 assign frc_cntr_rst = we_frc_cntrl & dma_io_wdata[1];
 
+wire frc_cntr_val_rst_pre = we_frc_cntrl & ~dma_io_wdata[2];
+reg frc_cntr_val_rst_lat;
+
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n)
+        frc_cntr_val_rst_lat <= 1'd0 ;
+	else
+        frc_cntr_val_rst_lat <= frc_cntr_val_rst_pre;
+end
+
+assign frc_cntr_val_rst = frc_cntr_val_rst_pre | frc_cntr_val_rst_lat;
+
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
         frc_cntr_val_leq <= 1'd0 ;
-	else if (we_frc_cntrl & ~dma_io_wdata[2])
+	//else if (we_frc_cntrl & ~dma_io_wdata[2])
+	else if (frc_cntr_val_rst)
         frc_cntr_val_leq <= 1'd0 ;
 	else if ((frc_cntr_val >= frc_cmp_val) & run_cntr & csr_mtie)
         frc_cntr_val_leq <= 1'd1 ;

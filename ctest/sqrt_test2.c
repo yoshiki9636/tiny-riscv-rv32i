@@ -56,12 +56,11 @@ void wait();
 int main() {
 	char cbuf2[32];
 
-	for (int i = 1; i < 2; i++) {
+	for (int i = 1; i < 20; i++) {
 		double b = sqrt((double)i);
  		//int length = sprintf(cbuf2, "vaule = %e",  b);
 		//uprint( cbuf2, length );
- 		//printf("vaule = %e\n",  b);
- 		printf("vaule = \n",  b);
+ 		printf("vaule = %e\n",  b);
 	}
 	pass();
 	return 0;

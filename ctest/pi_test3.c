@@ -10,11 +10,11 @@ int __errno;
 
 void uprint( char* buf, int length, int ret );
 
-char* heap_end = (char*)0x8000;
+char* heap_end = (char*)0x40000;
 //void _sbrk_r(void) {}
 char* _sbrk(int incr) {
- char* heap_low = (char*)0x8000;
- char* heap_top = (char*)0xc000;
+ char* heap_low = (char*)0x40000;
+ char* heap_top = (char*)0x7f000;
  char *prev_heap_end;
 
  if (heap_end == 0) {
@@ -62,10 +62,11 @@ int main() {
  
 	for (b = 0; b < c; b++) {
 		f[b] = a / 5;
-		*led = (unsigned int)b;
+		//*led = (unsigned int)b;
 	}
 	e = 0;
 	for (c = 8400; c > 0; c -= 14) {
+		*led = (unsigned int)c;
 		d = 0;
 		for (b = c - 1; b > 0; b--) {
 			g = 2 * b - 1;
@@ -74,11 +75,12 @@ int main() {
 			d /= g;
 		}
     	printf("%04d", e + d / a);
+		fflush(stdout);
 		//unsigned int value =  e + d / a;
+    	//printf("%04d\n", value);
 		//int length = sprintf(cbuf2, "%04d", value);
 		//uprint( cbuf2, length, 0 );
     	e = d % a;
-		*led = (unsigned int)c;
 	}
 	printf("\n");
 	pass();

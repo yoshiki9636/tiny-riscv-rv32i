@@ -15,26 +15,60 @@ addi x1, x0, 7 ; LED value
 lui x2, 0xc0010 ; LED address
 addi x2, x2, 0xe00 ;
 sw x1, 0x0(x2) ; set LED
-lui x9, 0x1 ; offset
 
 ; store data for test
+lui x4, 0x1
 lui x3, 0x76543 ;
 ori x3, x3, 0x210 ; test value (1)
-sw x3, 0x0(x9)
-sw x3, 0x8(x9)
-lui x3, 0xfedcb ;
-ori x3, x3, 0x298 ; test value (2)
-lui x4, 0x00001
-srli x4, x4, 1;
-or x3, x3, x4
-sw x3, 0x4(x9)
-sw x3, 0xc(x9)
-; test lb offset 0
+sw x3, 0x0(x4)
+sw x3, 0x8(x4)
+lui x3, 0xfedcc ;
+ori x3, x3, 0xa98 ; test value (2)
+sw x3, 0x4(x4)
+sw x3, 0xc(x4)
+
+; test load same address
+lui x9, 0xc0010 ; tx out
+addi x9, x9, 0xc00 ; tx out
+ori x7, x0, 0xf
+ori x8, x0, 0x30
+
+ori x12, x0, 0x0d
+ori x13, x0, 0x0a
+
 :fail_test1
-lui x4, 0x1 ; offset
-lb x5, 0x0(x4)
-ori x6, x0, 0x010
+ori x10, x0, 8 ; loop max
+ori x11, x0, 0 ; loop counter
+
+:inner_loop1
+lw x5, 0x0(x4)
+slli x14, x11, 2 ;
+srl x5, x5, x14 ;
+and x5, x5, x7
+or x5, x5, x8
+sw x5, 0x0(x9)
+addi x11, x11, 1
+bne x11, x10, inner_loop1
+sw x12, 0x0(x9) ; cr
+sw x13, 0x0(x9) ; lf
+
+ori x11, x0, 0 ; loop counter
+:inner_loop2
+lw x6, 0x0(x4)
+slli x14, x11, 2 ;
+srl x6, x6, x14 ;
+and x6, x6, x7
+or x6, x6, x8
+sw x6, 0x0(x9)
+addi x11, x11, 1
+bne x11, x10, inner_loop2
+
+sw x12, 0x0(x9) ; cr
+sw x13, 0x0(x9) ; lf
+lw x5, 0x0(x4)
+lw x6, 0x0(x4)
 bne x5, x6, fail_test1
+
 ; next value
 addi x1, x0, 6 ; LED value
 sw x1, 0x0(x2) ; set LED

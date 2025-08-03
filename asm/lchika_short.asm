@@ -10,8 +10,7 @@
 
 nop
 nop
-and x2, x0, x2 ; 
-addi x2, x2, 5 
+lui x2, 1 ; loop
 and x3, x0, x3 ; LED value
 and x4, x0, x4 ; 
 lui x4, 0xc0010 ; LED address 0xc000fe00

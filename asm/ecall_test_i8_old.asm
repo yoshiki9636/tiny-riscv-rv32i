@@ -134,7 +134,7 @@ jalr x0, x0, fail_test7
 ; 0x0190
 addi x1, x0, 0 ; LED value
 sw x1, 0x0(x2) ; set LED
-ori x6, x0, 0x17c
+ori x6, x0, 0x180
 ori x7, x0, 3
 nop
 nop

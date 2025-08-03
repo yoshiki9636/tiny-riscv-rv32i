@@ -64,7 +64,7 @@ typedef struct{
 }complex;
 
 int main() {
-	char cbuf[32];
+	char cbuf[80];
 
 	int n,k;
 	int length;

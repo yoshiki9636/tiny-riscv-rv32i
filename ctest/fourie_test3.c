@@ -15,11 +15,11 @@ void uprint( char* buf, int length, int ret );
 // workaround for libm_nano.a
 int __errno;
 
-char* heap_end = (char*)0x10000;
+char* heap_end = (char*)0x40000;
 //void _sbrk_r(void) {}
 char* _sbrk(int incr) {
- char* heap_low = (char*)0x10000;
- char* heap_top = (char*)0x18000;
+ char* heap_low = (char*)0x40000;
+ char* heap_top = (char*)0x7f000;
  char *prev_heap_end;
 
  if (heap_end == 0) {
@@ -64,7 +64,6 @@ typedef struct{
 }complex;
 
 int main() {
-    unsigned int* led = (unsigned int*)0xc000fe00;
 	char cbuf[32];
 
 	int n,k;
@@ -72,13 +71,16 @@ int main() {
 	double R[128],max;
  	complex x[128], X;
 
+	unsigned int* led = (unsigned int*)0xc000fe00;
+	uprint(  "t", 1, 2 );
+ 
  	for(n=0; n<128; n++){
 		*led = n & 0x7777;
  		x[n].r=0.5+sin(0.1*n)+0.3*sin(0.3*n)+0.15*sin(0.5*n);
+ 		//x[n].r=0.5+sin(0.1*n)+0.3*sin(0.3*n);
  		x[n].i=0.0;
  	}
  	for(n=0; n<128; n++){
-		*led = n & 0x7777;
  		//length = sprintf(cbuf, "sin[%d]=%3.3lf\n",n,x[n].r);
 		//uprint( cbuf, length, 0 );
  		printf("sin[%d]=%3.3lf\n",n,x[n].r);
@@ -86,7 +88,6 @@ int main() {
 	uprint( "\n", 2, 0 );
 
  	for(n=0; n<128; n++){
-		*led = n & 0x7777;
  		for(k=0; k<30+x[n].r*25; k++)
 			uprint( "*", 1, 0 );
 		uprint( "\n", 2, 0 );
@@ -99,21 +100,20 @@ int main() {
  		X.r=0;
  		X.i=0;
  		for(k=0; k<N; k++){
-			*led = k & 0x7777;
  			X.r += x[k].r*cos(2.0*PI*n*k/N) + x[k].i*sin(2.0*PI*n*k/N);
  			X.i += x[k].i*cos(2.0*PI*n*k/N) - x[k].r*sin(2.0*PI*n*k/N);
  		}
  		R[n] = sqrt(X.r*X.r + X.i*X.i);
  		if(R[n]>max) max=R[n];
- 		//length = sprintf(cbuf, "X.r=%lf, X.i=%lf, R(%d)=%lf\n", X.r, X.i,n,R[n]);
+ 		//length = sprintf(cbuf, "X.r=%f, X.i=%f, R(%d)=%f\n", X.r, X.i,n,R[n]);
 		//uprint( cbuf, length, 0 );
  		printf("X.r=%lf, X.i=%lf, R(%d)=%lf\n", X.r, X.i,n,R[n]);
  	}
 	uprint( "\n", 2, 0 );
  	//length = sprintf(cbuf, "Fourie transform graph\n");
+	//uprint( cbuf, length, 2 );
  	printf("Fourie transform graph\n");
  	for(n=0; n<N; n++){
-		*led = n & 0x7777;
  		for( k=0; k<R[n]*60/max; k++)
 			uprint( "*", 1, 0 );
 		uprint( "\n", 2, 0 );

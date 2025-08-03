@@ -10,7 +10,7 @@
 
 nop
 nop
-lui x2, 10 ; loop max
+lui x2, 1 ; loop max
 ;ori x2, x0, 0x5 ; loop max
 and x3, x0, x3 ; LED value
 and x4, x0, x4 ; 

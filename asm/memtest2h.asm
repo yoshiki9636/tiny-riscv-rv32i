@@ -15,7 +15,7 @@ lui x2, 0xc0010 ; LED address
 addi x2, x2, 0xe00 ;
 sw x1, 0x0(x2) ; set LED
 
-lui x6, 0x00000 ; destiation
+lui x6, 0x00001 ; destiation
 lui x7, 0x00010 ;
 addi x7, x7, 0xfff ;
 lui x8, 0x00000 ; counter
@@ -29,7 +29,7 @@ blt x8, x7, label_loopa
 addi x1, x1, 0xfff ; LED value
 sw x1, 0x0(x2) ; set LED
 
-lui x5, 0x00000 ; source
+lui x5, 0x00001 ; source
 addi x5, x5, 0x000 ;
 lui x6, 0x00020 ; destiation
 addi x6, x6, 0xffe ;
@@ -48,7 +48,7 @@ blt x8, x7, label_loop2
 addi x1, x1, 0xfff ; LED value
 sw x1, 0x0(x2) ; set LED
 
-lui x5, 0x00000 ; source
+lui x5, 0x00001 ; source
 addi x5, x5, 0x000 ;
 lui x6, 0x00020 ; destiation
 addi x6, x6, 0xffe ;

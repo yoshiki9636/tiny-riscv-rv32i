@@ -1,14 +1,15 @@
 # QSPI Pmod pins JC version (FAST)
-# JD1 ce_n[0]  U12  6
-# JD2 sio[0]   V12  1
-# JD3 sio[1]   V10  5
-# JD4 sck      V11  2
+# JD1 sck      U12  6
+# JD2 ce_n[0]  V12  1
+# JD3 sio[0]   V10  5
+# JD4 sio[1]   V11  2
 # JD7 sio[2]   U14  3
 # JD8 sio[3]   V14  7
 # JD9 ce_n[1]  T13
 # JD10 ce_n[2] U13
 # JD5,11 GND       4
 # JD6,12 3.3V      8
+
 
 set_property OFFCHIP_TERM NONE [get_ports rgb_led[2]]
 set_property OFFCHIP_TERM NONE [get_ports rgb_led[1]]
@@ -42,8 +43,8 @@ set_property SLEW SLOW [get_ports {sck}]
 set_property SLEW SLOW [get_ports {ce_n[0]}]
 set_property SLEW SLOW [get_ports {ce_n[1]}]
 set_property SLEW SLOW [get_ports {ce_n[2]}]
-set_property PACKAGE_PIN V11 [get_ports {sck}]
-set_property PACKAGE_PIN U12 [get_ports {ce_n[0]}]
+set_property PACKAGE_PIN U12 [get_ports {sck}]
+set_property PACKAGE_PIN V12 [get_ports {ce_n[0]}]
 set_property PACKAGE_PIN T13 [get_ports {ce_n[1]}]
 set_property PACKAGE_PIN U13 [get_ports {ce_n[2]}]
 
@@ -115,8 +116,8 @@ set_property SLEW SLOW [get_ports {sio[0]}]
 set_property SLEW SLOW [get_ports {sio[1]}]
 set_property SLEW SLOW [get_ports {sio[2]}]
 set_property SLEW SLOW [get_ports {sio[3]}]
-set_property PACKAGE_PIN V12 [get_ports {sio[0]}]
-set_property PACKAGE_PIN V10 [get_ports {sio[1]}]
+set_property PACKAGE_PIN V10 [get_ports {sio[0]}]
+set_property PACKAGE_PIN V11 [get_ports {sio[1]}]
 set_property PACKAGE_PIN U14 [get_ports {sio[2]}]
 set_property PACKAGE_PIN V14 [get_ports {sio[3]}]
 

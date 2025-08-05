@@ -100,6 +100,7 @@ wire cmd_mret; // output
 wire cmd_wfi; // output
 wire [4:0] rd_adr; // output
 wire illegal_ops; // output
+wire [31:0] illegal_ops_inst;
 wire [4:0] inst_rs1; // input
 wire [4:0] inst_rs2; // input
 wire [4:0] rd_adr_wb; // input
@@ -251,6 +252,7 @@ decoder decoder (
 	.cmd_wfi(cmd_wfi),
 	.rd_adr(rd_adr),
 	.illegal_ops(illegal_ops),
+	.illegal_ops_inst(illegal_ops_inst),
 	.wbk_rd_reg(wbk_rd_reg),
 	.inst_rs1(inst_rs1),
 	.inst_rs2(inst_rs2)
@@ -315,6 +317,7 @@ execution execution (
 	.cmd_mret_ex(cmd_mret),
 	.cmd_wfi_ex(cmd_wfi),
 	.illegal_ops_ex(illegal_ops),
+	.illegal_ops_inst(illegal_ops_inst),
 	.rd_adr_ex(rd_adr),
 	.cmd_ld_ma(cmd_ld_ma),
 	.cmd_st_ma(cmd_st_ma),

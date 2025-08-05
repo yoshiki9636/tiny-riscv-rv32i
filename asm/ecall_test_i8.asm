@@ -42,7 +42,7 @@ ori x8, x0, 0x0
 csrrw x5, 0x305, x8
 ori x8, x0, 0x5a5
 bne x3, x8, fail_test2
-ori x8, x0, 0xa5a
+ori x8, x0, 0xa5a; bit[1] is not exist
 bne x4, x8, fail_test2
 ; next value
 addi x1, x0, 5 ; LED value
@@ -53,7 +53,6 @@ ori x8, x0, 0x0
 csrrw x3, 0x305, x8
 csrrsi x4, 0x305, 0x15
 csrrsi x5, 0x305, 0xa
-csrrsi x6, 0x305, 0x0
 ori x8, x0, 0x15
 bne x4, x8, fail_test3
 ori x8, x0, 0x1f
@@ -71,7 +70,7 @@ ori x8, x0, 0xa5a
 csrrs x5, 0x341, x8
 ori x8, x0, 0x0
 csrrs x6, 0x341, x8
-ori x8, x8, 0x5a4
+ori x8, x0, 0x5a4
 bne x4, x8, fail_test4
 ori x8, x0, 0xffc
 bne x5, x8, fail_test4
@@ -85,9 +84,9 @@ csrrw x3, 0x342, x8
 csrrci x4, 0x342, 0x15
 csrrci x5, 0x342, 0x0a
 csrrci x6, 0x342, 0x00
-ori x8, x0, 0xfea
+ori x8, x0, 0x2a
 bne x4, x8, fail_test5
-ori x8, x0, 0xfe0
+ori x8, x0, 0x20
 bne x5, x8, fail_test5
 ; next value
 addi x1, x0, 2 ; LED value
@@ -107,32 +106,34 @@ bne x4, x8, fail_test6
 ori x8, x0, 0
 bne x5, x8, fail_test6
 ; next value
-addi x1, x0, 3 ; LED value
+addi x1, x0, 4 ; LED value
 sw x1, 0x0(x2) ; set LED
 ; test 0x300
 ori x8, x0, 0xfff
 csrrw x3, 0x300, x8
-csrrw x4, 0x300, x8
-lui x8, 0x00003 ;
-addi x8, x8, 0x0aa ; x8 = 0x1aaa
+lui x8, 0x00002 ;
+addi x8, x8, 0x8aa ; x8 = 0x18aa
 bne x3, x8, fail_test6
 ; next value
 addi x1, x0, 1 ; LED value
 sw x1, 0x0(x2) ; set LED
 ; test ecall
 :fail_test7
-lui x3, 0x00000 ;
-addi x3, x3, 0x194
+lui x3, 0x00000
+addi x3, x3, 0x1a0
 csrrw x4, 0x305, x3
-csrrw x5, 0x305, x3
 bne x4, x3, fail_test7
+addi x3, x0, 0x8
+csrrw x4, 0x304, x3
+addi x3, x0, 0x8
+csrrw x4, 0x300, x3
 addi x11, x0, 0x55
-addi x12, x0, 0x77
+addi x12, x0, 0x44
 ecall
 addi x12, x0, 0xaa
 bne x11, x12, fail_test7
 jalr x0, x0, pass
-; 0x0194
+; 0x01a0
 :dummy_label
 addi x11, x0, 0xaa
 mret

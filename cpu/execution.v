@@ -57,6 +57,7 @@ module execution (
     input cmd_mret_ex,
     input cmd_wfi_ex,
     input illegal_ops_ex,
+	input [31:0] illegal_ops_inst,
 	input [4:0] rd_adr_ex,
 	//input wbk_rd_reg_ex,
 	
@@ -208,6 +209,7 @@ csr_array csr_array (
 	.g_interrupt_priv(g_interrupt_priv),
 	.g_current_priv(g_current_priv),
 	.illegal_ops_ex(illegal_ops_ex),
+	.illegal_ops_inst(illegal_ops_inst),
 	.g_exception(g_exception),
 	.interrupts_in_pc_state(interrupts_in_pc_state),
 	.csr_mepc_ex(csr_mepc_ex),
@@ -302,8 +304,7 @@ assign jmp_condition_ex = cmd_jal_ex | cmd_jalr_ex | cmd_br_ex &
 					      sbgu & (alu_code_ex == 3'b111) );
 
 // ecall
-assign ecall_condition_ex = cmd_ecall_ex | illegal_ops_ex;
-
+assign ecall_condition_ex = ( cmd_ecall_ex & csr_rmie & csr_msie) | illegal_ops_ex;
 
 // FF to DMRW
 assign rd_adr_ma = rd_adr_ex;

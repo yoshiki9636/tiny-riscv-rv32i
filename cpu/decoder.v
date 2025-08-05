@@ -52,6 +52,7 @@ module decoder (
     output cmd_wfi,
 	output [4:0] rd_adr,
     output illegal_ops,
+	output [31:0] illegal_ops_inst,
     output wbk_rd_reg,
 	output [4:0] inst_rs1,
 	output [4:0] inst_rs2
@@ -282,6 +283,7 @@ wire cmd_all_except_nop =
 	| cmd_sret | cmd_mret | cmd_wfi;
 
 assign illegal_ops = ~(cmd_nop | cmd_all_except_nop);
+assign illegal_ops_inst = inst;
 
 // destination register number
 assign rd_adr = inst_rd;

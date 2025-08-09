@@ -43,7 +43,8 @@ reg frc_cntr_val_leq_latch;
 
 assign interrupts_in_pc_state = (g_interrupt_latch | frc_cntr_val_leq_latch) & csr_rmie & cpu_stat_pc;
 
-wire interrupt_mskd = (g_interrupt_latch  | g_exception | frc_cntr_val_leq_latch) & csr_rmie;
+//wire interrupt_mskd = (g_interrupt_latch  | g_exception | frc_cntr_val_leq_latch) & csr_rmie;
+wire interrupt_mskd = (g_interrupt_latch  | frc_cntr_val_leq_latch) & csr_rmie | g_exception;
 wire intr_ecall_exception = ecall_condition_ex | interrupt_mskd;
 wire jump_cmd_cond = jmp_condition_ex | cmd_mret_ex | cmd_sret_ex | cmd_uret_ex;
 
@@ -102,6 +103,7 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :
+                  (g_exception) ? pc :
                   (jmp_condition_ex) ? jmp_adr_ex : pc_p1;
 
                   //(jmp_cond & cpu_stat_pc) ? jmp_adr :

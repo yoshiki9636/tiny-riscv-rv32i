@@ -91,7 +91,7 @@ reg [31:0] csr_mstatush;
 wire [31:0] csr_misa = `CSR_MISA_DATA;
 reg [31:0] csr_mtvec;
 reg [31:2] csr_mepc;
-reg [5:0] csr_mcause;
+reg [6:0] csr_mcause;
 reg [31:0] csr_mtval;
 //wire [31:2] csr_sepc_i = 30'd0;
 assign csr_sepc_ex = 30'd0;
@@ -103,7 +103,7 @@ wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        adr_mtvec ? csr_mtvec :
                        adr_mepc ? { csr_mepc, 2'b00 } :
                        adr_sepc ? csr_sepc_ex :
-                       adr_mcause ? { 26'd0, csr_mcause } :
+                       adr_mcause ? { csr_mcause[6], 25'd0, csr_mcause[5:0] } :
                        adr_mtval ? csr_mtval :
                        adr_mstatush ? csr_mstatush :
                        adr_mip ? csr_mip :
@@ -150,7 +150,7 @@ reg csr_spp;
 //wire frc_cntr_val_leq_1shot;
 
 //wire m_interrupt = (g_interrupt_1shot | frc_cntr_val_leq_1shot) & (g_interrupt_priv == `M_MODE) & csr_rmie;
-wire m_interrupt = interrupts_in_pc_state & (g_interrupt_priv == `M_MODE) & csr_rmie;
+wire m_interrupt = interrupts_in_pc_state & (g_interrupt_priv == `M_MODE) & csr_rmie | g_exception | cmd_ecall_ex;
 wire rmie_wr = m_interrupt | cmd_mret_ex;
 wire rmie_value = m_interrupt ? 1'b0 :
                  cmd_mret_ex ? csr_mpie : csr_rmie;
@@ -271,7 +271,7 @@ assign csr_mstatus = { 19'd0, csr_mpp, 1'b0, csr_spp, 1'b0, csr_mpie,
 
 // MISA : currently implimented as read-only
 
-wire [30:0] mcause_code;
+wire [5:0] mcause_code;
 
 // mtvec
 always @ ( posedge clk or negedge rst_n) begin   
@@ -310,7 +310,7 @@ always @ ( posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
 		csr_mepc <= 30'd0;
 	end
-	else if (cmd_ecall_ex | m_interrupt_latch_timing | g_exception) begin
+	else if ((cmd_ecall_ex | m_interrupt_latch_timing) & csr_rmie | g_exception) begin
 		csr_mepc <= pc_excep;
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mepc)) begin
@@ -327,13 +327,13 @@ wire interrupt_bit = g_interrupt | frc_cntr_val_leq;
 assign mcause_code = g_interrupt ? 6'd11 :
                     frc_cntr_val_leq ? 6'd7 :
                     illegal_ops_ex ? 6'd2 :
-                    cmd_ecall_ex ?  6'd11 : 6'd0;
+                    cmd_ecall_ex ?  6'd11 : 6'h3f;
 wire sel_tval = (g_interrupt | frc_cntr_val_leq) ? 32'd0 :
                 illegal_ops_ex ? illegal_ops_inst : 32'd0; // need to add pc for ebreak
 
 //wire mcause_write = cmd_ecall_ex | g_interrupt_1shot | g_exception | frc_cntr_val_leq_1shot | illegal_ops_ex;
 //wire mcause_write = cmd_ecall_ex | g_exception | (interrupts_in_pc_state & csr_rmie) | illegal_ops_ex;
-wire mcause_write = cmd_ecall_ex | g_exception | (interrupts_in_pc_state & csr_rmie);
+wire mcause_write = (cmd_ecall_ex | interrupts_in_pc_state) & csr_rmie | g_exception;
 
 always @ ( posedge clk or negedge rst_n) begin   
 	if (~rst_n) begin
@@ -380,7 +380,7 @@ end
 
 
 // mip register
-assign csr_mip = { 4'd0, g_interrupt, 3'd0, frc_cntr_val_leq, 3'd0, g_exception, 3'd0 };
+assign csr_mip = { 20'd0, g_interrupt, 3'd0, frc_cntr_val_leq, 3'd0, g_exception, 3'd0 };
 
 // mie register
 reg [2:0] csr_mie_bits;

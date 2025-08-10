@@ -18,6 +18,7 @@ module interrupter(
 	input ext_uart_interrpt_1shot,
 	// from csr
 	input csr_meie,
+	input csr_rmie,
 	output g_interrupt_1shot,
 	output g_interrupt,
 
@@ -100,7 +101,7 @@ always @ (posedge clk or negedge rst_n) begin
 		int_status_int0 <= 1'b1;
 end
 
-assign g_interrupt = int_status_rx | int_status_int0;
+assign g_interrupt = (int_status_rx | int_status_int0) & csr_rmie;
 
 reg g_interrupt_dly;
 always @ (posedge clk or negedge rst_n) begin

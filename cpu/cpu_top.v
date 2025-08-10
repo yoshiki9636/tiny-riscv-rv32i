@@ -23,6 +23,7 @@ module cpu_top (
 	input frc_cntr_val_leq,
 	output cpu_run_state,
 	output csr_meie,
+	output csr_rmie,
 	input g_interrupt_1shot,
 	input g_interrupt,
 
@@ -121,7 +122,6 @@ wire [1:0] g_interrupt_priv = `M_MODE; // temp
 wire [1:0] g_current_priv = `M_MODE; // temp
 wire g_exception; // input
 wire jmp_condition_ex; // input
-wire csr_rmie;
 wire interrupts_in_pc_state;
 
 wire [31:2] csr_mtvec_ex; // input
@@ -338,6 +338,7 @@ execution execution (
 	.g_current_priv(g_current_priv),
 	.g_exception(g_exception),
 	.interrupts_in_pc_state(interrupts_in_pc_state),
+	.cpu_stat_pc(cpu_stat_pc),
 	.csr_rmie(csr_rmie),
 	.csr_meie(csr_meie),
 	.csr_mtie(csr_mtie),

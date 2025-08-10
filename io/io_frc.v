@@ -105,7 +105,7 @@ always @ (posedge clk or negedge rst_n) begin
         frc_cntr_val_rst_lat <= frc_cntr_val_rst_pre;
 end
 
-assign frc_cntr_val_rst = frc_cntr_val_rst_pre | frc_cntr_val_rst_lat;
+wire frc_cntr_val_rst = frc_cntr_val_rst_pre | frc_cntr_val_rst_lat;
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)

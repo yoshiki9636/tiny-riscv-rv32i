@@ -21,6 +21,7 @@ module csr_array(
 	output [31:0] csr_rd_data,
 	output [31:2] csr_mtvec_ex,
 	input interrupts_in_pc_state,
+	input cpu_stat_pc,
 	input g_interrupt,
 	input g_interrupt_1shot,
 	input illegal_ops_ex,
@@ -151,9 +152,10 @@ reg csr_spp;
 
 //wire m_interrupt = (g_interrupt_1shot | frc_cntr_val_leq_1shot) & (g_interrupt_priv == `M_MODE) & csr_rmie;
 wire m_interrupt = interrupts_in_pc_state & (g_interrupt_priv == `M_MODE) & csr_rmie | g_exception | cmd_ecall_ex;
-wire rmie_wr = m_interrupt | cmd_mret_ex;
+wire mret_on_stat_pc = cmd_mret_ex & cpu_stat_pc;
+wire rmie_wr = m_interrupt | mret_on_stat_pc;
 wire rmie_value = m_interrupt ? 1'b0 :
-                 cmd_mret_ex ? csr_mpie : csr_rmie;
+                 mret_on_stat_pc ? csr_mpie : csr_rmie;
 
 always @ ( posedge clk or negedge rst_n) begin 
 	if (~rst_n) begin
@@ -168,9 +170,9 @@ always @ ( posedge clk or negedge rst_n) begin
 end
 
 // MPIE[7] : Machine mode Previouse Interrupt Enable
-wire mpie_wr = m_interrupt | cmd_mret_ex;
+wire mpie_wr = m_interrupt | mret_on_stat_pc;
 wire mpie_value = m_interrupt ? csr_rmie :
-                  cmd_mret_ex ? 1'b1 : csr_mpie;
+                  mret_on_stat_pc ? 1'b1 : csr_mpie;
 
 always @ ( posedge clk or negedge rst_n) begin 
 	if (~rst_n) begin
@@ -185,9 +187,9 @@ always @ ( posedge clk or negedge rst_n) begin
 end
 
 // MPP[12:11] : Machine mode Previouse Privilege
-wire mpp_wr = m_interrupt | cmd_mret_ex;
+wire mpp_wr = m_interrupt | mret_on_stat_pc;
 wire [1:0] mpp_value = m_interrupt ? g_current_priv :
-                       cmd_mret_ex ? `M_MODE : // currently only M_MODE support
+                       mret_on_stat_pc ? `M_MODE : // currently only M_MODE support
                        csr_mpp;
 
 always @ ( posedge clk or negedge rst_n) begin 

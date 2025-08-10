@@ -127,7 +127,7 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		frc_cntr_val_leq_lat <= 1'b0;
 	else
-		frc_cntr_val_leq_lat <= frc_cntr_val_leq;
+		frc_cntr_val_leq_lat <= frc_cntr_val_leq & csr_rmie;
 end
 
 assign frc_cntr_val_leq_1shot = frc_cntr_val_leq & ~frc_cntr_val_leq_lat;
@@ -135,7 +135,8 @@ assign frc_cntr_val_leq_1shot = frc_cntr_val_leq & ~frc_cntr_val_leq_lat;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		frc_cntr_val_leq_latch <= 1'b0;
-	else if (frc_cntr_val_leq_1shot & csr_rmie)
+	//else if (frc_cntr_val_leq_1shot & csr_rmie)
+	else if (frc_cntr_val_leq_1shot)
 		frc_cntr_val_leq_latch <= 1'b1;
 	else if (cpu_stat_pc)
 		frc_cntr_val_leq_latch <= 1'b0;

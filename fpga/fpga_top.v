@@ -324,6 +324,7 @@ interrupter interrupter (
 	.rst_n(rst_n),
 	.interrupt_0(interrupt_0),
 	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
+	.csr_rmie(csr_rmie),
 	.csr_meie(csr_meie),
 	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_interrupt(g_interrupt),

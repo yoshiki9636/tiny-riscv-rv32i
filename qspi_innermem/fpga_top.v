@@ -106,6 +106,7 @@ wire csr_mtie;
 wire frc_cntr_val_leq;
 //wire interrupt_clear;
 wire ext_uart_interrpt_1shot;
+wire csr_rmie;
 wire csr_meie;
 wire g_interrupt_1shot;
 wire g_interrupt;
@@ -137,6 +138,7 @@ cpu_top cpu_top (
 	.frc_cntr_val_leq(frc_cntr_val_leq),
 	.cpu_run_state(cpu_run_state),
 	.csr_meie(csr_meie),
+	.csr_rmie(csr_rmie),
 	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_interrupt(g_interrupt),
 
@@ -318,6 +320,7 @@ interrupter interrupter (
 	.rst_n(rst_n),
 	.interrupt_0(interrupt_0),
 	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
+	.csr_rmie(csr_rmie),
 	.csr_meie(csr_meie),
 	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_interrupt(g_interrupt),

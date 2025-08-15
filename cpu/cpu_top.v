@@ -143,6 +143,7 @@ wire csr_msie; // output
 
 wire [31:2] pc_excep; // output
 wire [31:0] dma_io_rdata_int;
+wire [31:2] pc_ebreak;
 
 assign pc_data = { pc, 2'd0 };
 
@@ -194,7 +195,8 @@ pc_stage pc_stage (
 	.csr_sepc_ex(csr_sepc_ex),
 	.jmp_adr_ex(jmp_adr_ex),
 	.pc(pc),
-	.pc_excep(pc_excep)
+	.pc_excep(pc_excep),
+	.pc_ebreak(pc_ebreak)
 	);
 
 inst_mem_read inst_mem_read (
@@ -312,6 +314,7 @@ execution execution (
 	.csr_op2_ex(csr_op2),
 	.cmd_ecall_ex(cmd_ecall),
 	.cmd_ebreak_ex(cmd_ebreak),
+	.pc_ebreak(pc_ebreak),
 	.cmd_uret_ex(cmd_uret),
 	.cmd_sret_ex(cmd_sret),
 	.cmd_mret_ex(cmd_mret),

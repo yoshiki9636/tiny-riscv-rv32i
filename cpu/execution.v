@@ -52,6 +52,7 @@ module execution (
 	input [2:0] csr_op2_ex,
     input cmd_ecall_ex,
     input cmd_ebreak_ex,
+	input [31:2] pc_ebreak,
     input cmd_uret_ex,
     input cmd_sret_ex,
     input cmd_mret_ex,
@@ -225,6 +226,8 @@ csr_array csr_array (
     .csr_msie(csr_msie),
 	//.csr_mie(csr_mie),
     .cmd_ecall_ex(cmd_ecall_ex),
+    .cmd_ebreak_ex(cmd_ebreak_ex),
+    .pc_ebreak(pc_ebreak),
 	.pc_excep(pc_excep),
 	.cpu_stat_ex(cpu_stat_ex),
 	.cpu_stat_before_exec(cpu_stat_before_exec),
@@ -305,8 +308,8 @@ assign jmp_condition_ex = cmd_jal_ex | cmd_jalr_ex | cmd_br_ex &
 					      sltu & (alu_code_ex == 3'b110) |
 					      sbgu & (alu_code_ex == 3'b111) );
 
-// ecall
-assign ecall_condition_ex = ( cmd_ecall_ex & csr_rmie & csr_msie) | illegal_ops_ex;
+// ecall, ebreak
+assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie & csr_msie) | illegal_ops_ex;
 
 // FF to DMRW
 assign rd_adr_ma = rd_adr_ex;

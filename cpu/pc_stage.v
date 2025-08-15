@@ -31,7 +31,8 @@ module pc_stage (
 	input [31:2] csr_sepc_ex,
 	input [31:2] jmp_adr_ex,
 	output reg [31:2] pc,
-	output [31:2] pc_excep
+	output [31:2] pc_excep,
+	output [31:2] pc_ebreak
 	);
 
 // resources
@@ -109,6 +110,9 @@ assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_e
                   //(jmp_cond & cpu_stat_pc) ? jmp_adr :
                   //(cpu_stat_pc) ? pc_p2 : pc_p1;
                   //(jmp_cond & cpu_stat_pc) ? jmp_adr : pc_p1;
+
+//ebreak : current pc
+assign pc_ebreak = pc;
 
 // interrupter latch
 always @ (posedge clk or negedge rst_n) begin

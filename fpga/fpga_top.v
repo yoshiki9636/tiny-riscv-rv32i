@@ -17,11 +17,17 @@ module fpga_top (
 	output sck,
 	output [2:0] ce_n,
 	inout [3:0] sio,
+	//input [3:0] sio_i,
+	//output [3:0] sio_o,
+	//output sio_en,
 
 	input rx,
 	output tx,
 	output [2:0] rgb_led,
 	inout [3:0] gpio,
+	//input [3:0] gpio_i,
+	//output [3:0] gpio_o,
+	//output [3:0] gpio_en,
 
 	input [1:0] init_latency,
 	input init_qspicmd,
@@ -121,7 +127,7 @@ wire [31:0] dma_io_wdata = dma_io_we_u ? dma_io_wdata_u : dma_io_wdata_c;
 wire dma_io_radr_en = dma_io_radr_en_c | dma_io_radr_en_u;
 wire [15:2] dma_io_radr = dma_io_radr_en_u ? dma_io_radr_u : dma_io_radr_c;
 
-
+//assign clk = clkin;
 clk_wiz_0 clk_wiz_0 (
 	.clk_out1(clk),
 	.reset(~rst_n),
@@ -242,6 +248,9 @@ qspi_if qspi_if (
 	.sck(sck),
 	.ce_n(ce_n),
 	.sio(sio),
+	//.sio_i(sio_i),
+	//.sio_o(sio_o),
+	//.sio_en(sio_en),
 	.init_latency(init_latency),
 	.init_qspicmd(init_qspicmd),
 	.read_req(read_req),
@@ -281,6 +290,9 @@ io_led io_led (
 	.init_cpu_start(init_cpu_start),
 	.gpi_in(init_qspicmd),
 	.gpio(gpio)
+	//.gpio_i(gpio_i),
+	//.gpio_o(gpio_o),
+	//.gpio_en(gpio_en)
 	);
 
 io_uart_out io_uart_out (

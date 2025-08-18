@@ -59,8 +59,11 @@ module uart_logics (
 	input flushing_wq,
 	output dump_running,
 	input start_trush,
+	input stop_trush,
+	input trush_start_set,
+	input trush_end_set,
 	output trush_running,
-	input start_step,
+	//input start_step,
 	input pgm_start_set,
 	input pgm_end_set,
 	input pgm_stop,
@@ -79,8 +82,8 @@ assign start_adr = uart_data[31:2];
 
 // iram write address 
 reg [31:2] cmd_wadr_cntr;
-wire [21:2] trush_adr;
-wire trash_req;
+wire [31:2] trush_adr;
+wire trush_req;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
@@ -97,9 +100,9 @@ wire cmd_wadr_for_rf    = (cmd_wadr_cntr[31:30] == 2'b00);
 
 reg write_stat;
 
-assign u_write_adr = trush_running ? { { 10{ 1'b0}}, trush_adr, 2'd0} : { cmd_wadr_cntr[31:2], 2'd0};
+assign u_write_adr = trush_running ? { { 8{ 1'b0}}, trush_adr, 2'd0} : { cmd_wadr_cntr[31:2], 2'd0};
 assign u_write_data = trush_running ? 32'd0 : uart_data;
-assign u_write_req = (write_data_en | trash_req) & ~write_stat; // trash req not work currently
+assign u_write_req = (write_data_en | trush_req) & ~write_stat;
 assign u_write_w = 1'b1;
 assign u_read_w = 1'b1;
 
@@ -124,9 +127,9 @@ wire dradr_cntup;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		cmd_read_adr <= 31'd0;
-	else if (read_start_set | pgm_start_set)
+	else if (read_start_set | pgm_start_set | trush_start_set)
 		cmd_read_adr <= { 1'b0, uart_data[31:2] };
-	else if (dradr_cntup | radr_cntup)
+	else if (dradr_cntup | radr_cntup | trush_req)
 		cmd_read_adr <= cmd_read_adr + 31'd1;
 end
 
@@ -144,14 +147,13 @@ wire cmd_read_adr_for_rf    = (cmd_read_adr[31:30] == 2'b00);
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		cmd_read_end <= 30'd0;
-	else if (read_end_set | pgm_end_set)
+	else if (read_end_set | pgm_end_set | trush_end_set)
 		cmd_read_end <= uart_data[31:2];
 end
 
 assign dump_end =(cmd_read_adr >= {1'b0, cmd_read_end});
 
 assign u_read_adr = { cmd_read_adr[31:2], 2'b00 };
-//assign io_read_adr = u_read_adr;
 
 
 `define D_IDLE 3'd0
@@ -331,29 +333,56 @@ assign rdata_snd = pc_print_sel ? pc_data : data_0;
 //assign rdata_snd = pc_print_sel ? 32'hdeadbeef : data_0;
 
 // trashing memory data
-reg [22:2] trash_cntr;
-reg [22:2] trash_cntr_dly;
+reg [24:2] trash_cntr;
+//reg [22:2] trash_cntr_dly;
+reg trash_cond;
+reg trash_cond_dly;
+
+//always @ (posedge clk or negedge rst_n) begin
+	//if (~rst_n)
+		//trash_cntr <= { 23{ 1'b0 }};
+	//else if (stop_trush | finish_trush)
+		//trash_cntr <= { 23{ 1'b0 }};
+	//else if (start_trush)
+		//trash_cntr <= { 1'b1, { 22{ 1'b0 }}};
+	//else if (trash_cntr[24] & ~write_stat & ~trash_cond_dly)
+		//trash_cntr <= trash_cntr + 1;
+//end
+
+wire finish_trush = dump_end;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		trash_cntr <= { 21{ 1'b0 }};
+		trash_cond <= 1'b0;
+	else if (stop_trush)
+		trash_cond <= 1'b0;
 	else if (start_trush)
-		trash_cntr <= { 1'b1, { 21{ 1'b0 }}};
-	else if (trash_cntr[22] & ~write_stat)
-		trash_cntr <= trash_cntr + 1;
+		trash_cond <= 1'b1;
+	else if (finish_trush)
+		trash_cond <= 1'b0;
 end
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
-		trash_cntr_dly <= { 21{ 1'b0 }};
+		trash_cond_dly <= 1'b0;
 	else
-		trash_cntr_dly <= trash_cntr;
+		trash_cond_dly <= trash_cond & ~write_stat;
 end
+//always @ (posedge clk or negedge rst_n) begin
+	//if (~rst_n)
+		//trash_cntr_dly <= { 21{ 1'b0 }};
+	//else
+		//trash_cntr_dly <= trash_cntr;
+//end
 
-assign trush_adr = trash_cntr[21:2];
-assign trush_running = trash_cntr[22];
+//assign trush_adr = trash_cntr[23:2];
+//assign trush_running = trash_cntr[24] | start_trush;
+assign trush_adr = cmd_read_adr[31:2];
+//assign trush_running = trash_cond | start_trush;
+assign trush_running = trash_cond;
 
-assign trash_req = trush_running & (trash_cntr != trash_cntr_dly);
+//assign trush_req = trush_running & (trash_cntr != trash_cntr_dly);
+assign trush_req = trush_running & ~write_stat & ~trash_cond_dly; // just 1shot
 
 // send CPU status to UART i/f
 /*

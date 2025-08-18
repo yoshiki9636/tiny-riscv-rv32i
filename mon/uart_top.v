@@ -92,8 +92,11 @@ wire rx_fifo_overrun;
 wire rx_fifo_underrun;
 wire rx_rden;
 wire send_en;
-wire start_step;
+//wire start_step;
 wire start_trush;
+wire stop_trush;
+wire trush_start_set;
+wire trush_end_set;
 wire tx_fifo_full;
 wire tx_fifo_overrun;
 wire tx_fifo_underrun;
@@ -171,7 +174,10 @@ uart_rec_char uart_rec_char (
 	.read_end_set(read_end_set),
 	.read_stop(read_stop),
 	.start_trush(start_trush),
-	.start_step(start_step),
+	.stop_trush(stop_trush),
+	.trush_start_set(trush_start_set),
+	.trush_end_set(trush_end_set),
+	//.start_step(start_step),
 	.quit_cmd(quit_cmd),
 	.pgm_start_set(pgm_start_set),
 	.pgm_end_set(pgm_end_set),
@@ -238,8 +244,11 @@ uart_logics uart_logics (
 	.flushing_wq(flushing_wq),
 	.dump_running(dump_running),
 	.start_trush(start_trush),
+	.stop_trush(stop_trush),
+	.trush_start_set(trush_start_set),
+	.trush_end_set(trush_end_set),
 	.trush_running(trush_running),
-	.start_step(start_step),
+	//.start_step(start_step),
 	.pgm_start_set(pgm_start_set),
 	.pgm_end_set(pgm_end_set),
 	.pgm_stop(pgm_stop),

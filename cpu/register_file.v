@@ -22,7 +22,14 @@ module register_file (
 
 	output id_rfr_run,
 	output reg [31:0] rs1_data,
-	output reg [31:0] rs2_data
+	output reg [31:0] rs2_data,
+
+	input rf_radr_en_mon,
+	input [4:0] rf_radr_mon,
+	input [4:0] rf_wadr_mon,
+	input rf_we_mon,
+	input [31:0] rf_wdata_mon,
+	output [31:0] rf_rdata_mon
 
 	);
 
@@ -72,7 +79,12 @@ assign id_rfr_run = (rfr_state != `RFR_IDLE)&(rfr_state != `RFR_WAIT) | (cpu_sta
 
 // control singals
 
-wire [4:8] inst_rs = (rfr_state == `RFR_ADR) ? inst_rs1 : inst_rs2;
+wire [4:8] inst_rs = (rf_radr_en_mon) ? rf_radr_mon :
+                     (rfr_state == `RFR_ADR) ? inst_rs1 : inst_rs2;
+
+wire [4:0] rd_adr_wb_pm = rf_we_mon ? rf_wadr_mon : rd_adr_wb;
+wire [31:0] wbk_data_wb_pm =  rf_we_mon ? rf_wdata_mon : wbk_data_wb;
+wire wbk_rd_reg_wb_pm = wbk_rd_reg_wb | rf_we_mon;
 
 wire rs1_zero_ex = (inst_rs1 == 5'd0);
 wire rs2_zero_ex = (inst_rs2 == 5'd0);
@@ -84,11 +96,12 @@ rf_1r1w rf_1r1w (
 	.clk(clk),
 	.ram_radr(inst_rs),
 	.ram_rdata(ram_data),
-	.ram_wadr(rd_adr_wb),
-	.ram_wdata(wbk_data_wb),
+	.ram_wadr(rd_adr_wb_pm),
+	.ram_wdata(wbk_data_wb_pm),
 	.ram_wen(wbk_rd_reg_wb)
 	);
 
+assign rf_rdata_mon = ram_data;
 
 always @ (posedge clk or negedge rst_n) begin   
 	if (~rst_n)

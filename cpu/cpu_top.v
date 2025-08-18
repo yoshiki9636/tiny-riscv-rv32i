@@ -49,7 +49,21 @@ module cpu_top (
 	output [31:0] dma_io_wdata,
 	output [15:2] dma_io_radr,
 	output dma_io_radr_en,
-	input [31:0] dma_io_rdata
+	input [31:0] dma_io_rdata,
+
+	input csr_radr_en_mon,
+	input [11:0] csr_radr_mon,
+	input [11:0] csr_wadr_mon,
+	input csr_we_mon,
+	input [31:0] csr_wdata_mon,
+	output [31:0] csr_rdata_mon,
+
+	input rf_radr_en_mon,
+	input [4:0] rf_radr_mon,
+	input [4:0] rf_wadr_mon,
+	input rf_we_mon,
+	input [31:0] rf_wdata_mon,
+	output [31:0] rf_rdata_mon
 
 	);
 
@@ -272,7 +286,13 @@ register_file register_file (
 	.wbk_data_wb(wbk_data_wb),
 	.id_rfr_run(id_rfr_run),
 	.rs1_data(rs1_data),
-	.rs2_data(rs2_data)
+	.rs2_data(rs2_data),
+	.rf_radr_en_mon(rf_radr_en_mon),
+	.rf_radr_mon(rf_radr_mon),
+	.rf_wadr_mon(rf_wadr_mon),
+	.rf_we_mon(rf_we_mon),
+	.rf_wdata_mon(rf_wdata_mon),
+	.rf_rdata_mon(rf_rdata_mon)
 	);
 
 execution execution (
@@ -348,7 +368,13 @@ execution execution (
 	.csr_msie(csr_msie),
 	.cpu_stat_ex(cpu_stat_ex),
 	.cpu_stat_before_exec(cpu_stat_before_exec),
-	.frc_cntr_val_leq(frc_cntr_val_leq)
+	.frc_cntr_val_leq(frc_cntr_val_leq),
+	.csr_radr_en_mon(csr_radr_en_mon),
+	.csr_radr_mon(csr_radr_mon),
+	.csr_wadr_mon(csr_wadr_mon),
+	.csr_we_mon(csr_we_mon),
+	.csr_wdata_mon(csr_wdata_mon),
+	.csr_rdata_mon(csr_rdata_mon)
 	);
 
 data_rw_mem data_rw_mem (

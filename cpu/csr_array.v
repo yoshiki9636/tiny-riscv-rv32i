@@ -44,7 +44,14 @@ module csr_array(
 	input [31:2] pc_excep,
 	input cpu_stat_ex,
 	input cpu_stat_before_exec,
-	input frc_cntr_val_leq
+	input frc_cntr_val_leq,
+	input csr_radr_en_mon,
+	input [11:0] csr_radr_mon,
+	input [11:0] csr_wadr_mon,
+	input csr_we_mon,
+	input [31:0] csr_wdata_mon,
+	output [31:0] csr_rdata_mon
+
 	);
 
 // csr address definition
@@ -76,17 +83,19 @@ wire cmd_rs = (csr_op2_ex[1:0] == 2'b10);
 wire cmd_rc = (csr_op2_ex[1:0] == 2'b11);
 
 // address decode
+wire [11:0] csr_ofs_ex_pm = (csr_radr_en_mon) ? csr_radr_mon :
+                            (csr_we_mon) ? csr_wadr_mon : csr_ofs_ex;
 
-wire adr_mstatus = (csr_ofs_ex == `CSR_MSTATUS_ADR);
-wire adr_misa = (csr_ofs_ex == `CSR_MISA_ADR);
-wire adr_mtvec = (csr_ofs_ex == `CSR_MTVEC_ADR);
-wire adr_mepc = (csr_ofs_ex == `CSR_MEPC_ADR);
-wire adr_sepc = (csr_ofs_ex == `CSR_SEPC_ADR);
-wire adr_mcause = (csr_ofs_ex == `CSR_MCAUSE_ADR);
-wire adr_mtval = (csr_ofs_ex == `CSR_MTVAL_ADR);
-wire adr_mstatush = (csr_ofs_ex == `CSR_MSTATUSH_ADR);
-wire adr_mip = (csr_ofs_ex == `CSR_MIP_ADR);
-wire adr_mie = (csr_ofs_ex == `CSR_MIE_ADR);
+wire adr_mstatus = (csr_ofs_ex_pm == `CSR_MSTATUS_ADR);
+wire adr_misa = (csr_ofs_ex_pm == `CSR_MISA_ADR);
+wire adr_mtvec = (csr_ofs_ex_pm == `CSR_MTVEC_ADR);
+wire adr_mepc = (csr_ofs_ex_pm == `CSR_MEPC_ADR);
+wire adr_sepc = (csr_ofs_ex_pm == `CSR_SEPC_ADR);
+wire adr_mcause = (csr_ofs_ex_pm == `CSR_MCAUSE_ADR);
+wire adr_mtval = (csr_ofs_ex_pm == `CSR_MTVAL_ADR);
+wire adr_mstatush = (csr_ofs_ex_pm == `CSR_MSTATUSH_ADR);
+wire adr_mip = (csr_ofs_ex_pm == `CSR_MIP_ADR);
+wire adr_mie = (csr_ofs_ex_pm == `CSR_MIE_ADR);
 
 // read data selector
 wire [31:0] csr_mstatus;
@@ -113,22 +122,7 @@ wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        adr_mie ? csr_mie :
                        32'd0;
 
-// output delay latch
-//reg [31:0] csr_rd_data_prev;
-
-//always @ ( posedge clk or negedge rst_n) begin   
-	//if (~rst_n) begin
-		//csr_rd_data_prev <= 32'd0;
-	//end
-	//else if (cpu_stat_ex & cmd_csr_ex) begin
-		//csr_rd_data_prev <= csr_rsel;
-	//end
-//end
-
-
-//immidiate
-//assign csr_rd_data = (cmd_rw | cmd_rs) ? csr_rd_data_prev : csr_rsel;
-//assign csr_rd_data = csr_rd_data_prev;
+assign csr_rdata_mon = csr_rsel;
 assign csr_rd_data = csr_rsel;
 
 // wirte data selector 
@@ -169,7 +163,11 @@ always @ ( posedge clk or negedge rst_n) begin
 	else if (mstatus_wr) begin
 		csr_rmie <= wdata_all[3];
 	end
+	else if (csr_we_mon & adr_mstatus) begin
+		csr_rmie <= csr_wdata_mon[3];
+	end
 end
+
 
 // MPIE[7] : Machine mode Previouse Interrupt Enable
 wire mpie_wr = m_interrupt | mret_on_stat_pc;
@@ -185,6 +183,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 	else if (mstatus_wr) begin
 		csr_mpie <= wdata_all[7];
+	end
+	else if (csr_we_mon & adr_mstatus) begin
+		csr_mpie <= csr_wdata_mon[7];
 	end
 end
 
@@ -203,6 +204,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 	else if (mstatus_wr) begin
 		csr_mpp <= wdata_all[12:11];
+	end
+	else if (csr_we_mon & adr_mstatus) begin
+		csr_mpp <= csr_wdata_mon[12:11];
 	end
 end
 
@@ -223,6 +227,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	else if (mstatus_wr) begin
 		csr_sie <= wdata_all[1];
 	end
+	else if (csr_we_mon & adr_mstatus) begin
+		csr_sie <= csr_wdata_mon[1];
+	end
 end
 
 // SPIE[5] : Supervisor mode Previouse Interrupt Enable
@@ -239,6 +246,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 	else if (mstatus_wr) begin
 		csr_spie <= wdata_all[5];
+	end
+	else if (csr_we_mon & adr_mstatus) begin
+		csr_spie <= csr_wdata_mon[5];
 	end
 end
 
@@ -262,6 +272,9 @@ always @ ( posedge clk or negedge rst_n) begin
 		//csr_spp <= wdata_all[8];
 		csr_spp <= 1'b0;
 	end
+	else if (csr_we_mon & adr_mstatus) begin
+		csr_spp <= csr_wdata_mon[8];
+	end
 end
 
 assign csr_mstatus = { 19'd0, csr_mpp, 1'b0, csr_spp, 1'b0, csr_mpie,
@@ -284,6 +297,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mtvec)) begin
 		csr_mtvec <= wdata_all;
+	end
+	else if (csr_we_mon & adr_mtvec) begin
+		csr_mtvec <= csr_wdata_mon;
 	end
 end
 
@@ -320,6 +336,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mepc)) begin
 		csr_mepc <= wdata_all[31:2];
 	end
+	else if (csr_we_mon & adr_mepc) begin
+		csr_mepc <= csr_wdata_mon[31:2];
+	end
 end
 
 assign csr_mepc_ex = csr_mepc[31:2];
@@ -351,6 +370,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mcause)) begin
 		csr_mcause <= { wdata_all[31], wdata_all[5:0] };
 	end
+	else if (csr_we_mon & adr_mcause) begin
+		csr_mcause <= { csr_wdata_mon[31], csr_wdata_mon[5:0] };
+	end
 end
 
 always @ ( posedge clk or negedge rst_n) begin   
@@ -363,6 +385,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mtval)) begin
 		csr_mtval <= wdata_all;
 	end
+	else if (csr_we_mon & adr_mtval) begin
+		csr_mtval <= csr_wdata_mon;
+	end
 end
 
 // mstatush
@@ -374,6 +399,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mstatush)) begin
 		csr_mstatush <= { wdata_all[31:6], 2'b00, wdata_all[3:0] };
+	end
+	else if (csr_we_mon & adr_mstatush) begin
+		csr_mstatush <= { csr_wdata_mon[31:6], 2'b00, csr_wdata_mon[3:0] };
 	end
 end
 
@@ -398,6 +426,9 @@ always @ ( posedge clk or negedge rst_n) begin
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mie)) begin
 		csr_mie_bits <= { wdata_all[11], wdata_all[7], wdata_all[3] };
 	end
+	else if (csr_we_mon & adr_mie) begin
+		csr_mie_bits <= { csr_wdata_mon[11], csr_wdata_mon[7], csr_wdata_mon[3] };
+	end
 end
 
 assign csr_mie = { 4'd0, csr_mie_bits[2], 3'd0, csr_mie_bits[1], 3'd0, csr_mie_bits[0], 3'd0 };
@@ -405,17 +436,5 @@ assign csr_mie = { 4'd0, csr_mie_bits[2], 3'd0, csr_mie_bits[1], 3'd0, csr_mie_b
 assign csr_meie = csr_mie_bits[2];
 assign csr_mtie = csr_mie_bits[1];
 assign csr_msie = csr_mie_bits[0];
-
-// for frc 1shot
-//reg frc_cntr_val_leq_lat;
-
-//always @ (posedge clk or negedge rst_n) begin
-    //if (~rst_n)
-        //frc_cntr_val_leq_lat <= 1'b0;
-    //else
-        //frc_cntr_val_leq_lat <= frc_cntr_val_leq;
-//end
-
-//assign frc_cntr_val_leq_1shot = frc_cntr_val_leq & ~frc_cntr_val_leq_lat;
 
 endmodule

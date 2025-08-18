@@ -110,6 +110,21 @@ wire [31:0] dma_io_rdata_in_3; // input
 wire [31:0] dma_io_rdata_in_4; // input
 wire [31:0] dma_io_rdata_in_5; // input
 
+// csr monitor bus
+wire csr_radr_en_mon; // output
+wire [11:0] csr_radr_mon; // output
+wire [11:0] csr_wadr_mon; // output
+wire csr_we_mon; // output
+wire [31:0] csr_wdata_mon; // output
+wire [31:0] csr_rdata_mon; // input
+// rf monitor bus
+wire rf_radr_en_mon; // output
+wire [4:0] rf_radr_mon; // output
+wire [4:0] rf_wadr_mon; // output
+wire rf_we_mon; // output
+wire [31:0] rf_wdata_mon; // output
+wire [31:0] rf_rdata_mon; // input
+
 // for free run counter signals
 wire csr_mtie;
 wire frc_cntr_val_leq;
@@ -171,7 +186,19 @@ cpu_top cpu_top (
 	.dma_io_wdata(dma_io_wdata_c),
 	.dma_io_radr(dma_io_radr_c),
 	.dma_io_radr_en(dma_io_radr_en_c),
-	.dma_io_rdata(dma_io_rdata)
+	.dma_io_rdata(dma_io_rdata),
+	.csr_radr_en_mon(csr_radr_en_mon),
+	.csr_radr_mon(csr_radr_mon),
+	.csr_wadr_mon(csr_wadr_mon),
+	.csr_we_mon(csr_we_mon),
+	.csr_wdata_mon(csr_wdata_mon),
+	.csr_rdata_mon(csr_rdata_mon),
+	.rf_radr_en_mon(rf_radr_en_mon),
+	.rf_radr_mon(rf_radr_mon),
+	.rf_wadr_mon(rf_wadr_mon),
+	.rf_we_mon(rf_we_mon),
+	.rf_wdata_mon(rf_wdata_mon),
+	.rf_rdata_mon(rf_rdata_mon)
 	);
 
 bus_gather bus_gather (
@@ -229,6 +256,18 @@ uart_top uart_top (
 	.dma_io_radr(dma_io_radr_u),
 	.dma_io_radr_en(dma_io_radr_en_u),
 	.dma_io_rdata_in(dma_io_rdata),
+	.csr_radr_en_mon(csr_radr_en_mon),
+	.csr_radr_mon(csr_radr_mon),
+	.csr_wadr_mon(csr_wadr_mon),
+	.csr_we_mon(csr_we_mon),
+	.csr_wdata_mon(csr_wdata_mon),
+	.csr_rdata_mon(csr_rdata_mon),
+	.rf_radr_en_mon(rf_radr_en_mon),
+	.rf_radr_mon(rf_radr_mon),
+	.rf_wadr_mon(rf_wadr_mon),
+	.rf_we_mon(rf_we_mon),
+	.rf_wdata_mon(rf_wdata_mon),
+	.rf_rdata_mon(rf_rdata_mon),
 	.pc_data(pc_data),
 	.cpu_start(cpu_start),
 	.cpu_run_state(cpu_run_state),

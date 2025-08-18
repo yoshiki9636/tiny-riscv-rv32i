@@ -32,7 +32,20 @@ module uart_logics (
 	output [15:2] dma_io_radr,
 	output dma_io_radr_en,
 	input [31:0] dma_io_rdata_in,
-
+    // from/to csr
+	output csr_radr_en_mon,
+	output [11:0] csr_radr_mon,
+	output [11:0] csr_wadr_mon,
+	output csr_we_mon,
+	output [31:0] csr_wdata_mon,
+	input [31:0] csr_rdata_mon,
+    // from/to rf
+	output rf_radr_en_mon,
+	output [4:0] rf_radr_mon,
+	output [4:0] rf_wadr_mon,
+	output rf_we_mon,
+	output [31:0] rf_wdata_mon,
+	input [31:0] rf_rdata_mon,
 	// from controller
 	input [31:0] uart_data,
 	output [31:2] start_adr,
@@ -78,6 +91,10 @@ always @ (posedge clk or negedge rst_n) begin
 		cmd_wadr_cntr <= cmd_wadr_cntr + 30'd1;
 end
 
+wire cmd_wadr_for_ioreg = (cmd_wadr_cntr[31:30] == 2'b11);
+wire cmd_wadr_for_csr   = (cmd_wadr_cntr[31:30] == 2'b10);
+wire cmd_wadr_for_rf    = (cmd_wadr_cntr[31:30] == 2'b00);
+
 reg write_stat;
 
 assign u_write_adr = trush_running ? { { 10{ 1'b0}}, trush_adr, 2'd0} : { cmd_wadr_cntr[31:2], 2'd0};
@@ -112,6 +129,10 @@ always @ (posedge clk or negedge rst_n) begin
 	else if (dradr_cntup | radr_cntup)
 		cmd_read_adr <= cmd_read_adr + 31'd1;
 end
+
+wire cmd_read_adr_for_ioreg = (cmd_read_adr[31:30] == 2'b11);
+wire cmd_read_adr_for_csr   = (cmd_read_adr[31:30] == 2'b10);
+wire cmd_read_adr_for_rf    = (cmd_read_adr[31:30] == 2'b00);
 
 //always @ (posedge clk or negedge rst_n) begin
 	//if (~rst_n)
@@ -253,7 +274,10 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 //assign dma_io_radr_en = radr_cntup & io_ram_sel;
-assign dma_io_radr_en = radr_enable;
+assign dma_io_radr_en = radr_enable & cmd_read_adr_for_ioreg;
+assign csr_radr_en_mon = radr_enable & cmd_read_adr_for_csr;
+assign rf_radr_en_mon = radr_enable & cmd_read_adr_for_rf;
+
 
 reg dma_io_data_en;
 //reg dma_io_data_en_dly;
@@ -264,7 +288,7 @@ always @ (posedge clk or negedge rst_n) begin
 		//dma_io_data_en_dly <= 1'b0;
 	end
 	else begin
-		dma_io_data_en <= dma_io_radr_en;
+		dma_io_data_en <= radr_enable;
 		//dma_io_data_en_dly <= dma_io_data_en;
 	end
 end
@@ -272,11 +296,20 @@ end
 assign dma_io_radr = cmd_read_adr[15:2];
 
 assign dma_io_wadr = cmd_wadr_cntr[15:2];
-assign dma_io_we = inst_data_en;
+assign dma_io_we = inst_data_en & cmd_wadr_for_ioreg;
 assign dma_io_wdata = uart_data;
 
-
 //wire en0_data = radr_cntup | dradr_cntup;
+
+assign csr_radr_mon = cmd_read_adr[13:2];
+assign csr_wadr_mon = cmd_wadr_cntr[13:2];
+assign csr_we_mon = inst_data_en & cmd_wadr_for_csr;
+assign csr_wdata_mon = uart_data;
+
+assign rf_radr_mon = cmd_read_adr[6:2];
+assign rf_wadr_mon = cmd_wadr_cntr[6:2];
+assign rf_we_mon = inst_data_en & cmd_wadr_for_rf;
+assign rf_wdata_mon = uart_data;
 
 reg [31:0] data_0;
  
@@ -286,8 +319,12 @@ always @ (posedge clk or negedge rst_n) begin
 	else if (read_valid)
 		data_0 <= read_data;
 	//else if (dma_io_data_en & ~dma_io_data_en_dly)
-	else if (dma_io_data_en)
+	else if (dma_io_data_en & cmd_read_adr_for_ioreg)
 		data_0 <= dma_io_rdata_in;
+	else if (dma_io_data_en & cmd_read_adr_for_rf)
+		data_0 <= rf_rdata_mon;
+	else if (radr_enable & cmd_read_adr_for_csr)
+		data_0 <= csr_rdata_mon;
 end
 
 //assign rdata_snd = pc_print_sel ? pc_data : data_0;

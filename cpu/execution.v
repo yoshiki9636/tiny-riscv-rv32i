@@ -92,7 +92,13 @@ module execution (
 	// status
 	input cpu_stat_ex,
 	input cpu_stat_before_exec,
-	input frc_cntr_val_leq
+	input frc_cntr_val_leq,
+	input csr_radr_en_mon,
+	input [11:0] csr_radr_mon,
+	input [11:0] csr_wadr_mon,
+	input csr_we_mon,
+	input [31:0] csr_wdata_mon,
+	output [31:0] csr_rdata_mon
 
 	);
 
@@ -231,7 +237,13 @@ csr_array csr_array (
 	.pc_excep(pc_excep),
 	.cpu_stat_ex(cpu_stat_ex),
 	.cpu_stat_before_exec(cpu_stat_before_exec),
-	.frc_cntr_val_leq(frc_cntr_val_leq)
+	.frc_cntr_val_leq(frc_cntr_val_leq),
+	.csr_radr_en_mon(csr_radr_en_mon),
+	.csr_radr_mon(csr_radr_mon),
+	.csr_wadr_mon(csr_wadr_mon),
+	.csr_we_mon(csr_we_mon),
+	.csr_wdata_mon(csr_wdata_mon),
+	.csr_rdata_mon(csr_rdata_mon)
 	);
 
 // exception block

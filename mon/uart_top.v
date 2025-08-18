@@ -161,6 +161,7 @@ uart_rec_char uart_rec_char (
 	.rout_en(rout_en),
 	.dump_running(dump_running),
 	.trush_running(trush_running),
+	.pc_data(pc_data),
 	.uart_data(uart_data),
 	.cpu_start(cpu_start),
 	.cpu_run_state(cpu_run_state),

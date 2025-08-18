@@ -327,8 +327,8 @@ always @ (posedge clk or negedge rst_n) begin
 		data_0 <= csr_rdata_mon;
 end
 
-//assign rdata_snd = pc_print_sel ? pc_data : data_0;
-assign rdata_snd = pc_print_sel ? 32'hbeefbeef : data_0;
+assign rdata_snd = pc_print_sel ? pc_data : data_0;
+//assign rdata_snd = pc_print_sel ? 32'hdeadbeef : data_0;
 
 // trashing memory data
 reg [22:2] trash_cntr;

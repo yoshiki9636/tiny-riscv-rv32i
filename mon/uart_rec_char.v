@@ -19,6 +19,7 @@ module uart_rec_char (
 	input trush_running,
 	//input dcflush_running,
 	// to ctrl logics
+	input [31:0] pc_data,
 	output [31:0] uart_data,
 	output reg cpu_start,
 	input cpu_run_state,
@@ -149,7 +150,7 @@ wire cmd_crlf = decode_bits[26] & data_en;
 // w : write date to memory                       : format:  w <start adderss> <data> ....<data> q
 // r : read data from memory                      : format:  r <start address> <end adderss>
 // t : trashed memory data and 0 clear            : format:  t
-// s : program step execution                     : format:  s
+// s : program stop address set                   : format:  s <stop address>
 // p : read instruction memory                    : format:  p <start address> <end adderss>
 // i : write instruction memory                   : format:  i <start adderss> <data> ....<data> q
 // j : print current PC value                     : format:  j
@@ -170,7 +171,7 @@ wire [4:0] next_cmd_status;
 `define C_RENDNUM 5'd6
 `define C_RDUMPDT 5'd7
 `define C_TRUSHDT 5'd8
-`define C_STEPRUN 5'd9 // not implimented
+`define C_STOPRUN 5'd9 
 `define C_IRDSTAR 5'd10
 `define C_IRDENDN 5'd11
 `define C_IRDDUMP 5'd12
@@ -179,6 +180,7 @@ wire [4:0] next_cmd_status;
 `define C_PCPRINT 5'd15
 `define C_DCFLUSH 5'd16
 
+wire bpoint_assart;
 
 function [4:0] cmd_statemachine;
 input [4:0] cmd_status;
@@ -195,6 +197,7 @@ input cmd_z;
 input word_valid;
 input dump_running;
 input trush_running;
+input bpoint_assart;
 //input dcflush_running;
 
 begin
@@ -206,7 +209,7 @@ begin
 				9'b0_01??_???? : cmd_statemachine = `C_WADRNUM;
 				9'b0_001?_???? : cmd_statemachine = `C_RSTARTN;
 				9'b0_0001_???? : cmd_statemachine = `C_TRUSHDT;
-				9'b0_0000_1??? : cmd_statemachine = `C_STEPRUN;
+				9'b0_0000_1??? : cmd_statemachine = `C_STOPRUN;
 				9'b0_0000_01?? : cmd_statemachine = `C_IRDSTAR;
 				9'b0_0000_001? : cmd_statemachine = `C_IWTADRN;
 				9'b0_0000_0001 : cmd_statemachine = `C_DCFLUSH;
@@ -220,6 +223,8 @@ begin
 			endcase
 		`C_GOTONUM :
 			if (cmd_q)
+				cmd_statemachine = `C_STAIDLE;
+			else if (bpoint_assart)
 				cmd_statemachine = `C_STAIDLE;
 			else
 				cmd_statemachine = `C_GOTONUM;
@@ -256,8 +261,12 @@ begin
 				cmd_statemachine = `C_STAIDLE;
 			else
 				cmd_statemachine = `C_TRUSHDT;
-		`C_STEPRUN :
-			cmd_statemachine = `C_STAIDLE;
+		`C_STOPRUN :
+			casez({cmd_q,word_valid})
+				2'b1? : cmd_statemachine = `C_STAIDLE;
+				2'b01 : cmd_statemachine = `C_STAIDLE;
+				default : cmd_statemachine = `C_STOPRUN;
+			endcase
 		`C_IRDSTAR :
 			casez({cmd_q,word_valid})
 				2'b1? : cmd_statemachine = `C_STAIDLE;
@@ -315,7 +324,8 @@ assign next_cmd_status = cmd_statemachine(
 							cmd_z,
 							word_valid,
 							dump_running,
-							trush_running
+							trush_running,
+							bpoint_assart
 							);
 
 always @ (posedge clk or negedge rst_n) begin
@@ -341,30 +351,31 @@ wire pcmd_dumpdt = ( cmd_status == `C_IRDDUMP );
 wire icmd_setnum = ( cmd_status == `C_IWTADRN );
 wire icmd_setdat = ( cmd_status == `C_IWTDATA );
 wire jcmd_pcprnt = ( cmd_status == `C_PCPRINT );
+wire scmd_setdat = ( cmd_status == `C_STOPRUN );
 
 wire g_crlf = ( cmd_status == `C_GSETNUM ) & ( next_cmd_status == `C_GOTONUM );
 wire r_crlf = ( cmd_status == `C_RENDNUM ) & ( next_cmd_status == `C_RDUMPDT );
 wire w_crlf = ( cmd_status == `C_WADRNUM ) & ( next_cmd_status == `C_WDATNUM );
 wire p_crlf = ( cmd_status == `C_IRDENDN ) & ( next_cmd_status == `C_IRDDUMP );
 wire i_crlf = ( cmd_status == `C_IWTADRN ) & ( next_cmd_status == `C_IWTDATA );
+wire s_crlf = ( cmd_status == `C_STOPRUN ) & ( next_cmd_status == `C_STAIDLE );
 assign pc_print_sel = (cmd_status == `C_PCPRINT);
 assign pc_print = idle_status & (next_cmd_status == `C_PCPRINT);
 
 wire cmd_t_crlf = cmd_t & ~cpu_run_state;
-wire cmd_s_crlf = cmd_s & ~cpu_run_state;
 wire cmd_j_crlf = cmd_j & ~cpu_run_state;
 wire cmd_z_crlf = cmd_z & ~cpu_run_state;
 
-assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | cmd_t_crlf | cmd_s_crlf | p_crlf | i_crlf | cmd_crlf | cmd_j_crlf | cmd_z_crlf;
+assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | cmd_t_crlf | s_crlf | p_crlf | i_crlf | cmd_crlf | cmd_j_crlf | cmd_z_crlf;
 
 // data setter
 
 wire bin_data_set = data_en & num_char & (gcmd_setnum | wcmd_setnum | wcmd_setdat | rcmd_setsta | rcmd_setend
-                                          | pcmd_setsta | pcmd_setend | icmd_setnum | icmd_setdat);
+                                          | pcmd_setsta | pcmd_setend | icmd_setnum | icmd_setdat | scmd_setdat);
 
 wire word_start =  idle_status & (( next_cmd_status == `C_GSETNUM )|( next_cmd_status == `C_WADRNUM )|
 								  ( next_cmd_status == `C_RSTARTN )|( next_cmd_status == `C_IRDSTAR )|
-								  ( next_cmd_status == `C_IWTADRN ));
+								  ( next_cmd_status == `C_IWTADRN )|( next_cmd_status == `C_STOPRUN ));
 
 reg [31:0] data_word;
 reg [31:0] data_word_out;
@@ -416,6 +427,23 @@ wire ctrl_valid = gcmd_setnum | wcmd_setnum | wcmd_setdat | rcmd_setsta | rcmd_s
 
 
 assign uart_data = data_word_out;
+
+reg [31:2] bpoint;
+reg bpoint_en;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n) begin
+		bpoint <= 32'd0;
+		bpoint_en <= 1'b0;
+	end
+	else if (scmd_setdat & word_valid) begin
+		bpoint <= data_word_out[31:2];
+		bpoint_en <= ~data_word_out[0];
+	end
+end
+
+assign bpoint_assart = (bpoint == pc_data[31:2]) & bpoint_en & cpu_run_state;
+
 /*
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
@@ -447,8 +475,8 @@ assign read_start_set = rcmd_setsta & word_valid;
 assign read_end_set = rcmd_setend & word_valid;
 assign read_stop = rcmd_dumpdt & cmd_q;
 assign start_trush = idle_status & cmd_t;
-assign start_step = idle_status & cmd_s;
-assign quit_cmd = cmd_q;
+assign start_step = 1'b0;// idle_status & cmd_s;
+assign quit_cmd = cmd_q | bpoint_assart;
 assign pgm_start_set = pcmd_setsta & word_valid;
 assign pgm_end_set = pcmd_setend & word_valid;
 assign pgm_stop = pcmd_dumpdt & cmd_q;

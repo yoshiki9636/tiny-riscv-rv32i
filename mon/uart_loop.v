@@ -18,6 +18,7 @@ module uart_loop (
 	input rx_fifo_dvalid,
 	input rx_fifo_overrun,
 	input rx_fifo_underrun,
+	input rx_disable_echoback,
 	// to tx
 	output [7:0] tx_wdata,
 	output tx_wten,
@@ -53,10 +54,10 @@ always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
         tx_wten_loop <= 1'b0 ;
     else
-        tx_wten_loop <= rx_fifo_dvalid ;
+        tx_wten_loop <= rx_fifo_dvalid;
 end
 
-assign tx_wten = ((uart_io_we | tx_wten_loop) & ~tx_fifo_full) | send_en;
+assign tx_wten = ((uart_io_we | (tx_wten_loop & ~rx_disable_echoback)) & ~tx_fifo_full) | send_en;
 
 assign tx_wdata = send_en ? send_char :
                   uart_io_we ? uart_io_char : rx_data_l;

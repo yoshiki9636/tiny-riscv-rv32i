@@ -29,7 +29,8 @@ module io_uart_out(
 	input cpu_run_state,
 	input rout_en,
 	input [7:0] rout,
-	output ext_uart_interrpt_1shot
+	output ext_uart_interrpt_1shot,
+	output rx_disable_echoback
 
 
 	);
@@ -39,6 +40,7 @@ module io_uart_out(
 `define SYS_UART_FULL 14'h3F01
 `define SYS_UART_TERM 14'h3F02
 `define SYS_UART_RXCH 14'h3F03
+`define SYS_UART_RXEC 14'h3F04
 
 wire we_uart_char = dma_io_we      & (dma_io_wadr == `SYS_UART_OUTC);
 wire re_uart_char = dma_io_radr_en & (dma_io_radr == `SYS_UART_OUTC);
@@ -49,6 +51,9 @@ wire we_uart_term = dma_io_we      & (dma_io_wadr == `SYS_UART_TERM);
 wire re_uart_term = dma_io_radr_en & (dma_io_radr == `SYS_UART_TERM);
 
 wire re_uart_rxch = dma_io_radr_en & (dma_io_radr == `SYS_UART_RXCH);
+
+wire we_uart_rxec = dma_io_we      & (dma_io_wadr == `SYS_UART_RXEC);
+wire re_uart_rxec = dma_io_radr_en & (dma_io_radr == `SYS_UART_RXEC);
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
@@ -112,7 +117,7 @@ end
 assign ext_uart_interrpt_1shot = cpu_run_state & rout_en;
 
 // polling bit for rx data
-reg [3:0] re_uart_rdflg_dly;
+reg [4:0] re_uart_rdflg_dly;
 
 reg rx_first_read;
 
@@ -137,21 +142,34 @@ always @ (posedge clk or negedge rst_n) begin
         rx_write_error <= 1'b1 ;
 end
 
+// disable echo back bit
+reg rx_disable_echoback_value;
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n)
+        rx_disable_echoback_value <= 1'b0 ;
+	else if ( we_uart_rxec )
+		rx_disable_echoback_value <= dma_io_wdata[0];
+end
+
+assign rx_disable_echoback = rx_disable_echoback_value & cpu_run_state;
+
 
 // read part
 
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
-        re_uart_rdflg_dly <= 4'd0 ;
+        re_uart_rdflg_dly <= 5'd0 ;
 	else
-        re_uart_rdflg_dly <= { re_uart_rxch, re_uart_term, re_uart_full, re_uart_char };
+        re_uart_rdflg_dly <= { re_uart_rxec, re_uart_rxch, re_uart_term, re_uart_full, re_uart_char };
 end
 
 assign dma_io_rdata = (re_uart_rdflg_dly[0]) ? { 24'd0, uart_io_char } :
                       (re_uart_rdflg_dly[1]) ? { 31'd0, uart_io_full } :
                       (re_uart_rdflg_dly[2]) ? { 16'd0, uart_term } :
-                      (re_uart_rdflg_dly[3]) ? { 23'd0, rx_write_error, rx_first_read, rx_data_latch } : dma_io_rdata_in;
+                      (re_uart_rdflg_dly[3]) ? { 23'd0, rx_write_error, rx_first_read, rx_data_latch } :
+                      (re_uart_rdflg_dly[4]) ? { 31'd0, rx_disable_echoback } : dma_io_rdata_in;
 
 
 endmodule

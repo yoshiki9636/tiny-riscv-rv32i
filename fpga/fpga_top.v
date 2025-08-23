@@ -135,6 +135,9 @@ wire csr_meie;
 wire g_interrupt_1shot;
 wire g_interrupt;
 
+// uart rx 
+wire rx_disable_echoback;
+
 // io bus logics
 wire dma_io_we = dma_io_we_c | dma_io_we_u;
 wire [15:2] dma_io_wadr = dma_io_we_u ? dma_io_wadr_u : dma_io_wadr_c;
@@ -278,7 +281,8 @@ uart_top uart_top (
 	.uart_io_full(uart_io_full),
 	.uart_term(uart_term),
 	.rout_en(rout_en),
-	.rout(rout)
+	.rout(rout),
+	.rx_disable_echoback(rx_disable_echoback)
 	);
 
 qspi_if qspi_if (
@@ -352,7 +356,8 @@ io_uart_out io_uart_out (
 	.cpu_run_state(cpu_run_state),
 	.rout_en(rout_en),
 	.rout(rout),
-	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot)
+	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
+	.rx_disable_echoback(rx_disable_echoback)
 	);
 
 

@@ -63,7 +63,8 @@ module uart_top
     output uart_io_full,
 	input [15:0] uart_term,
 	output rout_en,
-	output [7:0] rout
+	output [7:0] rout,
+	input rx_disable_echoback
 
 	);
 
@@ -146,6 +147,7 @@ uart_loop uart_loop (
 	.rx_fifo_dvalid(rx_fifo_dvalid),
 	.rx_fifo_overrun(rx_fifo_overrun),
 	.rx_fifo_underrun(rx_fifo_underrun),
+	.rx_disable_echoback(rx_disable_echoback),
 	.tx_wdata(tx_wdata),
 	.tx_wten(tx_wten),
 	.tx_fifo_full(tx_fifo_full),

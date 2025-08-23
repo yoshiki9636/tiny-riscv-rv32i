@@ -14,11 +14,20 @@ module fpga_top (
 
 	input interrupt_0,
 
+	output sck,
+	output [2:0] ce_n,
+	inout [3:0] sio,
+	//input [3:0] sio_i,
+	//output [3:0] sio_o,
+	//output sio_en,
+
 	input rx,
 	output tx,
 	output [2:0] rgb_led,
 	inout [3:0] gpio,
-	//input gpi_in,
+	//input [3:0] gpio_i,
+	//output [3:0] gpio_o,
+	//output [3:0] gpio_en,
 
 	input [1:0] init_latency,
 	input init_qspicmd,
@@ -101,6 +110,21 @@ wire [31:0] dma_io_rdata_in_3; // input
 wire [31:0] dma_io_rdata_in_4; // input
 wire [31:0] dma_io_rdata_in_5; // input
 
+// csr monitor bus
+wire csr_radr_en_mon; // output
+wire [11:0] csr_radr_mon; // output
+wire [11:0] csr_wadr_mon; // output
+wire csr_we_mon; // output
+wire [31:0] csr_wdata_mon; // output
+wire [31:0] csr_rdata_mon; // input
+// rf monitor bus
+wire rf_radr_en_mon; // output
+wire [4:0] rf_radr_mon; // output
+wire [4:0] rf_wadr_mon; // output
+wire rf_we_mon; // output
+wire [31:0] rf_wdata_mon; // output
+wire [31:0] rf_rdata_mon; // input
+
 // for free run counter signals
 wire csr_mtie;
 wire frc_cntr_val_leq;
@@ -111,6 +135,9 @@ wire csr_meie;
 wire g_interrupt_1shot;
 wire g_interrupt;
 
+// uart rx 
+wire rx_disable_echoback;
+
 // io bus logics
 wire dma_io_we = dma_io_we_c | dma_io_we_u;
 wire [15:2] dma_io_wadr = dma_io_we_u ? dma_io_wadr_u : dma_io_wadr_c;
@@ -118,7 +145,7 @@ wire [31:0] dma_io_wdata = dma_io_we_u ? dma_io_wdata_u : dma_io_wdata_c;
 wire dma_io_radr_en = dma_io_radr_en_c | dma_io_radr_en_u;
 wire [15:2] dma_io_radr = dma_io_radr_en_u ? dma_io_radr_u : dma_io_radr_c;
 
-
+//assign clk = clkin;
 clk_wiz_0 clk_wiz_0 (
 	.clk_out1(clk),
 	.reset(~rst_n),
@@ -141,7 +168,6 @@ cpu_top cpu_top (
 	.csr_rmie(csr_rmie),
 	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_interrupt(g_interrupt),
-
 	.i_read_req(i_read_req),
 	.i_read_w(i_read_w),
 	.i_read_hw(i_read_hw),
@@ -163,7 +189,19 @@ cpu_top cpu_top (
 	.dma_io_wdata(dma_io_wdata_c),
 	.dma_io_radr(dma_io_radr_c),
 	.dma_io_radr_en(dma_io_radr_en_c),
-	.dma_io_rdata(dma_io_rdata)
+	.dma_io_rdata(dma_io_rdata),
+	.csr_radr_en_mon(csr_radr_en_mon),
+	.csr_radr_mon(csr_radr_mon),
+	.csr_wadr_mon(csr_wadr_mon),
+	.csr_we_mon(csr_we_mon),
+	.csr_wdata_mon(csr_wdata_mon),
+	.csr_rdata_mon(csr_rdata_mon),
+	.rf_radr_en_mon(rf_radr_en_mon),
+	.rf_radr_mon(rf_radr_mon),
+	.rf_wadr_mon(rf_wadr_mon),
+	.rf_we_mon(rf_we_mon),
+	.rf_wdata_mon(rf_wdata_mon),
+	.rf_rdata_mon(rf_rdata_mon)
 	);
 
 bus_gather bus_gather (
@@ -221,6 +259,18 @@ uart_top uart_top (
 	.dma_io_radr(dma_io_radr_u),
 	.dma_io_radr_en(dma_io_radr_en_u),
 	.dma_io_rdata_in(dma_io_rdata),
+	.csr_radr_en_mon(csr_radr_en_mon),
+	.csr_radr_mon(csr_radr_mon),
+	.csr_wadr_mon(csr_wadr_mon),
+	.csr_we_mon(csr_we_mon),
+	.csr_wdata_mon(csr_wdata_mon),
+	.csr_rdata_mon(csr_rdata_mon),
+	.rf_radr_en_mon(rf_radr_en_mon),
+	.rf_radr_mon(rf_radr_mon),
+	.rf_wadr_mon(rf_wadr_mon),
+	.rf_we_mon(rf_we_mon),
+	.rf_wdata_mon(rf_wdata_mon),
+	.rf_rdata_mon(rf_rdata_mon),
 	.pc_data(pc_data),
 	.cpu_start(cpu_start),
 	.cpu_run_state(cpu_run_state),
@@ -231,13 +281,20 @@ uart_top uart_top (
 	.uart_io_full(uart_io_full),
 	.uart_term(uart_term),
 	.rout_en(rout_en),
-	.rout(rout)
+	.rout(rout),
+	.rx_disable_echoback(rx_disable_echoback)
 	);
 
-
+//qspi_if qspi_if (
 qspi_innermem qspi_innermem (
 	.clk(clk),
 	.rst_n(rst_n),
+	//.sck(sck),
+	//.ce_n(ce_n),
+	//.sio(sio),
+	//.sio_i(sio_i),
+	//.sio_o(sio_o),
+	//.sio_en(sio_en),
 	.init_latency(init_latency),
 	.init_qspicmd(init_qspicmd),
 	.read_req(read_req),
@@ -277,6 +334,9 @@ io_led io_led (
 	.init_cpu_start(init_cpu_start),
 	.gpi_in(init_qspicmd),
 	.gpio(gpio)
+	//.gpio_i(gpio_i),
+	//.gpio_o(gpio_o),
+	//.gpio_en(gpio_en)
 	);
 
 io_uart_out io_uart_out (
@@ -297,7 +357,8 @@ io_uart_out io_uart_out (
 	.cpu_run_state(cpu_run_state),
 	.rout_en(rout_en),
 	.rout(rout),
-	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot)
+	.ext_uart_interrpt_1shot(ext_uart_interrpt_1shot),
+	.rx_disable_echoback(rx_disable_echoback)
 	);
 
 

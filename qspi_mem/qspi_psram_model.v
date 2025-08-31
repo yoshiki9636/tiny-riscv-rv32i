@@ -226,7 +226,7 @@ always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		 rwait_cntr <= 4'd0;
 	else if (~state_rdwt & next_state_rdwt)
-		 rwait_cntr <= 4'd3; // causion!!
+		 rwait_cntr <= 4'd5; // causion!!
 	else if (rwait_cntr == 4'd0)
 		 rwait_cntr <= 4'd0;
 	else if (rise_edge)
@@ -281,6 +281,8 @@ reg [15:0] read_byte_cntr;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
+		read_half_byte <= 1'b1;
+	else if (ce_n_sync)
 		read_half_byte <= 1'b1;
 	//else if (state_read & fall_edge)
 	else if (~ce_n_sync & state_read & fall_edge)

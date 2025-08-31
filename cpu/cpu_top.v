@@ -159,6 +159,8 @@ wire [31:2] pc_excep; // output
 wire [31:0] dma_io_rdata_int;
 wire [31:2] pc_ebreak;
 
+//wire dbg_allff;
+
 assign pc_data = { pc, 2'd0 };
 
 cpu_status cpu_status (
@@ -203,6 +205,7 @@ pc_stage pc_stage (
 	.cmd_mret_ex(cmd_mret),
 	.cmd_sret_ex(cmd_sret),
 	.cmd_uret_ex(cmd_uret),
+	//.dbg_allff(dbg_allff),
 	.cpu_start_adr(cpu_start_adr),
 	.csr_mtvec_ex(csr_mtvec_ex),
 	.csr_mepc_ex(csr_mepc_ex),
@@ -221,6 +224,7 @@ inst_mem_read inst_mem_read (
 	.stall(stall),
 	.cpu_stat_imr(cpu_stat_imr),
 	.imr_run(imr_run),
+	//.dbg_allff(dbg_allff),
 	.i_read_req(i_read_req),
 	.i_read_w(i_read_w),
 	.i_read_hw(i_read_hw),

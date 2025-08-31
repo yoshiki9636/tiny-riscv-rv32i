@@ -99,7 +99,8 @@ reg [31:2] pc_ecall;
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		pc_ecall <= 30'd0;
-	else if (ecall_condition_ex & cpu_stat_pc)
+	//else if (ecall_condition_ex & cpu_stat_pc)
+	else if (ecall_condition_ex)
 		pc_ecall <= pc_p1;
 end
 

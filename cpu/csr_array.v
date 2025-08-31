@@ -35,6 +35,7 @@ module csr_array(
 	input cmd_sret_ex,
 	input cmd_uret_ex,
 	output reg csr_rmie,
+	output reg csr_rmie_dly,
 	output csr_meie,
 	output csr_mtie,
 	output csr_msie,
@@ -59,10 +60,12 @@ module csr_array(
 `define CSR_MSTATUS_ADR 12'h300
 `define CSR_MISA_ADR 12'h301
 `define CSR_MTVEC_ADR 12'h305
+`define CSR_MSCRACH_ADR 12'h340
 `define CSR_MEPC_ADR 12'h341
 `define CSR_MCAUSE_ADR 12'h342
 `define CSR_MTVAL_ADR 12'h343
 `define CSR_MSTATUSH_ADR 12'h310
+`define CSR_SSCRACH_ADR 12'h140
 `define CSR_SEPC_ADR 12'h141
 `define CSR_MIE_ADR 12'h304
 `define CSR_MIP_ADR 12'h344
@@ -89,6 +92,8 @@ wire [11:0] csr_ofs_ex_pm = (csr_radr_en_mon) ? csr_radr_mon :
 wire adr_mstatus = (csr_ofs_ex_pm == `CSR_MSTATUS_ADR);
 wire adr_misa = (csr_ofs_ex_pm == `CSR_MISA_ADR);
 wire adr_mtvec = (csr_ofs_ex_pm == `CSR_MTVEC_ADR);
+wire adr_mscrach = (csr_ofs_ex_pm == `CSR_MSCRACH_ADR);
+wire adr_sscrach = (csr_ofs_ex_pm == `CSR_SSCRACH_ADR);
 wire adr_mepc = (csr_ofs_ex_pm == `CSR_MEPC_ADR);
 wire adr_sepc = (csr_ofs_ex_pm == `CSR_SEPC_ADR);
 wire adr_mcause = (csr_ofs_ex_pm == `CSR_MCAUSE_ADR);
@@ -109,6 +114,8 @@ reg [31:0] csr_mtval;
 assign csr_sepc_ex = 30'd0;
 wire [31:0] csr_mip;
 wire [31:0] csr_mie;
+reg [31:0] csr_mscrach;
+reg [31:0] csr_sscrach;
 
 wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        adr_misa ? csr_misa :
@@ -120,10 +127,23 @@ wire [31:0] csr_rsel = adr_mstatus ? csr_mstatus :
                        adr_mstatush ? csr_mstatush :
                        adr_mip ? csr_mip :
                        adr_mie ? csr_mie :
+                       adr_mscrach ? csr_mscrach :
+                       adr_sscrach ? csr_sscrach :
                        32'd0;
 
 assign csr_rdata_mon = csr_rsel;
-assign csr_rd_data = csr_rsel;
+
+reg [31:0] csrrw_swap_value;
+
+always @ ( posedge clk or negedge rst_n) begin 
+	if (~rst_n)
+		csrrw_swap_value <= 32'd0;
+	else if ( cmd_csr_ex & cpu_stat_ex )
+		csrrw_swap_value <= csr_rsel;
+end 
+
+//assign csr_rd_data = (cmd_rw) ? csrrw_swap_value : csr_rsel;
+assign csr_rd_data = csrrw_swap_value;
 
 // wirte data selector 
 wire [31:0] wdata_rw = immidiate ? { 27'd0, csr_uimm_ex } : rs1_sel;
@@ -168,6 +188,22 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 end
 
+reg rmie_wr_dly;
+always @ ( posedge clk or negedge rst_n) begin 
+	if (~rst_n)
+		rmie_wr_dly <= 1'b0;
+	else
+		rmie_wr_dly <= rmie_wr;
+end
+
+always @ ( posedge clk or negedge rst_n) begin 
+	if (~rst_n)
+		csr_rmie_dly <= 1'b0;
+	else if (rmie_wr & ~rmie_wr_dly)
+		csr_rmie_dly <= csr_rmie;
+	else if (cpu_stat_pc)
+		csr_rmie_dly <= csr_rmie;
+end
 
 // MPIE[7] : Machine mode Previouse Interrupt Enable
 wire mpie_wr = m_interrupt | mret_on_stat_pc;
@@ -307,6 +343,29 @@ assign csr_mtvec_ex = (csr_mtvec[1:0] == 2'd0) ? csr_mtvec[31:2] :
                       (csr_mtvec[1:0] == 2'd1) ? csr_mtvec[31:2] + { 24'd0, mcause_code[5:0] } : 30'd0;
 
 
+// mscrach
+// scrach register for m-mode
+always @ ( posedge clk or negedge rst_n) begin   
+	if (~rst_n)
+		csr_mscrach <= 32'd0;
+	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mscrach))
+		csr_mscrach <= wdata_all;
+	else if (csr_we_mon & adr_mscrach)
+		csr_mscrach <= csr_wdata_mon;
+end
+
+// sscrach
+// scrach register for s-mode
+always @ ( posedge clk or negedge rst_n) begin   
+	if (~rst_n)
+		csr_sscrach <= 32'd0;
+	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_sscrach))
+		csr_sscrach <= wdata_all;
+	else if (csr_we_mon & adr_sscrach)
+		csr_sscrach <= csr_wdata_mon;
+end
+
+
 // mepc
 // capture PC when ecall occured
 //wire m_interrupt_in_stat_pc = m_interrupt & cpu_stat_before_exec;
@@ -330,7 +389,7 @@ always @ ( posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
 		csr_mepc <= 30'd0;
 	end
-	else if ((cmd_ecall_ex | cmd_ebreak_ex | m_interrupt_latch_timing) & csr_rmie | g_exception) begin
+	else if ((cmd_ecall_ex | cmd_ebreak_ex | m_interrupt_latch_timing) & csr_rmie_dly | g_exception) begin
 		csr_mepc <= pc_excep;
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mepc)) begin
@@ -347,14 +406,16 @@ assign csr_mepc_ex = csr_mepc[31:2];
 // conditions
 wire interrupt_bit = g_interrupt | frc_cntr_val_leq;
 // just impliment Machine mode Ecall and inteeupt
-assign mcause_code = g_interrupt ? 6'd11 :
-                    frc_cntr_val_leq ? 6'd7 :
-                    illegal_ops_ex ? 6'd2 :
-                    cmd_ecall_ex ?  6'd11 :
-                    cmd_ebreak_ex ?  6'd3 : 6'h3f;
-wire sel_tval = (g_interrupt | frc_cntr_val_leq) ? 32'd0 :
-                illegal_ops_ex ? illegal_ops_inst :
-                cmd_ebreak_ex ? { pc_ebreak, 2'd9 } : 32'd0; 
+assign mcause_code = illegal_ops_ex ? 6'd2 :
+                     g_interrupt ? 6'd11 :
+                     frc_cntr_val_leq ? 6'd7 :
+                     cmd_ecall_ex ?  6'd11 :
+                     cmd_ebreak_ex ?  6'd3 : 6'h3f;
+
+wire [31:0] sel_tval = illegal_ops_ex ? illegal_ops_inst :
+                       cmd_ebreak_ex ? { pc_ebreak, 2'd0 } :
+                       (g_interrupt | frc_cntr_val_leq) ? 32'd0 :
+                       32'd0; 
 
 //wire mcause_write = cmd_ecall_ex | g_interrupt_1shot | g_exception | frc_cntr_val_leq_1shot | illegal_ops_ex;
 //wire mcause_write = cmd_ecall_ex | g_exception | (interrupts_in_pc_state & csr_rmie) | illegal_ops_ex;

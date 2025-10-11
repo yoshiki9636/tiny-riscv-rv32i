@@ -267,8 +267,10 @@ assign csr_op2 = inst_op2;
 wire cmd_ec  = dc_op1_11100 &  dc_op2_000 & dc_notc & dc_zero_26_25 & dc_zero_19_15 & dc_zero_11_7;
 assign cmd_ecall  = cmd_ec & dc_op3_00000 & dc_op4_00000;
 assign cmd_ebreak = cmd_ec & dc_op3_00000 & dc_op4_00001;
-assign cmd_uret   = cmd_ec & dc_op3_00000 & dc_op4_00010;
-assign cmd_sret   = cmd_ec & dc_op3_00010 & dc_op4_00010;
+//assign cmd_uret   = cmd_ec & dc_op3_00000 & dc_op4_00010;
+assign cmd_uret   = 1'b0;
+//assign cmd_sret   = cmd_ec & dc_op3_00010 & dc_op4_00010;
+assign cmd_sret   = 1'b0;
 assign cmd_mret   = cmd_ec & dc_op3_00110 & dc_op4_00010;
 assign cmd_wfi    = cmd_ec & dc_op3_00010 & dc_op4_00101;
 

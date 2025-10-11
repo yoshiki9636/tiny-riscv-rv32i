@@ -107,8 +107,10 @@ wire cmd_csr; // output
 wire [11:0] csr_ofs; // output
 wire [4:0] csr_uimm; // output
 wire [2:0] csr_op2; // output
-wire cmd_ecall; // output
-wire cmd_ebreak; // output
+wire cmd_ecall_pc; // output
+wire cmd_ebreak_pc; // output
+wire cmd_ecall_ex; // output
+wire cmd_ebreak_ex; // output
 wire cmd_uret; // output
 wire cmd_sret; // output
 wire cmd_mret; // output
@@ -200,8 +202,13 @@ pc_stage pc_stage (
 	.g_interrupt_1shot(g_interrupt_1shot),
 	.g_exception(g_exception),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
+	.cmd_ecall_pc(cmd_ecall_pc),
+	.cmd_ebreak_pc(cmd_ebreak_pc),
 	.interrupts_in_pc_state(interrupts_in_pc_state),
 	.jmp_condition_ex(jmp_condition_ex),
+	.cmd_ecall_ex(cmd_ecall_ex),
+	//.cmd_ecall_ex(1'b0),
+	.cmd_ebreak_ex(cmd_ebreak_ex),
 	.cmd_mret_ex(cmd_mret),
 	.cmd_sret_ex(cmd_sret),
 	.cmd_uret_ex(cmd_uret),
@@ -264,8 +271,8 @@ decoder decoder (
 	.csr_ofs(csr_ofs),
 	.csr_uimm(csr_uimm),
 	.csr_op2(csr_op2),
-	.cmd_ecall(cmd_ecall),
-	.cmd_ebreak(cmd_ebreak),
+	.cmd_ecall(cmd_ecall_ex),
+	.cmd_ebreak(cmd_ebreak_ex),
 	.cmd_uret(cmd_uret),
 	.cmd_sret(cmd_sret),
 	.cmd_mret(cmd_mret),
@@ -336,8 +343,11 @@ execution execution (
 	.csr_ofs_ex(csr_ofs),
 	.csr_uimm_ex(csr_uimm),
 	.csr_op2_ex(csr_op2),
-	.cmd_ecall_ex(cmd_ecall),
-	.cmd_ebreak_ex(cmd_ebreak),
+	.cmd_ecall_pc(cmd_ecall_pc),
+	.cmd_ebreak_pc(cmd_ebreak_pc),
+	.cmd_ecall_ex(cmd_ecall_ex),
+	//.cmd_ecall_ex(1'b0),
+	.cmd_ebreak_ex(cmd_ebreak_ex),
 	.pc_ebreak(pc_ebreak),
 	.cmd_uret_ex(cmd_uret),
 	.cmd_sret_ex(cmd_sret),

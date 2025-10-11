@@ -20,8 +20,12 @@ module pc_stage (
 	input g_interrupt_1shot,
 	input g_exception,
 	input frc_cntr_val_leq,
+	output cmd_ecall_pc,
+	output cmd_ebreak_pc,
 	output interrupts_in_pc_state,
 	input jmp_condition_ex,
+	input cmd_ecall_ex,
+	input cmd_ebreak_ex,
 	input cmd_mret_ex,
 	input cmd_sret_ex,
 	input cmd_uret_ex,
@@ -35,8 +39,32 @@ module pc_stage (
 	output [31:2] pc_ebreak
 	);
 
-// resources
-// PC
+// interrupt & ecall, ebreak timings
+
+// ecall, ebreak keeper
+reg cmd_ecall_pc_pre;
+reg cmd_ebreak_pc_pre;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		cmd_ecall_pc_pre <= 1'b0;
+	else if (cpu_stat_pc)
+		cmd_ecall_pc_pre <= 1'b0;
+	else if (cmd_ecall_ex)
+		cmd_ecall_pc_pre <= 1'b1;
+end
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		cmd_ebreak_pc_pre <= 1'b0;
+	else if (cpu_stat_pc)
+		cmd_ebreak_pc_pre <= 1'b0;
+	else if (cmd_ebreak_ex)
+		cmd_ebreak_pc_pre <= 1'b1;
+end
+
+assign cmd_ecall_pc = cpu_stat_pc & cmd_ecall_pc_pre & ~interrupts_in_pc_state & csr_rmie;
+assign cmd_ebreak_pc = cpu_stat_pc & cmd_ebreak_pc_pre & ~interrupts_in_pc_state & csr_rmie;
 
 reg g_interrupt_latch;
 wire frc_cntr_val_leq_1shot;
@@ -81,6 +109,8 @@ wire [31:2] pc_p1 = pc + 30'd1;
 //wire [31:2] pc_p2 = pc + 30'd2;
 //wire [31:2] jmp_adr_p1 = jmp_adr + 30'd1;
 
+// PC
+
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		pc <= 30'd0;
@@ -104,9 +134,12 @@ always @ (posedge clk or negedge rst_n) begin
 		pc_ecall <= pc_p1;
 end
 
-assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :
-                  (g_exception) ? pc :
+assign pc_excep = (g_exception) ? pc :
+                  (ecall_condition_ex) ? pc :
                   (jmp_condition_ex) ? jmp_adr_ex : pc_p1;
+
+                  //(ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc :
+                  //(ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :
 
                   //(jmp_cond & cpu_stat_pc) ? jmp_adr :
                   //(cpu_stat_pc) ? pc_p2 : pc_p1;

@@ -407,10 +407,10 @@ assign csr_mepc_ex = csr_mepc[31:2];
 wire interrupt_bit = g_interrupt | frc_cntr_val_leq;
 // just impliment Machine mode Ecall and inteeupt
 assign mcause_code = illegal_ops_ex ? 6'd2 :
+                     cmd_ebreak_ex ?  6'd3 :
                      g_interrupt ? 6'd11 :
                      frc_cntr_val_leq ? 6'd7 :
-                     cmd_ecall_ex ?  6'd11 :
-                     cmd_ebreak_ex ?  6'd3 : 6'h3f;
+                     cmd_ecall_ex ?  6'd11 : 6'h3f;
 
 wire [31:0] sel_tval = illegal_ops_ex ? illegal_ops_inst :
                        cmd_ebreak_ex ? { pc_ebreak, 2'd0 } :

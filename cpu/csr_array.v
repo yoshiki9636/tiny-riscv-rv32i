@@ -35,7 +35,7 @@ module csr_array(
 	input cmd_sret_ex,
 	input cmd_uret_ex,
 	output reg csr_rmie,
-	output reg csr_rmie_dly,
+	//output reg csr_rmie_dly,
 	output csr_meie,
 	output csr_mtie,
 	output csr_msie,
@@ -43,6 +43,7 @@ module csr_array(
 	input cmd_ebreak_ex,
 	input [31:2] pc_ebreak,
 	input [31:2] pc_excep,
+	//input [31:2] pc_dbg,
 	input cpu_stat_ex,
 	input cpu_stat_before_exec,
 	input frc_cntr_val_leq,
@@ -167,11 +168,14 @@ reg csr_spp;
 //wire frc_cntr_val_leq_1shot;
 
 //wire m_interrupt = (g_interrupt_1shot | frc_cntr_val_leq_1shot) & (g_interrupt_priv == `M_MODE) & csr_rmie;
-wire m_interrupt = interrupts_in_pc_state & (g_interrupt_priv == `M_MODE) & csr_rmie | g_exception | cmd_ecall_ex | cmd_ebreak_ex;
+//wire m_interrupt = interrupts_in_pc_state & (g_interrupt_priv == `M_MODE) & csr_rmie | g_exception | cmd_ecall_ex | cmd_ebreak_ex;
+wire m_interrupt =  (interrupts_in_pc_state & (g_interrupt_priv == `M_MODE) | cmd_ecall_ex | cmd_ebreak_ex ) & cpu_stat_pc & csr_rmie | g_exception;
 wire mret_on_stat_pc = cmd_mret_ex & cpu_stat_pc;
 wire rmie_wr = m_interrupt | mret_on_stat_pc;
-wire rmie_value = m_interrupt ? 1'b0 :
-                 mret_on_stat_pc ? csr_mpie : csr_rmie;
+//wire rmie_value = m_interrupt ? 1'b0 :
+                  //mret_on_stat_pc ? csr_mpie : csr_rmie;
+wire rmie_value = mret_on_stat_pc ? csr_mpie :
+                  m_interrupt ? 1'b0 : csr_rmie;
 
 always @ ( posedge clk or negedge rst_n) begin 
 	if (~rst_n) begin
@@ -188,22 +192,23 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 end
 
-reg rmie_wr_dly;
-always @ ( posedge clk or negedge rst_n) begin 
-	if (~rst_n)
-		rmie_wr_dly <= 1'b0;
-	else
-		rmie_wr_dly <= rmie_wr;
-end
+//reg rmie_wr_dly;
+//always @ ( posedge clk or negedge rst_n) begin 
+	//if (~rst_n)
+		//rmie_wr_dly <= 1'b0;
+	//else
+		////rmie_wr_dly <= rmie_wr;
+		//rmie_wr_dly <= m_interrupt;
+//end
 
-always @ ( posedge clk or negedge rst_n) begin 
-	if (~rst_n)
-		csr_rmie_dly <= 1'b0;
-	else if (rmie_wr & ~rmie_wr_dly)
-		csr_rmie_dly <= csr_rmie;
-	else if (cpu_stat_pc)
-		csr_rmie_dly <= csr_rmie;
-end
+//always @ ( posedge clk or negedge rst_n) begin 
+	//if (~rst_n)
+		//csr_rmie_dly <= 1'b0;
+	//else if (rmie_wr & ~rmie_wr_dly)
+		//csr_rmie_dly <= csr_rmie;
+	//else if (cpu_stat_pc)
+		//csr_rmie_dly <= csr_rmie;
+//end
 
 // MPIE[7] : Machine mode Previouse Interrupt Enable
 wire mpie_wr = m_interrupt | mret_on_stat_pc;
@@ -339,8 +344,7 @@ always @ ( posedge clk or negedge rst_n) begin
 	end
 end
 
-assign csr_mtvec_ex = (csr_mtvec[1:0] == 2'd0) ? csr_mtvec[31:2] :
-                      (csr_mtvec[1:0] == 2'd1) ? csr_mtvec[31:2] + { 24'd0, mcause_code[5:0] } : 30'd0;
+assign csr_mtvec_ex = (csr_mtvec[1:0] == 2'd0) ? csr_mtvec[31:2] : csr_mtvec[31:2] + { 24'd0, mcause_code[5:0] };
 
 
 // mscrach
@@ -389,7 +393,8 @@ always @ ( posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
 		csr_mepc <= 30'd0;
 	end
-	else if ((cmd_ecall_ex | cmd_ebreak_ex | m_interrupt_latch_timing) & csr_rmie_dly | g_exception) begin
+	//else if ((cmd_ecall_ex | cmd_ebreak_ex | m_interrupt_latch_timing) & csr_rmie_dly | g_exception) begin
+	else if ( m_interrupt ) begin
 		csr_mepc <= pc_excep;
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mepc)) begin
@@ -412,6 +417,8 @@ assign mcause_code = illegal_ops_ex ? 6'd2 :
                      frc_cntr_val_leq ? 6'd7 :
                      cmd_ecall_ex ?  6'd11 : 6'h3f;
 
+//wire [31:0] sel_tval = illegal_ops_ex ? { pc_excep, 2'b0} :
+//wire [31:0] sel_tval = illegal_ops_ex ? {pc_dbg, 2'b0} :
 wire [31:0] sel_tval = illegal_ops_ex ? illegal_ops_inst :
                        cmd_ebreak_ex ? { pc_ebreak, 2'd0 } :
                        (g_interrupt | frc_cntr_val_leq) ? 32'd0 :

@@ -17,6 +17,7 @@ module execution (
 	input [31:0] rs2_data_ex,
 	input [31:2] pc_ex,
 	input [31:2] pc_excep,
+	//input [31:2] pc_dbg,
 	input wbk_rd_reg,
     // microcode
     input cmd_lui_ex,
@@ -202,7 +203,7 @@ wire [31:0] pcp4_ex = { pc_ex, 2'd0 } + 32'd4;
 wire [31:0] jump_adr = adr_s1 + adr_s2;
 
 // csrs , ecall
-wire csr_rmie_dly;
+//wire csr_rmie_dly;
 wire [31:0] csr_rd_data;
 
 csr_array csr_array (
@@ -230,7 +231,7 @@ csr_array csr_array (
     .cmd_sret_ex(cmd_sret_ex),
     .cmd_uret_ex(cmd_uret_ex),
     .csr_rmie(csr_rmie),
-    .csr_rmie_dly(csr_rmie_dly),
+    //.csr_rmie_dly(csr_rmie_dly),
     .csr_meie(csr_meie),
     .csr_mtie(csr_mtie),
     .csr_msie(csr_msie),
@@ -239,6 +240,7 @@ csr_array csr_array (
     .cmd_ebreak_ex(cmd_ebreak_pc),
     .pc_ebreak(pc_ebreak),
 	.pc_excep(pc_excep),
+	//.pc_dbg(pc_dbg),
 	.cpu_stat_ex(cpu_stat_ex),
 	.cpu_stat_before_exec(cpu_stat_before_exec),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
@@ -325,7 +327,8 @@ assign jmp_condition_ex = cmd_jal_ex | cmd_jalr_ex | cmd_br_ex &
 					      sbgu & (alu_code_ex == 3'b111) );
 
 // ecall, ebreak
-assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie_dly & csr_msie) | illegal_ops_ex;
+//assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie_dly & csr_msie) | illegal_ops_ex;
+assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie & csr_msie) | illegal_ops_ex;
 
 // FF to DMRW
 assign rd_adr_ma = rd_adr_ex;

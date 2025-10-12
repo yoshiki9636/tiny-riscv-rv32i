@@ -36,6 +36,7 @@ module pc_stage (
 	input [31:2] jmp_adr_ex,
 	output reg [31:2] pc,
 	output [31:2] pc_excep,
+	//output [31:2] pc_dbg,
 	output [31:2] pc_ebreak
 	);
 
@@ -75,12 +76,18 @@ assign interrupts_in_pc_state = (g_interrupt_latch | frc_cntr_val_leq_latch) & c
 //wire interrupt_mskd = (g_interrupt_latch  | g_exception | frc_cntr_val_leq_latch) & csr_rmie;
 wire interrupt_mskd = (g_interrupt_latch  | frc_cntr_val_leq_latch) & csr_rmie | g_exception;
 wire intr_ecall_exception = ecall_condition_ex | interrupt_mskd;
-wire jump_cmd_cond = jmp_condition_ex | cmd_mret_ex | cmd_sret_ex | cmd_uret_ex;
+wire jump_cmd_cond = jmp_condition_ex | cmd_mret_ex; // | cmd_sret_ex | cmd_uret_ex;
 
 wire jmp_cond = intr_ecall_exception | jump_cmd_cond;
-wire [31:2] jmp_adr = intr_ecall_exception ? csr_mtvec_ex :
-                      cmd_mret_ex ? csr_mepc_ex :
-                      cmd_sret_ex ? csr_sepc_ex : jmp_adr_ex;
+
+wire [31:2] jmp_adr = cmd_mret_ex ? csr_mepc_ex :
+                      intr_ecall_exception ? csr_mtvec_ex : jmp_adr_ex;
+
+//wire [31:2] jmp_adr = intr_ecall_exception ? csr_mtvec_ex :
+                      //cmd_mret_ex ? csr_mepc_ex : jmp_adr_ex;
+
+
+                      //cmd_sret_ex ? csr_sepc_ex : jmp_adr_ex;
 
 //reg [31:2] pc_cntr; 
 //always @ (posedge clk or negedge rst_n) begin
@@ -124,19 +131,37 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 // pc sampler for ecall/exception
-reg [31:2] pc_ecall;
+//reg [31:2] pc_ecall;
+//reg [31:2] pc_ecall2;
+//reg [31:2] pc_ecall3;
+//reg [31:2] pc_ecall4;
+//
+//always @ (posedge clk or negedge rst_n) begin
+	//if (~rst_n) begin
+		//pc_ecall <= 30'd0;
+		//pc_ecall2 <= 30'd0;
+		//pc_ecall3 <= 30'd0;
+		//pc_ecall4 <= 30'd0;
+	////end
+	////else if (ecall_condition_ex & cpu_stat_pc)
+	////else if (ecall_condition_ex)
+	//else if (cpu_stat_pc) begin
+		////pc_ecall <= pc;
+		//pc_ecall <= csr_mepc_ex;
+		//pc_ecall2 <= pc_ecall;
+		//pc_ecall3 <= pc_ecall2;
+		//pc_ecall4 <= pc_ecall3;
+	//end
+//end
 
-always @ (posedge clk or negedge rst_n) begin
-	if (~rst_n)
-		pc_ecall <= 30'd0;
-	//else if (ecall_condition_ex & cpu_stat_pc)
-	else if (ecall_condition_ex)
-		pc_ecall <= pc_p1;
-end
+//assign pc_dbg = pc_ecall3;
 
+//assign pc_excep = pc;
 assign pc_excep = (g_exception) ? pc :
-                  (ecall_condition_ex) ? pc :
                   (jmp_condition_ex) ? jmp_adr_ex : pc_p1;
+
+                  //(ecall_condition_ex) ? pc :
+                  //(jmp_condition_ex) ? jmp_adr_ex : pc_p1;
 
                   //(ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc :
                   //(ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :

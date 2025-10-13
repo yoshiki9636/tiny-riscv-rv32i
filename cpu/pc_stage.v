@@ -142,7 +142,7 @@ end
 		//pc_ecall2 <= 30'd0;
 		//pc_ecall3 <= 30'd0;
 		//pc_ecall4 <= 30'd0;
-	////end
+	//end
 	////else if (ecall_condition_ex & cpu_stat_pc)
 	////else if (ecall_condition_ex)
 	//else if (cpu_stat_pc) begin
@@ -154,10 +154,13 @@ end
 	//end
 //end
 
-//assign pc_dbg = pc_ecall3;
+//assign pc_dbg = pc_ecall2;
 
 //assign pc_excep = pc;
-assign pc_excep = (g_exception) ? pc :
+//assign pc_excep = (g_exception) ? pc :
+                  //(jmp_condition_ex) ? jmp_adr_ex : pc_p1;
+
+assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc :
                   (jmp_condition_ex) ? jmp_adr_ex : pc_p1;
 
                   //(ecall_condition_ex) ? pc :

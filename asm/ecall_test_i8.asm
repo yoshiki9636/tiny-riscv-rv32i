@@ -129,7 +129,7 @@ csrrw x4, 0x305, x3
 csrrw x4, 0x305, x3
 nop
 ;bne x4, x3, fail_test71
-addi x1, x0, 2 ; LED value
+addi x1, x0, 5 ; LED value
 sw x1, 0x0(x2) ; set LED
 addi x3, x0, 0x8
 csrrw x4, 0x304, x3
@@ -141,9 +141,13 @@ ecall
 addi x12, x0, 0xaa
 bne x11, x12, fail_test7
 jalr x0, x0, pass
-; 0x01a0
+; 0x01b0
 :dummy_label
 addi x11, x0, 0xaa
+; need to add 4 to mepc to return next address of ecall
+csrrs x13, 0x341, x0
+addi x13, x13, 0x4
+csrrw x13, 0x341, x13
 mret
 nop
 nop

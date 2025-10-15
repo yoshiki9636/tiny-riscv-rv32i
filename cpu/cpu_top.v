@@ -158,6 +158,9 @@ wire cmd_alu_add; // output
 wire csr_msie; // output
 
 wire [31:2] pc_excep; // output
+wire [31:2] pc_excep2;
+wire [31:2] pc_csr_mtvec;
+wire pc_int_ecall_syn_end;
 //wire [31:2] pc_dbg; // output
 wire [31:0] dma_io_rdata_int;
 wire [31:2] pc_ebreak;
@@ -221,6 +224,9 @@ pc_stage pc_stage (
 	.jmp_adr_ex(jmp_adr_ex),
 	.pc(pc),
 	.pc_excep(pc_excep),
+	.pc_excep2(pc_excep2),
+	.pc_csr_mtvec(pc_csr_mtvec),
+	.pc_int_ecall_syn_end(pc_int_ecall_syn_end),
 	//.pc_dbg(pc_dbg),
 	.pc_ebreak(pc_ebreak)
 	);
@@ -315,6 +321,9 @@ execution execution (
 	.rs2_data_ex(rs2_data),
 	.pc_ex(pc),
 	.pc_excep(pc_excep),
+	.pc_excep2(pc_excep2),
+	.pc_csr_mtvec(pc_csr_mtvec),
+	.pc_int_ecall_syn_end(pc_int_ecall_syn_end),
 	//.pc_dbg(pc_dbg),
 	.wbk_rd_reg(wbk_rd_reg),
 	.cmd_lui_ex(cmd_lui),

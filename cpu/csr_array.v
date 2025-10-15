@@ -43,6 +43,9 @@ module csr_array(
 	input cmd_ebreak_ex,
 	input [31:2] pc_ebreak,
 	input [31:2] pc_excep,
+	input [31:2] pc_excep2,
+	output [31:2] pc_csr_mtvec,
+	input pc_int_ecall_syn_end,
 	//input [31:2] pc_dbg,
 	input cpu_stat_ex,
 	input cpu_stat_before_exec,
@@ -174,7 +177,8 @@ wire mret_on_stat_pc = cmd_mret_ex & cpu_stat_pc;
 wire rmie_wr = m_interrupt | mret_on_stat_pc;
 //wire rmie_value = m_interrupt ? 1'b0 :
                   //mret_on_stat_pc ? csr_mpie : csr_rmie;
-wire rmie_value = mret_on_stat_pc ? csr_mpie :
+wire rmie_value = pc_int_ecall_syn_end ? 1'b0 :
+                  mret_on_stat_pc ? csr_mpie :
                   m_interrupt ? 1'b0 : csr_rmie;
 
 always @ ( posedge clk or negedge rst_n) begin 
@@ -212,7 +216,8 @@ end
 
 // MPIE[7] : Machine mode Previouse Interrupt Enable
 wire mpie_wr = m_interrupt | mret_on_stat_pc;
-wire mpie_value = m_interrupt ? csr_rmie :
+wire mpie_value = pc_int_ecall_syn_end ? csr_mpie :
+                  m_interrupt ? csr_rmie :
                   mret_on_stat_pc ? 1'b1 : csr_mpie;
 
 always @ ( posedge clk or negedge rst_n) begin 
@@ -232,7 +237,8 @@ end
 
 // MPP[12:11] : Machine mode Previouse Privilege
 wire mpp_wr = m_interrupt | mret_on_stat_pc;
-wire [1:0] mpp_value = m_interrupt ? g_current_priv :
+wire [1:0] mpp_value = pc_int_ecall_syn_end ? csr_mpp :
+                       m_interrupt ? g_current_priv :
                        mret_on_stat_pc ? `M_MODE : // currently only M_MODE support
                        csr_mpp;
 
@@ -346,6 +352,7 @@ end
 
 assign csr_mtvec_ex = (csr_mtvec[1:0] == 2'd0) ? csr_mtvec[31:2] : csr_mtvec[31:2] + { 24'd0, mcause_code[5:0] };
 
+assign pc_csr_mtvec = csr_mtvec[31:2];
 
 // mscrach
 // scrach register for m-mode
@@ -394,6 +401,9 @@ always @ ( posedge clk or negedge rst_n) begin
 		csr_mepc <= 30'd0;
 	end
 	//else if ((cmd_ecall_ex | cmd_ebreak_ex | m_interrupt_latch_timing) & csr_rmie_dly | g_exception) begin
+	else if ( pc_int_ecall_syn_end ) begin
+		csr_mepc <= pc_excep2;
+	end
 	else if ( m_interrupt ) begin
 		csr_mepc <= pc_excep;
 	end
@@ -433,7 +443,7 @@ always @ ( posedge clk or negedge rst_n) begin
 		csr_mcause <= 7'd0;
 	end
 	else if (mcause_write) begin
-		csr_mcause <= { interrupt_bit, mcause_code };
+		csr_mcause <= { interrupt_bit & ~(illegal_ops_ex | cmd_ebreak_ex), mcause_code };
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mcause)) begin
 		csr_mcause <= { wdata_all[31], wdata_all[5:0] };

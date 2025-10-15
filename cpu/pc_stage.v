@@ -36,6 +36,9 @@ module pc_stage (
 	input [31:2] jmp_adr_ex,
 	output reg [31:2] pc,
 	output [31:2] pc_excep,
+    output reg [31:2] pc_excep2,
+    input [31:2] pc_csr_mtvec,
+    output pc_int_ecall_syn_end,
 	//output [31:2] pc_dbg,
 	output [31:2] pc_ebreak
 	);
@@ -160,18 +163,29 @@ end
 //assign pc_excep = (g_exception) ? pc :
                   //(jmp_condition_ex) ? jmp_adr_ex : pc_p1;
 
-assign pc_excep = (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc :
+assign pc_excep = (ecall_condition_ex & (g_interrupt | frc_cntr_val_leq)) ? pc_csr_mtvec :
+                  (ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc :
                   (jmp_condition_ex) ? jmp_adr_ex : pc_p1;
 
-                  //(ecall_condition_ex) ? pc :
-                  //(jmp_condition_ex) ? jmp_adr_ex : pc_p1;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		pc_excep2 <= 30'd0;
+	else if (ecall_condition_ex & (g_interrupt | frc_cntr_val_leq))
+		pc_excep2 <= pc;
+end
 
-                  //(ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc :
-                  //(ecall_condition_ex & ~g_interrupt & ~frc_cntr_val_leq) ? pc_ecall :
+reg pc_int_ecall_syn_state;
 
-                  //(jmp_cond & cpu_stat_pc) ? jmp_adr :
-                  //(cpu_stat_pc) ? pc_p2 : pc_p1;
-                  //(jmp_cond & cpu_stat_pc) ? jmp_adr : pc_p1;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		pc_int_ecall_syn_state <= 1'b0;
+	else if (ecall_condition_ex & (g_interrupt | frc_cntr_val_leq))
+		pc_int_ecall_syn_state <= 1'b1;
+	else if (cmd_mret_ex & cpu_stat_pc)
+		pc_int_ecall_syn_state <= 1'b0;
+end
+
+assign pc_int_ecall_syn_end = pc_int_ecall_syn_state & cmd_mret_ex & cpu_stat_pc;
 
 //ebreak : current pc
 assign pc_ebreak = pc;

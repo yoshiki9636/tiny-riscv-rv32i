@@ -421,18 +421,26 @@ assign csr_mepc_ex = csr_mepc[31:2];
 // conditions
 wire interrupt_bit = g_interrupt | frc_cntr_val_leq;
 // just impliment Machine mode Ecall and inteeupt
-assign mcause_code = illegal_ops_ex ? 6'd2 :
-                     cmd_ebreak_ex ?  6'd3 :
-                     g_interrupt ? 6'd11 :
+//assign mcause_code = illegal_ops_ex ? 6'd2 :
+                     //cmd_ebreak_ex ?  6'd3 :
+                     //g_interrupt ? 6'd11 :
+                     //frc_cntr_val_leq ? 6'd7 :
+                     //cmd_ecall_ex ?  6'd11 : 6'h3f;
+
+assign mcause_code = g_interrupt ? 6'd11 :
                      frc_cntr_val_leq ? 6'd7 :
-                     cmd_ecall_ex ?  6'd11 : 6'h3f;
+                     cmd_ecall_ex ?  6'd11 :
+                     cmd_ebreak_ex ?  6'd3 :
+                     illegal_ops_ex ? 6'd2 : 6'h3f;
 
 //wire [31:0] sel_tval = illegal_ops_ex ? { pc_excep, 2'b0} :
 //wire [31:0] sel_tval = illegal_ops_ex ? {pc_dbg, 2'b0} :
-wire [31:0] sel_tval = illegal_ops_ex ? illegal_ops_inst :
+//wire [31:0] sel_tval = illegal_ops_ex ? illegal_ops_inst :
+                       //cmd_ebreak_ex ? { pc_ebreak, 2'd0 } :
+                       //(g_interrupt | frc_cntr_val_leq) ? 32'd0 : 32'd0; 
+wire [31:0] sel_tval = (g_interrupt | frc_cntr_val_leq) ? 32'd0 :
                        cmd_ebreak_ex ? { pc_ebreak, 2'd0 } :
-                       (g_interrupt | frc_cntr_val_leq) ? 32'd0 :
-                       32'd0; 
+                       illegal_ops_ex ? illegal_ops_inst : 32'd0; 
 
 //wire mcause_write = cmd_ecall_ex | g_interrupt_1shot | g_exception | frc_cntr_val_leq_1shot | illegal_ops_ex;
 //wire mcause_write = cmd_ecall_ex | g_exception | (interrupts_in_pc_state & csr_rmie) | illegal_ops_ex;
@@ -443,7 +451,8 @@ always @ ( posedge clk or negedge rst_n) begin
 		csr_mcause <= 7'd0;
 	end
 	else if (mcause_write) begin
-		csr_mcause <= { interrupt_bit & ~(illegal_ops_ex | cmd_ebreak_ex), mcause_code };
+		//csr_mcause <= { interrupt_bit & ~(illegal_ops_ex | cmd_ebreak_ex), mcause_code };
+		csr_mcause <= { interrupt_bit, mcause_code };
 	end
 	else if ((cpu_stat_ex)&(cmd_csr_ex)&(adr_mcause)) begin
 		csr_mcause <= { wdata_all[31], wdata_all[5:0] };

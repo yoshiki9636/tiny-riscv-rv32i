@@ -333,8 +333,8 @@ assign jmp_condition_ex = cmd_jal_ex | cmd_jalr_ex | cmd_br_ex &
 					      sbgu & (alu_code_ex == 3'b111) );
 
 // ecall, ebreak
-//assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie_dly & csr_msie) | illegal_ops_ex;
-assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie & csr_msie) | illegal_ops_ex;
+//assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie & csr_msie ) | illegal_ops_ex;
+assign ecall_condition_ex = (( cmd_ecall_ex | cmd_ebreak_ex) & csr_rmie ) | illegal_ops_ex;
 
 // FF to DMRW
 assign rd_adr_ma = rd_adr_ex;

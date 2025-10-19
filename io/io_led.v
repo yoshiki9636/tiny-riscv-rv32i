@@ -94,7 +94,7 @@ reg [3:0] re_gpio_value_dly;
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
-        re_gpio_value_dly <= 1'b0 ;
+        re_gpio_value_dly <= 4'd0 ;
 	else
         re_gpio_value_dly <= { re_gpio_en_value, re_gpio_in_value, re_gpio_out_value, re_gpi_value };
 end

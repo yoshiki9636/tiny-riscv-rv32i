@@ -27,7 +27,7 @@ module cpu_state_machine (
 	
 
 
-// qspi state machine
+// main cpu state machine
 
 `define CPU_IDLE  3'b000
 `define CPU_PC    3'b001

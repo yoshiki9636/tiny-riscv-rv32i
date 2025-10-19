@@ -28,6 +28,9 @@ module io_led(
 	input gpi_in,
 	// gpios
 	inout [3:0] gpio
+    //input [3:0] gpio_i,
+    //output [3:0] gpio_o,
+    //output [3:0] gpio_en
 	);
 
 
@@ -114,6 +117,9 @@ assign gpio[0] = (gpio_en_value[0]) ? gpio_out_value[0] : 1'bz;
 assign gpio[1] = (gpio_en_value[1]) ? gpio_out_value[1] : 1'bz;
 assign gpio[2] = (gpio_en_value[2]) ? gpio_out_value[2] : 1'bz;
 assign gpio[3] = (gpio_en_value[3]) ? gpio_out_value[3] : 1'bz;
+//assign gpio_in = gpio_i;
+//assign gpio_o = gpio_out_value;
+//assign gpio_en = gpio_en_value;
 
 assign gpio_in = gpio; 
 

@@ -109,6 +109,7 @@ wire [31:0] dma_io_rdata_in_2; // input
 wire [31:0] dma_io_rdata_in_3; // input
 wire [31:0] dma_io_rdata_in_4; // input
 wire [31:0] dma_io_rdata_in_5; // input
+wire [31:0] dma_io_rdata_in_6; // input
 
 // csr monitor bus
 wire csr_radr_en_mon; // output
@@ -137,6 +138,17 @@ wire g_interrupt;
 
 // uart rx 
 wire rx_disable_echoback;
+
+// spi IO signals
+wire spi_select_io; // output
+wire spi_sck; // output
+wire [1:0] spi_csn; // output
+wire spi_mosi; // output
+wire [2:0] rgb_led_org;
+
+// spi IO selector
+assign rgb_led = spi_select_io ? { spi_mosi, spi_csn[0], spi_sck } : rgb_led_org;
+wire spi_miso = init_qspicmd; // input
 
 // io bus logics
 wire dma_io_we = dma_io_we_c | dma_io_we_u;
@@ -327,7 +339,7 @@ io_led io_led (
 	.dma_io_radr_en(dma_io_radr_en),
 	.dma_io_rdata_in(dma_io_rdata_in_2),
 	.dma_io_rdata(dma_io_rdata_in_3),
-	.rgb_led(rgb_led),
+	.rgb_led(rgb_led_org),
 	.init_uart(init_uart),
 	.init_latency(init_latency),
 	.init_cpu_start(init_cpu_start),
@@ -390,7 +402,24 @@ interrupter interrupter (
 	.dma_io_radr(dma_io_radr),
 	.dma_io_radr_en(dma_io_radr_en),
 	.dma_io_rdata_in(dma_io_rdata_in_5),
-	.dma_io_rdata(dma_io_rdata)
+	.dma_io_rdata(dma_io_rdata_in_6)
+	);
+
+io_spi io_spi(
+	.clk(clk),
+	.rst_n(rst_n),
+	.dma_io_we(dma_io_we),
+	.dma_io_wadr(dma_io_wadr),
+	.dma_io_wdata(dma_io_wdata),
+	.dma_io_radr(dma_io_radr),
+	.dma_io_radr_en(dma_io_radr_en),
+	.dma_io_rdata_in(dma_io_rdata_in_6),
+	.dma_io_rdata(dma_io_rdata),
+	.spi_select_io(spi_select_io),
+	.spi_sck(spi_sck),
+	.spi_csn(spi_csn),
+	.spi_mosi(spi_mosi),
+	.spi_miso(spi_miso)
 	);
 
 endmodule

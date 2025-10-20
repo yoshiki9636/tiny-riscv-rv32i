@@ -147,9 +147,9 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 wire [1:0] dat_word_sel;
-wire [1:0] miso_write_adr;
+reg [1:0] miso_write_adr;
 wire [31:0] miso_word;
-wire miso_write_current_word;
+reg miso_write_current_word;
 
 wire [1:0] spi_buf_radr = re_spi_datx_dly ? spi_dma_io_radr_dly : dat_word_sel;
 wire [31:0] spi_buf_rdata;
@@ -254,7 +254,7 @@ wire read_data_status;
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
         bit_sel_org <= 3'd0 ;
-	else if ( ~write_data_status & ~read_cmd_status & ~write_cmd_status )
+	else if ( ~write_data_status & ~read_cmd_status & ~write_cmd_status & ~spi_run_finish )
         bit_sel_org <= 3'd0 ;
 	else if ( sck_write_lat_timing )
         bit_sel_org <= bit_sel_org + 3'd1 ;
@@ -409,7 +409,7 @@ always @ (posedge clk or negedge rst_n) begin
         miso_byte_org <= 8'd0 ;
 	else if ( spi_dat_len == 5'd0 )
         miso_byte_org <= 8'd0 ;
-	else if ( miso_read_next_byte )
+	else if ( sck_read_lat_timing )
 		miso_byte_org <= { miso_byte_org[7:0], miso_sel };
 end
 
@@ -428,28 +428,42 @@ always @ (posedge clk or negedge rst_n) begin
         miso_byte_cntr <= 4'd0 ;
 	else if ( spi_dat_len == 5'd0 )
         miso_byte_cntr <= 4'd0 ;
-	else if (( miso_byte_cntr >= spi_dat_len_m1[3:0] ) & sck_read_lat_timing )
+	else if (( miso_byte_cntr >= spi_dat_len_m1[3:0] ) & miso_read_next_byte )
         miso_byte_cntr <= 4'd0 ;
-	else if ( sck_read_lat_timing )
+	else if ( miso_read_next_byte )
         miso_byte_cntr <= miso_byte_cntr + 4'd1 ;
 end
 
-wire miso_dat_end = miso_read_next_byte & ( miso_byte_cntr >= spi_dat_len_m1[3:0] );
-assign miso_write_current_word = miso_dat_end | (miso_read_next_byte & ( miso_byte_cntr >= spi_dat_len_m1[3:0] ));
-assign miso_write_adr = spi_mode_dat_word_endian ? ~miso_byte_cntr[3:2] : miso_byte_cntr[3:2];
+wire miso_dat_end = ( miso_byte_cntr >= spi_dat_len_m1[3:0] ) & (miso_bit_cntr == 3'd7);
+
+//assign miso_write_adr = spi_mode_dat_word_endian ? ~miso_byte_cntr[3:2] : miso_byte_cntr[3:2];
+//assign miso_write_current_word = miso_read_next_byte & ( miso_dat_end | ( miso_byte_cntr[1:0] == 2'd3 ));
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n) begin
+        miso_write_current_word <= 1'b0 ;
+        miso_write_adr <= 2'd0 ;
+	end
+	else begin
+		miso_write_current_word <= miso_read_next_byte & ( miso_dat_end | ( miso_byte_cntr[1:0] == 2'd3 ));
+		miso_write_adr <= spi_mode_dat_word_endian ? ~miso_byte_cntr[3:2] : miso_byte_cntr[3:2];
+	end
+end
 
 // word maker
 reg [31:0] miso_word_org;
 
 always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
-        miso_word_org <= 32'd0 ;
+        //miso_word_org <= 32'd0 ;
+        miso_word_org <= 32'hdeadbeef ;
+	else if ( miso_write_current_word )
+        //miso_word_org <= 32'd0 ;
+        miso_word_org <= 32'hdeadbeef ;
 	else if ( miso_read_next_byte )
 		miso_word_org <= { miso_word_org[23:0], miso_byte };
 end
 
-assign miso_word = (spi_mode_dat_byte_endian) ? miso_word_org :
-                   { miso_word_org[7:0], miso_word_org[15:8], miso_word_org[23:16], miso_word_org[31:24] };
+assign miso_word = (spi_mode_dat_byte_endian) ? { miso_word_org[7:0], miso_word_org[15:8], miso_word_org[23:16], miso_word_org[31:24] } : miso_word_org;
 
 
 // state machine
@@ -510,11 +524,11 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 
-assign cs_all_status = (spi_state != `SPI_IDLE);
+assign cs_all_status = (spi_state != `SPI_IDLE)&(spi_state != `SPI_WAIT);
 assign write_cmd_status = (spi_state == `SPI_WTCMD);
 assign write_data_status = (spi_state == `SPI_WTDAT);
 assign read_cmd_status = (spi_state == `SPI_RDCMD);
-assign read_data_status = (spi_state == `SPI_RDDAT);
+assign read_data_status = (spi_state == `SPI_RDDAT)|(spi_state == `SPI_WAIT);
 assign start_cmd = ((next_spi_state == `SPI_WTCMD)|(next_spi_state == `SPI_RDCMD)) & (spi_state == `SPI_IDLE);
 assign start_wirte = (next_spi_state == `SPI_WTDAT)&(spi_state == `SPI_WTCMD);
 assign start_read = (next_spi_state == `SPI_RDDAT)&(spi_state == `SPI_RDCMD);

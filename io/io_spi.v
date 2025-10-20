@@ -229,6 +229,13 @@ wire sck_fall_edge = ~org_sck &  org_sck_dly;
 wire sck_read_lat_timing = spi_mode_cpha ? sck_fall_edge : sck_rise_edge;
 wire sck_write_lat_timing = spi_mode_cpha ? sck_rise_edge : sck_fall_edge;
 
+// sck maker
+wire sck_en;
+wire sck_finish;
+
+wire org_spi_sck = sck_en ? org_sck :
+                   sck_finish ? 1'b0 : spi_mode_cpol;
+
 // sck output shifter
 reg [6:0] shift_sck;
 
@@ -236,12 +243,12 @@ always @ (posedge clk or negedge rst_n) begin
     if (~rst_n)
         shift_sck <= 7'd0 ;
 	else
-		shift_sck <= { shift_sck[5:0], org_sck };
+		shift_sck <= { shift_sck[5:0], org_spi_sck };
 end
 
-wire [7:0] sel_sck = { shift_sck, org_sck };
+wire [7:0] sel_sck = { shift_sck, org_spi_sck };
 
-assign spi_sck = cs_all_status ? sel_sck[spi_mode_sck_ph_miso] : spi_mode_cpol;
+assign spi_sck = sel_sck[spi_mode_sck_ph_miso];
 
 // bit select counter
 
@@ -263,7 +270,8 @@ end
 wire [2:0] cmd_bit_sel = (spi_mode_cmd_bit_endian) ? ~bit_sel_org : bit_sel_org;
 wire [2:0] dat_bit_sel = (spi_mode_dat_bit_endian) ? ~bit_sel_org : bit_sel_org;
 
-wire mosi_next_byte = (bit_sel_org == 3'd7) & sck_write_lat_timing;
+//wire mosi_next_byte = (bit_sel_org == 3'd7) & sck_write_lat_timing;
+wire mosi_next_byte = (bit_sel_org == 3'd7);
 
 // byte select counter
 
@@ -290,7 +298,7 @@ wire [2:0] spi_cmd_len_m1 = spi_cmd_len - 3'd1;
 
 wire both_cmd_end = mosi_next_byte & (byte_sel_org == spi_cmd_len_m1[1:0]) ;
 wire mosi_dat_end = mosi_next_byte & ( {word_sel_org, byte_sel_org} >= spi_dat_len_m1[3:0] );
-wire mosi_next_word = mosi_dat_end | (mosi_next_byte & (byte_sel_org == 3'd3));
+wire mosi_next_word = sck_write_lat_timing & ( mosi_dat_end | (mosi_next_byte & (byte_sel_org == 3'd3)));
 
 // word select counter 
 
@@ -328,9 +336,10 @@ wire data_bit = data_byte[dat_bit_sel];
 
 // miso final selector
 wire cmd_data_cmd_sel;
+wire mosi_en;
 
 wire org_mosi_pre = cmd_data_cmd_sel ? cmd_bit : data_bit;
-wire org_mosi = org_mosi_pre & cs_all_status;
+wire org_mosi = org_mosi_pre & mosi_en;
 
 // output shifter
 
@@ -471,6 +480,7 @@ assign miso_word = (spi_mode_dat_byte_endian) ? { miso_word_org[7:0], miso_word_
 `define SPI_IDLE  3'b000
 `define SPI_WTCMD 3'b001
 `define SPI_WTDAT 3'b010
+`define SPI_PREWT 3'b011
 `define SPI_RDCMD 3'b101
 `define SPI_RDDAT 3'b110
 `define SPI_WAIT  3'b111
@@ -484,13 +494,19 @@ input spi_exec_rdwt_mode;
 input both_cmd_end;
 input mosi_dat_end;
 input miso_dat_end;
+input spi_mode_cpha;
+input spi_mode_cpol;
 
 
 begin
 	case(spi_state)
-		`SPI_IDLE: if (spi_exec_run & spi_exec_rdwt_mode ) spi_machine = `SPI_WTCMD;
+		`SPI_IDLE: if (spi_mode_cpha & spi_mode_cpol & spi_exec_run & spi_exec_rdwt_mode ) spi_machine = `SPI_PREWT;
+				   else if (spi_mode_cpha & spi_mode_cpol & spi_exec_run & ~spi_exec_rdwt_mode ) spi_machine = `SPI_PREWT;
+		           else if (spi_exec_run & spi_exec_rdwt_mode ) spi_machine = `SPI_WTCMD;
 				   else if (spi_exec_run & ~spi_exec_rdwt_mode ) spi_machine = `SPI_RDCMD;
                    else spi_machine = `SPI_IDLE;
+		`SPI_PREWT:if ( spi_exec_rdwt_mode ) spi_machine = `SPI_WTCMD;
+				   else spi_machine = `SPI_RDCMD;
 		`SPI_WTCMD:if ( ~spi_exec_run ) spi_machine = `SPI_IDLE;
                    else if ( both_cmd_end ) spi_machine = `SPI_WTDAT;
                    else spi_machine = `SPI_WTCMD;
@@ -514,17 +530,22 @@ wire [2:0] next_spi_state = spi_machine( spi_state,
 										 spi_exec_rdwt_mode,
 										 both_cmd_end,
 										 mosi_dat_end,
-										 miso_dat_end);
+										 miso_dat_end,
+										 spi_mode_cpha,
+										 spi_mode_cpol);
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		spi_state <= 3'b000;
-	else if (sck_fall_edge)
+	//else if (sck_fall_edge)
+	else if (sck_write_lat_timing)
 		spi_state <= next_spi_state;
 end
 
 
-assign cs_all_status = (spi_state != `SPI_IDLE)&(spi_state != `SPI_WAIT);
+assign sck_en = (spi_state != `SPI_IDLE)&(spi_state != `SPI_WAIT)&~((next_spi_state == `SPI_WAIT)&sck_write_lat_timing);
+assign sck_finish =  (spi_state == `SPI_WAIT)|((next_spi_state == `SPI_WAIT)&sck_write_lat_timing);
+assign cs_all_status = (spi_state != `SPI_IDLE);
 assign write_cmd_status = (spi_state == `SPI_WTCMD);
 assign write_data_status = (spi_state == `SPI_WTDAT);
 assign read_cmd_status = (spi_state == `SPI_RDCMD);
@@ -534,5 +555,6 @@ assign start_wirte = (next_spi_state == `SPI_WTDAT)&(spi_state == `SPI_WTCMD);
 assign start_read = (next_spi_state == `SPI_RDDAT)&(spi_state == `SPI_RDCMD);
 assign spi_run_finish =  (spi_state == `SPI_WAIT);
 assign cmd_data_cmd_sel = (spi_state == `SPI_WTCMD)|(spi_state == `SPI_RDCMD);
+assign mosi_en = write_cmd_status | write_data_status | read_cmd_status;
 
 endmodule

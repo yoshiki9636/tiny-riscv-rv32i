@@ -27,9 +27,19 @@ sw x4, 0x0(x3) ; set value to spi mode reg
 addi x4, x0, 0x100 ; sck divider = 0x100
 sw x4, 0x4(x3) ; set value to spi sck divider reg
 
+; cmd phase
 addi x5, x0, 0xa5 ; write data
 sw x5, 0x8(x3) ; set value to spi mosi fifo
 
+:label_wait1_finish
+lw x5, 0x8(x3) ; get value from spi mosi fifo status
+addi x6, x0, 0x200 ; write data
+bne x5, x6, label_wait1_finish
+
+addi x4, x0, 0x400 ; miso fifo reset bit = 1
+sw x4, 0xc(x3) ; reset miso fifo becase not need read data on cmd phase
+
+; data phase
 addi x5, x0, 0xc3 ; write data
 sw x5, 0x8(x3) ; set value to spi mosi fifo
 
@@ -46,53 +56,57 @@ addi x5, x0, 0x5a ; write data
 sw x5, 0x8(x3) ; set value to spi mosi fifo
 
 addi x5, x0, 0x3c ; write data
+sw x5, 0x8(x3) ; set value to spi mosi fifo
+
+addi x5, x0, 0x78 ; write data
 sw x5, 0x8(x3) ; set value to spi mosi fifo
 
 addi x5, x0, 0x0f ; write data
 sw x5, 0x8(x3) ; set value to spi mosi fifo
 
-:label_wait_finish
+:label_wait2_finish
 lw x5, 0x8(x3) ; get value from spi mosi fifo status
 addi x6, x0, 0x200 ; write data
-bne x5, x6, label_wait_finish
+bne x5, x6, label_wait2_finish
 
+; loopback data check
 :label_test_fail_loop
-lw x4, 0xC(x3) ; get value form spi miso fifo
-andi x4, x4, 0xff ; mask full, empty
-addi x5, x0, 0xa5 ; write data
-bne x4, x5, label_test_fail_loop
-
-lw x4, 0xC(x3) ; get value form spi miso fifo
+lw x4, 0xc(x3) ; get value form spi miso fifo
 andi x4, x4, 0xff ; mask full, empty
 addi x5, x0, 0xc3 ; write data
 bne x4, x5, label_test_fail_loop
 
-lw x4, 0xC(x3) ; get value form spi miso fifo
+lw x4, 0xc(x3) ; get value form spi miso fifo
 andi x4, x4, 0xff ; mask full, empty
 addi x5, x0, 0xf0 ; write data
 bne x4, x5, label_test_fail_loop
 
-lw x4, 0xC(x3) ; get value form spi miso fifo
+lw x4, 0xc(x3) ; get value form spi miso fifo
 andi x4, x4, 0xff ; mask full, empty
 addi x5, x0, 0x87 ; write data
 bne x4, x5, label_test_fail_loop
 
-lw x4, 0xC(x3) ; get value form spi miso fifo
+lw x4, 0xc(x3) ; get value form spi miso fifo
 andi x4, x4, 0xff ; mask full, empty
 addi x5, x0, 0x96 ; write data
 bne x4, x5, label_test_fail_loop
 
-lw x4, 0xC(x3) ; get value form spi miso fifo
+lw x4, 0xc(x3) ; get value form spi miso fifo
 andi x4, x4, 0xff ; mask full, empty
 addi x5, x0, 0x5a ; write data
 bne x4, x5, label_test_fail_loop
 
-lw x4, 0xC(x3) ; get value form spi miso fifo
+lw x4, 0xc(x3) ; get value form spi miso fifo
 andi x4, x4, 0xff ; mask full, empty
 addi x5, x0, 0x3c ; write data
 bne x4, x5, label_test_fail_loop
 
-lw x4, 0xC(x3) ; get value form spi miso fifo
+lw x4, 0xc(x3) ; get value form spi miso fifo
+andi x4, x4, 0xff ; mask full, empty
+addi x5, x0, 0x78 ; write data
+bne x4, x5, label_test_fail_loop
+
+lw x4, 0xc(x3) ; get value form spi miso fifo
 andi x4, x4, 0xff ; mask full, empty
 addi x5, x0, 0x0f ; write data
 bne x4, x5, label_test_fail_loop

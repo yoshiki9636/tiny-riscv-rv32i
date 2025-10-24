@@ -67,10 +67,11 @@ wire fwg = (wadr > radr);
 wire frg = (wadr < radr);
 
 //wire wqfull_0 = (wadr == radr);
-//wire wqfull_1 = (wg&(wadr - radr == 2'd1))|(rg&(radr - wadr <= 2'd3));
-wire wqfull_2 = (fwg&(wadr - radr == SFIFODP-2))|(frg&(radr - wadr <= 2));
+//wire wqfull_1 = (fwg&(wadr - radr ==  SFIFODP-3))|(frg&(radr - wadr <= 3));
+//wire wqfull_2 = (fwg&(wadr - radr == SFIFODP-2))|(frg&(radr - wadr <= 2));
 wire wqfull_3 = (fwg&(wadr - radr == SFIFODP-1))|(frg&(radr - wadr <= 1));
-assign wqfull = wqfull_2 | wqfull_3 ;
+//assign wqfull = wqfull_2 | wqfull_3;
+assign wqfull = wqfull_3;
 
 // qempty checker
 assign rqempty = (wadr == radr_early);

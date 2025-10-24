@@ -405,7 +405,7 @@ interrupter interrupter (
 	.dma_io_rdata(dma_io_rdata_in_6)
 	);
 
-io_spi io_spi(
+io_spi_lite io_spi_lite(
 	.clk(clk),
 	.rst_n(rst_n),
 	.dma_io_we(dma_io_we),

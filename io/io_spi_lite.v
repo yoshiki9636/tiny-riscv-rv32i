@@ -342,7 +342,8 @@ wire [7:0] miso_fifo_in = miso_byte;
 //wire [7:0] miso_fifo_out;
 //wire miso_fifo_full;
 //wire miso_fifo_empty;
-wire miso_fifo_we = miso_wen_byte & ~miso_fifo_full;
+//wire miso_fifo_we = miso_wen_byte & ~miso_fifo_full;
+wire miso_fifo_we = miso_wen_byte;
 //wire miso_fifo_re;
 //wire miso_reset_fifo; // need to add
 

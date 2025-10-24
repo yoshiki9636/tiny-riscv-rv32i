@@ -210,7 +210,7 @@ end
 assign mosi_fifo_empty = (mosi_pp_cntr == 4'd0);
 assign mosi_fifo_full = (mosi_pp_cntr == 4'd8);
 
-assign mosi_fifo_next_empty = (mosi_pp_cntr == 4'd1) & mosi_next_byte;
+wire mosi_fifo_next_empty = (mosi_pp_cntr == 4'd1) & mosi_next_byte;
 
 
 // bit select counter

@@ -92,11 +92,11 @@ begin
 		8'h77 : data_decoder = 27'b000_0000_0100_0000_0000_0000_0000; // w : write data memory
 		8'h72 : data_decoder = 27'b000_0000_1000_0000_0000_0000_0000; // r : read data memory and dump
 		8'h74 : data_decoder = 27'b000_0001_0000_0000_0000_0000_0000; // t : trushed memory and 0 clear
-		8'h73 : data_decoder = 27'b000_0010_0000_0000_0000_0000_0000; // s : step execution
+		8'h73 : data_decoder = 27'b000_0010_0000_0000_0000_0000_0000; // s : set break point
 		8'h70 : data_decoder = 27'b000_0100_0000_0000_0000_0000_0000; // p : read IO
 		8'h69 : data_decoder = 27'b000_1000_0000_0000_0000_0000_0000; // i : write IO
 		8'h6a : data_decoder = 27'b001_0000_0000_0000_0000_0000_0000; // j : print PC
-		8'h7a : data_decoder = 27'b010_0000_0000_0000_0000_0000_0000; // z : flush all D-cache
+		8'h7a : data_decoder = 27'b010_0000_0000_0000_0000_0000_0000; // z : unused
 		8'h0d : data_decoder = 27'b100_0000_0000_0000_0000_0000_0000; // CR : change to CRLF
 		default : data_decoder = 27'd0;
 	endcase

@@ -39,6 +39,7 @@ bne x5, x6, label_wait1_finish
 addi x4, x0, 0x400 ; miso fifo reset bit = 1
 sw x4, 0xc(x3) ; reset miso fifo becase not need read data on cmd phase
 
+
 ; data phase
 addi x5, x0, 0xc3 ; write data
 sw x5, 0x8(x3) ; set value to spi mosi fifo
@@ -67,7 +68,9 @@ sw x5, 0x8(x3) ; set value to spi mosi fifo
 :label_wait2_finish
 lw x5, 0x8(x3) ; get value from spi mosi fifo status
 addi x6, x0, 0x200 ; write data
+and x5, x5, x6; mask other values
 bne x5, x6, label_wait2_finish
+
 
 ; loopback data check
 :label_test_fail_loop
@@ -112,13 +115,15 @@ addi x5, x0, 0x0f ; write data
 bne x4, x5, label_test_fail_loop
 
 ; test finished
+:label_test_finished
 addi x4, x0, 0x00 ; bit endian=0, endian=0 CPHA=0, SPI enable=0
+;addi x4, x0, 0x09 ; bit endian=1, CPOL=0 CPHA=0, SPI enable=1
 sw x4, 0x0(x3) ; set value to spi mode reg
 
 nop
 nop
-;lui x2, 10 ; loop max
-ori x2, x0, 10 ; loop max
+lui x2, 10 ; loop max
+;ori x2, x0, 10 ; loop max
 and x3, x0, x3 ; LED value
 and x4, x0, x4 ;
 lui x4, 0xc0010 ; LED address

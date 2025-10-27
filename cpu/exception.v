@@ -20,5 +20,6 @@ module exception(
 
 // currntly supporting just illegal operations
 assign g_exception = illegal_ops_ex;
+//assign g_exception = 1'b0;
 
 endmodule

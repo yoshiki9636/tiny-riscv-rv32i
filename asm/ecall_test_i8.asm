@@ -114,11 +114,11 @@ ori x8, x0, 0xfff
 csrrw x3, 0x300, x8
 csrrw x4, 0x300, x8
 lui x8, 0x00002 ;
-addi x8, x8, 0x8aa ; x8 = 0x18aa
+addi x8, x8, 0x9aa ; x8 = 0x19aa
 bne x4, x8, fail_test6
 csrrw x8, 0x300, x0
 ; next value
-addi x1, x0, 1 ; LED value
+addi x1, x0, 2 ; LED value
 sw x1, 0x0(x2) ; set LED
 ; test ecall
 :fail_test71

@@ -135,6 +135,10 @@ int double_print( char* cbuf, double value, int digit ) {
 		mug *= 10.0;
 	}
 	mug /= 10.0;
+	if (value < 1.0) {
+		buf[cntr++] = 0;
+		buf[cntr++] = 0xff; // for preiod
+	}
 	for(int i = 0; i < digit; i++) {	
 		unsigned char a =(unsigned char)(value / mug);
 		buf[cntr++] = a;

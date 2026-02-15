@@ -192,6 +192,9 @@ wire read_wait_end;
 wire read_data_end;
 wire write_data_end;
 
+wire dbg_2div_wirte_half_end;
+wire dbg_2div_read_half_end;
+wire dbg_2div_trt;
 // qspi state machine
 
 `define QS_IDLE  4'b0000
@@ -203,7 +206,10 @@ wire write_data_end;
 `define QS_RSTEN 4'b1000
 `define QS_RESET 4'b1001
 `define QS_CETRT 4'b1010
-`define QS_CMDW  4'b1011
+//`define QS_CMDW  4'b1011
+`define QS_FWIT1 4'b1100
+`define QS_FWIT2 4'b1101
+`define QS_WWAIT 4'b1110
 
 reg [3:0] qspi_state;
 //reg [3:0] qspi_state_dly;
@@ -219,26 +225,36 @@ input cmd_rst_en;
 input read_wait_end;
 input read_data_end;
 input write_data_end;
+input dbg_2div_wirte_half_end;
+input dbg_2div_read_half_end;
+input dbg_2div_trt;
 
 
 begin
 	case(qspi_state)
-		`QS_IDLE: if (cmd_freadq | cmd_qwrite | cmd_rst_en) qspi_machine = `QS_CMDW;
+		//`QS_IDLE: if (cmd_freadq | cmd_qwrite | cmd_rst_en) qspi_machine = `QS_CMDW;
+		`QS_IDLE: if (cmd_freadq | cmd_qwrite | cmd_rst_en) qspi_machine = `QS_CMD;
 				  else qspi_machine = `QS_IDLE;
-		`QS_CMDW: qspi_machine = `QS_CMD;
+		//`QS_CMDW: qspi_machine = `QS_CMD;
 		`QS_CMD: if (cmd_end & (cmd_freadq | cmd_qwrite)) qspi_machine = `QS_ADR;
 				 else if (cmd_end & cmd_rst_en) qspi_machine = `QS_RSTEN;
 				 else qspi_machine = `QS_CMD;
 		`QS_ADR: if (adr_end & cmd_freadq) qspi_machine = `QS_RDWIT;
 			     else if (adr_end & cmd_qwrite) qspi_machine = `QS_WTDAT;
 				 else qspi_machine = `QS_ADR;
-		`QS_WTDAT: if (write_data_end) qspi_machine = `QS_CETRT;
+		`QS_WTDAT: if (write_data_end & dbg_2div_wirte_half_end) qspi_machine = `QS_WWAIT;
+		           else if (write_data_end & ~dbg_2div_wirte_half_end) qspi_machine = `QS_CETRT;
 				   else qspi_machine = `QS_WTDAT;
 		`QS_RDWIT: if (read_wait_end) qspi_machine = `QS_RDDAT;
 				   else qspi_machine = `QS_RDWIT;
-		`QS_RDDAT: if (read_data_end) qspi_machine = `QS_CETRT;
+		`QS_RDDAT: if (read_data_end & dbg_2div_read_half_end) qspi_machine = `QS_WWAIT;
+		           else if (read_data_end & ~dbg_2div_read_half_end) qspi_machine = `QS_CETRT;
 				   else qspi_machine = `QS_RDDAT;
-		`QS_CETRT: qspi_machine = `QS_IDLE;
+		`QS_WWAIT: qspi_machine = `QS_CETRT;
+		`QS_CETRT: if (dbg_2div_trt) qspi_machine = `QS_FWIT1;
+				   else qspi_machine = `QS_IDLE;
+		`QS_FWIT1: qspi_machine = `QS_FWIT2;
+		`QS_FWIT2: qspi_machine = `QS_IDLE;
 		`QS_RSTEN: if (rst_end) qspi_machine = `QS_RESET;
 				   else qspi_machine = `QS_RSTEN;
 		`QS_RESET: if (rst_end) qspi_machine = `QS_IDLE;
@@ -257,7 +273,10 @@ wire [3:0] next_qspi_state = qspi_machine( qspi_state,
 										   cmd_rst_en,
 										   read_wait_end,
 										   read_data_end,
-										   write_data_end);
+										   write_data_end,
+										   dbg_2div_wirte_half_end,
+										   dbg_2div_read_half_end,
+										   dbg_2div_trt);
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n) begin
@@ -285,11 +304,37 @@ wire next_state_rsten = (next_qspi_state == `QS_RSTEN);
 wire state_rst = (qspi_state == `QS_RESET);
 wire next_state_rst = (next_qspi_state == `QS_RESET);
 
-//assign sck_mask = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CETRT);
-//wire ce_n_pre = (next_qspi_state == `QS_IDLE) | (next_qspi_state == `QS_CETRT) |  (qspi_state == `QS_CETRT);
-wire ce_n_pre = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CMDW) | (qspi_state == `QS_CETRT);
-//wire ce_n_pre = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CMDW) | (next_qspi_state == `QS_IDLE);
-//wire ce_n_pre = (next_qspi_state == `QS_IDLE) & (qspi_state != `QS_CETRT);
+wire dbg_reg_2div_cec_read;
+wire dbg_reg_2div_cec_write;
+// for debugging: 
+//wire dbg_2div_cec_pre = (sck_div == 10'd0) & (qspi_state == `QS_CMDW) & cmd_freadq;
+wire dbg_2div_cmd_start = (cmd_freadq | cmd_qwrite | cmd_rst_en) & (qspi_state == `QS_IDLE);
+
+wire dbg_2div_cec_pre = ((dbg_reg_2div_cec_write & cmd_qwrite) | (dbg_reg_2div_cec_read & cmd_freadq)) & dbg_2div_cmd_start;
+reg dbg_2div_cec_lat;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		dbg_2div_cec_lat <= 1'b0;
+	else
+		dbg_2div_cec_lat <= dbg_2div_cec_pre;
+end
+
+wire dbg_2div_cec = ~dbg_2div_cec_pre & dbg_2div_cec_lat;
+//wire dbg_2div_cec = dbg_2div_cec_pulse | (((dbg_reg_2div_cec_write & cmd_freadq) | (dbg_reg_2div_cec_read & cmd_qwrite)) & (qspi_state == `QS_CMDW);
+
+wire dbg_2div_cew_pre = (qspi_state == `QS_WWAIT);
+reg dbg_2div_cew_lat;
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		dbg_2div_cew_lat <= 1'b0;
+	else
+		dbg_2div_cew_lat <= dbg_2div_cew_pre;
+end
+
+wire dbg_2div_cew = dbg_2div_cew_pre & dbg_2div_cew_lat;
+
+//wire ce_n_pre = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CMDW) | (qspi_state == `QS_CETRT) |  (qspi_state == `QS_FWIT1) | (qspi_state == `QS_FWIT2) | dbg_2div_cew | dbg_2div_cec;
+wire ce_n_pre = (qspi_state == `QS_IDLE) | (qspi_state == `QS_CETRT) |  (qspi_state == `QS_FWIT1) | (qspi_state == `QS_FWIT2) | dbg_2div_cew | dbg_2div_cec;
 wire ce_0_dec = (word_adr[25:24] == 2'd0);
 wire ce_1_dec = (word_adr[25:24] == 2'd1);
 wire ce_2_dec = (word_adr[25:24] == 2'd2);
@@ -563,6 +608,22 @@ always @ (posedge clk or negedge rst_n) begin
 		 sck_div <= dma_io_wdata[9:0];
 end
 
+reg [8:0] dbg_2div;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n)
+		 dbg_2div <= 8'd0;
+	else if (we_qspi_sckdiv)
+		 dbg_2div <= dma_io_wdata[23:16];
+end
+
+// 2div patch signals
+assign dbg_2div_wirte_half_end = dbg_2div[0];
+assign dbg_2div_read_half_end = dbg_2div[1];
+assign dbg_reg_2div_cec_write = dbg_2div[2];
+assign dbg_reg_2div_cec_read = dbg_2div[3];
+assign dbg_2div_trt = dbg_2div[4];
+
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)
 		 rdcmd0 <= `CMD_DFREADQ;
@@ -626,7 +687,7 @@ end
 assign dma_io_rdata = (re_qspi_latency_dly[0] == 1'b1) ? { 28'd0, read_latency_0 } :
                       (re_qspi_latency_dly[1] == 1'b1) ? { 28'd0, read_latency_1 } :
                       (re_qspi_latency_dly[2] == 1'b1) ? { 28'd0, read_latency_2 } :
-                      (re_qspi_latency_dly[3] == 1'b1) ? { 22'd0, sck_div } :
+                      (re_qspi_latency_dly[3] == 1'b1) ? { 8'd0, dbg_2div, 6'd0, sck_div } :
                       (re_qspi_latency_dly[4] == 1'b1) ? { 24'd0, rdcmd0 } :
                       (re_qspi_latency_dly[5] == 1'b1) ? { 24'd0, rdcmd1 } :
                       (re_qspi_latency_dly[6] == 1'b1) ? { 24'd0, wrcmd0 } :

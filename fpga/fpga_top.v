@@ -40,6 +40,9 @@ wire clk;
 wire locked;
 // cpu
 wire [31:0] pc_data; // input NAI!
+wire cmd_ld_ma;
+wire cmd_st_ma;
+wire [31:0] rd_data_ma;
 wire cpu_start; // input
 wire quit_cmd; // output NAI!
 wire [31:2] cpu_start_adr;
@@ -173,6 +176,9 @@ cpu_top cpu_top (
 	.quit_cmd(quit_cmd),
 	.cpu_start_adr(cpu_start_adr),
 	.pc_data(pc_data),
+	.cmd_ld_ma(cmd_ld_ma),
+	.cmd_st_ma(cmd_st_ma),
+	.rd_data_ma(rd_data_ma),
 	.csr_mtie(csr_mtie),
 	.frc_cntr_val_leq(frc_cntr_val_leq),
 	.cpu_run_state(cpu_run_state),
@@ -284,6 +290,9 @@ uart_top uart_top (
 	.rf_wdata_mon(rf_wdata_mon),
 	.rf_rdata_mon(rf_rdata_mon),
 	.pc_data(pc_data),
+	.cmd_ld_ma(cmd_ld_ma),
+	.cmd_st_ma(cmd_st_ma),
+	.rd_data_ma(rd_data_ma),
 	.cpu_start(cpu_start),
 	.cpu_run_state(cpu_run_state),
 	.quit_cmd(quit_cmd),

@@ -18,6 +18,9 @@ module cpu_top (
 	input quit_cmd,
 	input [31:2] cpu_start_adr,
 	output [31:0] pc_data,
+	output cmd_ld_ma,
+	output cmd_st_ma,
+	output [31:0] rd_data_ma,
 
 	output csr_mtie,
 	input frc_cntr_val_leq,
@@ -128,10 +131,10 @@ wire [31:0] wbk_data_wb; // input
 wire [31:0] rs1_data; // output
 wire [31:0] rs2_data; // output
 
-wire cmd_ld_ma; // output
-wire cmd_st_ma; // output
+//wire cmd_ld_ma; // output
+//wire cmd_st_ma; // output
 wire [4:0] rd_adr_ma; // output
-wire [31:0] rd_data_ma; // output
+//wire [31:0] rd_data_ma; // output
 wire [31:0] st_data_ma; // output
 wire [2:0] ldst_code_ma; // output
 wire [1:0] g_interrupt_priv = `M_MODE; // temp

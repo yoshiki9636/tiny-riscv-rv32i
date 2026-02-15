@@ -20,6 +20,9 @@ module uart_rec_char (
 	//input dcflush_running,
 	// to ctrl logics
 	input [31:0] pc_data,
+	input [31:0] rd_data_ma,
+	input cmd_ld_ma,
+	input cmd_st_ma,
 	output [31:0] uart_data,
 	output reg cpu_start,
 	input cpu_run_state,
@@ -67,43 +70,45 @@ always @ (posedge clk or negedge rst_n) begin
 		data_en <= rout_en;
 end
 
-function [26:0] data_decoder;
+function [28:0] data_decoder;
 input [7:0] pdata;
 begin
 	case(pdata)
-		8'h30 : data_decoder = 27'b000_0000_0000_0000_0000_0000_0001; // 0
-		8'h31 : data_decoder = 27'b000_0000_0000_0000_0000_0000_0010; // 1
-		8'h32 : data_decoder = 27'b000_0000_0000_0000_0000_0000_0100; // 2
-		8'h33 : data_decoder = 27'b000_0000_0000_0000_0000_0000_1000; // 3
-		8'h34 : data_decoder = 27'b000_0000_0000_0000_0000_0001_0000; // 4
-		8'h35 : data_decoder = 27'b000_0000_0000_0000_0000_0010_0000; // 5
-		8'h36 : data_decoder = 27'b000_0000_0000_0000_0000_0100_0000; // 6
-		8'h37 : data_decoder = 27'b000_0000_0000_0000_0000_1000_0000; // 7
-		8'h38 : data_decoder = 27'b000_0000_0000_0000_0001_0000_0000; // 8
-		8'h39 : data_decoder = 27'b000_0000_0000_0000_0010_0000_0000; // 9
-		8'h61 : data_decoder = 27'b000_0000_0000_0000_0100_0000_0000; // a
-		8'h62 : data_decoder = 27'b000_0000_0000_0000_1000_0000_0000; // b
-		8'h63 : data_decoder = 27'b000_0000_0000_0001_0000_0000_0000; // c
-		8'h64 : data_decoder = 27'b000_0000_0000_0010_0000_0000_0000; // d
-		8'h65 : data_decoder = 27'b000_0000_0000_0100_0000_0000_0000; // e
-		8'h66 : data_decoder = 27'b000_0000_0000_1000_0000_0000_0000; // f
-		8'h67 : data_decoder = 27'b000_0000_0001_0000_0000_0000_0000; // g : go PC to address (run program)
-		8'h03 : data_decoder = 27'b000_0000_0010_0000_0000_0000_0000; // Ctri-c : quit,stop,finish
-		8'h77 : data_decoder = 27'b000_0000_0100_0000_0000_0000_0000; // w : write data memory
-		8'h72 : data_decoder = 27'b000_0000_1000_0000_0000_0000_0000; // r : read data memory and dump
-		8'h74 : data_decoder = 27'b000_0001_0000_0000_0000_0000_0000; // t : trushed memory and 0 clear
-		8'h73 : data_decoder = 27'b000_0010_0000_0000_0000_0000_0000; // s : set break point
-		8'h70 : data_decoder = 27'b000_0100_0000_0000_0000_0000_0000; // p : read IO
-		8'h69 : data_decoder = 27'b000_1000_0000_0000_0000_0000_0000; // i : write IO
-		8'h6a : data_decoder = 27'b001_0000_0000_0000_0000_0000_0000; // j : print PC
-		8'h7a : data_decoder = 27'b010_0000_0000_0000_0000_0000_0000; // z : unused
-		8'h0d : data_decoder = 27'b100_0000_0000_0000_0000_0000_0000; // CR : change to CRLF
-		default : data_decoder = 27'd0;
+		8'h30 : data_decoder = 29'b0_0000_0000_0000_0000_0000_0000_0001; // 0
+		8'h31 : data_decoder = 29'b0_0000_0000_0000_0000_0000_0000_0010; // 1
+		8'h32 : data_decoder = 29'b0_0000_0000_0000_0000_0000_0000_0100; // 2
+		8'h33 : data_decoder = 29'b0_0000_0000_0000_0000_0000_0000_1000; // 3
+		8'h34 : data_decoder = 29'b0_0000_0000_0000_0000_0000_0001_0000; // 4
+		8'h35 : data_decoder = 29'b0_0000_0000_0000_0000_0000_0010_0000; // 5
+		8'h36 : data_decoder = 29'b0_0000_0000_0000_0000_0000_0100_0000; // 6
+		8'h37 : data_decoder = 29'b0_0000_0000_0000_0000_0000_1000_0000; // 7
+		8'h38 : data_decoder = 29'b0_0000_0000_0000_0000_0001_0000_0000; // 8
+		8'h39 : data_decoder = 29'b0_0000_0000_0000_0000_0010_0000_0000; // 9
+		8'h61 : data_decoder = 29'b0_0000_0000_0000_0000_0100_0000_0000; // a
+		8'h62 : data_decoder = 29'b0_0000_0000_0000_0000_1000_0000_0000; // b
+		8'h63 : data_decoder = 29'b0_0000_0000_0000_0001_0000_0000_0000; // c
+		8'h64 : data_decoder = 29'b0_0000_0000_0000_0010_0000_0000_0000; // d
+		8'h65 : data_decoder = 29'b0_0000_0000_0000_0100_0000_0000_0000; // e
+		8'h66 : data_decoder = 29'b0_0000_0000_0000_1000_0000_0000_0000; // f
+		8'h67 : data_decoder = 29'b0_0000_0000_0001_0000_0000_0000_0000; // g : go PC to address (run program)
+		8'h03 : data_decoder = 29'b0_0000_0000_0010_0000_0000_0000_0000; // Ctri-c : quit,stop,finish
+		8'h77 : data_decoder = 29'b0_0000_0000_0100_0000_0000_0000_0000; // w : write data memory
+		8'h72 : data_decoder = 29'b0_0000_0000_1000_0000_0000_0000_0000; // r : read data memory and dump
+		8'h74 : data_decoder = 29'b0_0000_0001_0000_0000_0000_0000_0000; // t : trushed memory and 0 clear
+		8'h73 : data_decoder = 29'b0_0000_0010_0000_0000_0000_0000_0000; // s : set break point
+		8'h70 : data_decoder = 29'b0_0000_0100_0000_0000_0000_0000_0000; // p : read IO
+		8'h69 : data_decoder = 29'b0_0000_1000_0000_0000_0000_0000_0000; // i : write IO
+		8'h6a : data_decoder = 27'b0_0001_0000_0000_0000_0000_0000_0000; // j : print PC
+		8'h7a : data_decoder = 29'b0_0010_0000_0000_0000_0000_0000_0000; // z : unused
+		8'h6c : data_decoder = 29'b0_0100_0000_0000_0000_0000_0000_0000; // l : set read data break point
+		8'h6d : data_decoder = 29'b0_1000_0000_0000_0000_0000_0000_0000; // m : set write data break point
+		8'h0d : data_decoder = 29'b1_0000_0000_0000_0000_0000_0000_0000; // CR : change to CRLF
+		default : data_decoder = 29'd0;
 	endcase
 end
 endfunction
 
-wire [26:0] decode_bits = data_decoder( pdata );
+wire [28:0] decode_bits = data_decoder( pdata );
 
 function [3:0] bin_encoder;
 input [15:0] hot_code;
@@ -145,7 +150,9 @@ wire cmd_p = decode_bits[22] & data_en;
 wire cmd_i = decode_bits[23] & data_en;
 wire cmd_j = decode_bits[24] & data_en;
 wire cmd_z = decode_bits[25] & data_en;
-wire cmd_crlf = decode_bits[26] & data_en;
+wire cmd_l = decode_bits[26] & data_en;
+wire cmd_m = decode_bits[27] & data_en;
+wire cmd_crlf = decode_bits[28] & data_en;
 
 // command format
 // g : goto PC address ( run program until quit ) : format:  g <start addess>
@@ -158,6 +165,8 @@ wire cmd_crlf = decode_bits[26] & data_en;
 // i : write instruction memory                   : format:  i <start adderss> <data> ....<data> q
 // j : print current PC value                     : format:  j
 // z : flush D-cache                              : format:  z
+// l : data read stop address set                 : format:  l <data address>
+// m : data write stop address set                : format:  m <data address>
 // state machine
 
 reg word_valid;
@@ -184,8 +193,13 @@ wire [4:0] next_cmd_status;
 `define C_DCFLUSH 5'd16
 `define C_TSTARTN 5'd17
 `define C_TENDNUM 5'd18
+`define C_RDATABP 5'd19
+`define C_WDATABP 5'd20
 
 wire bpoint_assart;
+wire rdbpoint_assart;
+wire wdbpoint_assart;
+wire all_bpoint_assart = bpoint_assart | rdbpoint_assart | wdbpoint_assart;
 
 function [4:0] cmd_statemachine;
 input [4:0] cmd_status;
@@ -199,25 +213,29 @@ input cmd_p;
 input cmd_i;
 input cmd_j;
 input cmd_z;
+input cmd_l;
+input cmd_m;
 input word_valid;
 input dump_running;
 input trush_running;
-input bpoint_assart;
+input all_bpoint_assart;
 //input dcflush_running;
 
 begin
 	case(cmd_status)
 		`C_STAIDLE :
-			casez({cmd_j,cmd_g,cmd_w,cmd_r,cmd_t,cmd_s,cmd_p,cmd_i,cmd_z})
-				9'b1_????_???? : cmd_statemachine = `C_PCPRINT;
-				9'b0_1???_???? : cmd_statemachine = `C_GSETNUM;
-				9'b0_01??_???? : cmd_statemachine = `C_WADRNUM;
-				9'b0_001?_???? : cmd_statemachine = `C_RSTARTN;
-				9'b0_0001_???? : cmd_statemachine = `C_TSTARTN;
-				9'b0_0000_1??? : cmd_statemachine = `C_STOPRUN;
-				9'b0_0000_01?? : cmd_statemachine = `C_IRDSTAR;
-				9'b0_0000_001? : cmd_statemachine = `C_IWTADRN;
-				9'b0_0000_0001 : cmd_statemachine = `C_DCFLUSH;
+			casez({cmd_j,cmd_g,cmd_w,cmd_r,cmd_t,cmd_s,cmd_p,cmd_i,cmd_z,cmd_l,cmd_m})
+				11'b1??_????_???? : cmd_statemachine = `C_PCPRINT;
+				11'b01?_????_???? : cmd_statemachine = `C_GSETNUM;
+				11'b001_????_???? : cmd_statemachine = `C_WADRNUM;
+				11'b000_1???_???? : cmd_statemachine = `C_RSTARTN;
+				11'b000_01??_???? : cmd_statemachine = `C_TSTARTN;
+				11'b000_001?_???? : cmd_statemachine = `C_STOPRUN;
+				11'b000_0001_???? : cmd_statemachine = `C_IRDSTAR;
+				11'b000_0000_1??? : cmd_statemachine = `C_IWTADRN;
+				11'b000_0000_01?? : cmd_statemachine = `C_DCFLUSH;
+				11'b000_0000_001? : cmd_statemachine = `C_RDATABP;
+				11'b000_0000_0001 : cmd_statemachine = `C_WDATABP;
 				default   : cmd_statemachine = `C_STAIDLE;
 			endcase
 		`C_GSETNUM :
@@ -229,7 +247,7 @@ begin
 		`C_GOTONUM :
 			if (cmd_q)
 				cmd_statemachine = `C_STAIDLE;
-			else if (bpoint_assart)
+			else if (all_bpoint_assart)
 				cmd_statemachine = `C_STAIDLE;
 			else
 				cmd_statemachine = `C_GOTONUM;
@@ -324,6 +342,18 @@ begin
 				cmd_statemachine = `C_STAIDLE;
 			else
 				cmd_statemachine = `C_DCFLUSH;
+		`C_RDATABP :
+			casez({cmd_q,word_valid})
+				2'b1? : cmd_statemachine = `C_STAIDLE;
+				2'b01 : cmd_statemachine = `C_STAIDLE;
+				default : cmd_statemachine = `C_RDATABP;
+			endcase
+		`C_WDATABP :
+			casez({cmd_q,word_valid})
+				2'b1? : cmd_statemachine = `C_STAIDLE;
+				2'b01 : cmd_statemachine = `C_STAIDLE;
+				default : cmd_statemachine = `C_WDATABP;
+			endcase
 		default : cmd_statemachine = `C_STAIDLE;
 	endcase
 end
@@ -341,10 +371,12 @@ assign next_cmd_status = cmd_statemachine(
 							cmd_i,
 							cmd_j,
 							cmd_z,
+							cmd_l,
+							cmd_m,
 							word_valid,
 							dump_running,
 							trush_running,
-							bpoint_assart
+							all_bpoint_assart
 							);
 
 always @ (posedge clk or negedge rst_n) begin
@@ -374,6 +406,8 @@ wire scmd_setdat = ( cmd_status == `C_STOPRUN );
 wire tcmd_intrsh = ( cmd_status == `C_TRUSHDT );
 wire tcmd_setsta = ( cmd_status == `C_TSTARTN );
 wire tcmd_setend = ( cmd_status == `C_TENDNUM );
+wire lcmd_setdat = ( cmd_status == `C_RDATABP );
+wire mcmd_setdat = ( cmd_status == `C_WDATABP );
 
 wire g_crlf = ( cmd_status == `C_GSETNUM ) & ( next_cmd_status == `C_GOTONUM );
 wire r_crlf = ( cmd_status == `C_RENDNUM ) & ( next_cmd_status == `C_RDUMPDT );
@@ -382,6 +416,8 @@ wire p_crlf = ( cmd_status == `C_IRDENDN ) & ( next_cmd_status == `C_IRDDUMP );
 wire i_crlf = ( cmd_status == `C_IWTADRN ) & ( next_cmd_status == `C_IWTDATA );
 wire s_crlf = ( cmd_status == `C_STOPRUN ) & ( next_cmd_status == `C_STAIDLE );
 wire t_crlf = ( cmd_status == `C_TENDNUM ) & ( next_cmd_status == `C_TRUSHDT );
+wire l_crlf = ( cmd_status == `C_RDATABP ) & ( next_cmd_status == `C_STAIDLE );
+wire m_crlf = ( cmd_status == `C_WDATABP ) & ( next_cmd_status == `C_STAIDLE );
 assign pc_print_sel = (cmd_status == `C_PCPRINT);
 assign pc_print = idle_status & (next_cmd_status == `C_PCPRINT);
 
@@ -389,13 +425,13 @@ assign pc_print = idle_status & (next_cmd_status == `C_PCPRINT);
 wire cmd_j_crlf = cmd_j & ~cpu_run_state;
 wire cmd_z_crlf = cmd_z & ~cpu_run_state;
 
-assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | t_crlf | s_crlf | p_crlf | i_crlf | cmd_crlf | cmd_j_crlf | cmd_z_crlf;
+assign crlf_in = g_crlf | cmd_q | r_crlf | w_crlf | t_crlf | s_crlf | p_crlf | i_crlf | cmd_crlf | cmd_j_crlf | cmd_z_crlf | l_crlf | m_crlf;
 
 // data setter
 
 wire bin_data_set = data_en & num_char & (gcmd_setnum | wcmd_setnum | wcmd_setdat | rcmd_setsta | rcmd_setend
                                           | pcmd_setsta | pcmd_setend | icmd_setnum | icmd_setdat | scmd_setdat
-                                          | tcmd_setsta | tcmd_setend);
+                                          | tcmd_setsta | tcmd_setend | lcmd_setdat | mcmd_setdat);
 
 wire word_start =  idle_status & (( next_cmd_status == `C_GSETNUM )|( next_cmd_status == `C_WADRNUM )|
 								  ( next_cmd_status == `C_RSTARTN )|( next_cmd_status == `C_IRDSTAR )|
@@ -454,6 +490,9 @@ end
 
 assign uart_data = data_word_out;
 
+
+// program break point
+
 reg [31:2] bpoint;
 reg bpoint_en;
 
@@ -469,6 +508,42 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 assign bpoint_assart = (bpoint == pc_data[31:2]) & bpoint_en & cpu_run_state;
+
+// data read break point
+
+reg [31:2] rdbpoint;
+reg rdbpoint_en;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n) begin
+		rdbpoint <= 32'd0;
+		rdbpoint_en <= 1'b0;
+	end
+	else if (lcmd_setdat & word_valid) begin
+		rdbpoint <= data_word_out[31:2];
+		rdbpoint_en <= ~data_word_out[0];
+	end
+end
+
+assign rdbpoint_assart = (rdbpoint == rd_data_ma[31:2]) & cmd_ld_ma & rdbpoint_en & cpu_run_state;
+
+// data write break point
+
+reg [31:2] wdbpoint;
+reg wdbpoint_en;
+
+always @ (posedge clk or negedge rst_n) begin
+	if (~rst_n) begin
+		wdbpoint <= 32'd0;
+		wdbpoint_en <= 1'b0;
+	end
+	else if (mcmd_setdat & word_valid) begin
+		wdbpoint <= data_word_out[31:2];
+		wdbpoint_en <= ~data_word_out[0];
+	end
+end
+
+assign wdbpoint_assart = (wdbpoint == rd_data_ma[31:2]) & cmd_st_ma & wdbpoint_en & cpu_run_state;
 
 /*
 always @ (posedge clk or negedge rst_n) begin
@@ -503,7 +578,7 @@ assign read_stop = rcmd_dumpdt & cmd_q;
 assign start_trush = tcmd_setend & word_valid;
 assign stop_trush = tcmd_intrsh & cmd_q;
 //assign start_step = 1'b0;// idle_status & cmd_s;
-assign quit_cmd = cmd_q | bpoint_assart;
+assign quit_cmd = cmd_q | all_bpoint_assart;
 assign pgm_start_set = pcmd_setsta & word_valid;
 assign pgm_end_set = pcmd_setend & word_valid;
 assign pgm_stop = pcmd_dumpdt & cmd_q;

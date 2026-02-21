@@ -70,11 +70,42 @@ always @ (posedge clk or negedge rst_n) begin
 end
 
 // UART term reset values
-// these values should be changed for tapeout
+// for tiny tapeout
+
+// clk 1MHz - 4MHz, 8MHz, 4800 - 19200bps, 38400bps
+//`define TERM_0 16'd209
+// test1 5MHz, 10MHz  19200bps, 38400bps
+//`define TERM_1 16'd261
+// clk:3MHz,6MHz,9MHz 19200bps, 38400bps, 57600bps
+//`define TERM_2 16'd156
+// clk:7MHz, 38400bps
+//`define TERM_3 16'd184
+
+
+// for fpga *** please comment out for tiny tapeout ***
+
 // clk 100MHz, 921600bps
 `define TERM_0 16'd109
 // clk 50MHz, 921600bps
 `define TERM_1 16'd54
+// test1 6MHz 38400bps
+//`define TERM_1 16'd156
+// test2 5MHz 19200bps
+//`define TERM_1 16'd261
+// test3 7MHz 384000bps
+//`define TERM_1 16'd184
+// test4 8MHz 384000bps
+//`define TERM_1 16'd209
+// test5 16MHz 576000bps
+//`define TERM_1 16'd278
+// test6 17MHz 576000bps
+//`define TERM_1 16'd295
+// test7 14MHz 576000bps
+//`define TERM_1 16'd243
+// test8 20MHz 576000bps
+//`define TERM_1 16'd348
+// test10 13MHz 576000bps
+//`define TERM_1 16'd226
 // clk:50MHz, 9600bps
 `define TERM_2 16'd5208
 // clk:48MHz, 9600bps

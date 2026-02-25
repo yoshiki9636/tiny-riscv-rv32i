@@ -98,7 +98,7 @@ begin
 		8'h73 : data_decoder = 29'b0_0000_0010_0000_0000_0000_0000_0000; // s : set break point
 		8'h70 : data_decoder = 29'b0_0000_0100_0000_0000_0000_0000_0000; // p : read IO
 		8'h69 : data_decoder = 29'b0_0000_1000_0000_0000_0000_0000_0000; // i : write IO
-		8'h6a : data_decoder = 27'b0_0001_0000_0000_0000_0000_0000_0000; // j : print PC
+		8'h6a : data_decoder = 29'b0_0001_0000_0000_0000_0000_0000_0000; // j : print PC
 		8'h7a : data_decoder = 29'b0_0010_0000_0000_0000_0000_0000_0000; // z : unused
 		8'h6c : data_decoder = 29'b0_0100_0000_0000_0000_0000_0000_0000; // l : set read data break point
 		8'h6d : data_decoder = 29'b0_1000_0000_0000_0000_0000_0000_0000; // m : set write data break point

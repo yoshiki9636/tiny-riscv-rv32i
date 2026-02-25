@@ -608,7 +608,7 @@ always @ (posedge clk or negedge rst_n) begin
 		 sck_div <= dma_io_wdata[9:0];
 end
 
-reg [8:0] dbg_2div;
+reg [7:0] dbg_2div;
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)

@@ -55,6 +55,7 @@ module uart_top
 	input cmd_ld_ma,
 	input cmd_st_ma,
 	input [31:0] rd_data_ma,
+	output [2:0] dbg_bpoint,
 	
 	output cpu_start,
 	input cpu_run_state,
@@ -174,6 +175,7 @@ uart_rec_char uart_rec_char (
 	.cmd_ld_ma(cmd_ld_ma),
 	.cmd_st_ma(cmd_st_ma),
 	.uart_data(uart_data),
+	.dbg_bpoint(dbg_bpoint),
 	.cpu_start(cpu_start),
 	.cpu_run_state(cpu_run_state),
 	.write_address_set(write_address_set),

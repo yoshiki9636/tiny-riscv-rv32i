@@ -149,6 +149,10 @@ wire [1:0] spi_csn; // output
 wire spi_mosi; // output
 wire [2:0] rgb_led_org;
 
+// break point debug singal
+wire [2:0] dbg_bpoint_en;
+wire [2:0] dbg_bpoint;
+
 // spi IO selector
 assign rgb_led = spi_select_io ? { spi_mosi, spi_csn[0], spi_sck } : rgb_led_org;
 wire spi_miso = init_qspicmd; // input
@@ -293,6 +297,7 @@ uart_top uart_top (
 	.cmd_ld_ma(cmd_ld_ma),
 	.cmd_st_ma(cmd_st_ma),
 	.rd_data_ma(rd_data_ma),
+	.dbg_bpoint(dbg_bpoint),
 	.cpu_start(cpu_start),
 	.cpu_run_state(cpu_run_state),
 	.quit_cmd(quit_cmd),
@@ -315,6 +320,7 @@ qspi_if qspi_if (
 	//.sio_i(sio_i),
 	//.sio_o(sio_o),
 	//.sio_en(sio_en),
+	.dbg_bpoint_en(dbg_bpoint_en),
 	.init_latency(init_latency),
 	.init_qspicmd(init_qspicmd),
 	.read_req(read_req),
@@ -349,6 +355,9 @@ io_led io_led (
 	.dma_io_rdata_in(dma_io_rdata_in_2),
 	.dma_io_rdata(dma_io_rdata_in_3),
 	.rgb_led(rgb_led_org),
+	.dbg_bpoint_en(dbg_bpoint_en),
+	.dbg_bpoint(dbg_bpoint),
+	.cpu_start(cpu_start),
 	.init_uart(init_uart),
 	.init_latency(init_latency),
 	.init_cpu_start(init_cpu_start),

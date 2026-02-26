@@ -21,6 +21,9 @@ module io_led(
     input [31:0] dma_io_rdata_in,
     output [31:0] dma_io_rdata,
 	output [2:0] rgb_led,
+	input [2:0] dbg_bpoint_en,
+	input [2:0] dbg_bpoint,
+	input cpu_start,
 	// for reading input
 	input [1:0] init_uart,
 	input [1:0] init_latency,
@@ -71,10 +74,29 @@ always @ (posedge clk or negedge rst_n) begin
         re_led_value_dly <= re_led_value ;
 end
 
-assign rgb_led = led_value[2:0];
+assign rgb_led[0] = led_value[0];
+assign rgb_led[1] = led_value[1];
+
+wire dbg_bpen = |dbg_bpoint_en;
+wire dbg_trgsig2 = dbg_bpoint_en[2] & dbg_bpoint[2];
+wire dbg_trgsig1 = dbg_bpoint_en[1] & dbg_bpoint[1];
+wire dbg_trgsig0 = dbg_bpoint_en[0] & dbg_bpoint[0];
+wire dbg_trgsig = dbg_trgsig2 | dbg_trgsig1 | dbg_trgsig0;
+// sampler : clear by start signal
+reg dbg_smpl_trgsig;
+
+always @ (posedge clk or negedge rst_n) begin
+    if (~rst_n)
+		dbg_smpl_trgsig <= 1'b0;
+	else if ( cpu_start )
+		dbg_smpl_trgsig <= 1'b0;
+	else if ( dbg_trgsig )
+		dbg_smpl_trgsig <= 1'b1;
+end
+
+assign rgb_led[2] = dbg_bpen ? dbg_smpl_trgsig : led_value[2];
 
 // gpio part
-
 
 reg [3:0] gpio_out_value;
 reg [3:0] gpio_en_value;

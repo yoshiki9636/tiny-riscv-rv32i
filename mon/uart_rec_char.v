@@ -24,6 +24,7 @@ module uart_rec_char (
 	input cmd_ld_ma,
 	input cmd_st_ma,
 	output [31:0] uart_data,
+	output [2:0] dbg_bpoint,
 	output reg cpu_start,
 	input cpu_run_state,
 	output write_address_set,
@@ -507,7 +508,8 @@ always @ (posedge clk or negedge rst_n) begin
 	end
 end
 
-assign bpoint_assart = (bpoint == pc_data[31:2]) & bpoint_en & cpu_run_state;
+wire bpoint_assart_en = (bpoint == pc_data[31:2]) & bpoint_en;
+assign bpoint_assart = bpoint_assart_en & cpu_run_state;
 
 // data read break point
 
@@ -525,7 +527,8 @@ always @ (posedge clk or negedge rst_n) begin
 	end
 end
 
-assign rdbpoint_assart = (rdbpoint == rd_data_ma[31:2]) & cmd_ld_ma & rdbpoint_en & cpu_run_state;
+wire rdbpoint_assart_en = (rdbpoint == rd_data_ma[31:2]) & cmd_ld_ma & rdbpoint_en;
+assign rdbpoint_assart = rdbpoint_assart_en & cpu_run_state;
 
 // data write break point
 
@@ -543,7 +546,10 @@ always @ (posedge clk or negedge rst_n) begin
 	end
 end
 
-assign wdbpoint_assart = (wdbpoint == rd_data_ma[31:2]) & cmd_st_ma & wdbpoint_en & cpu_run_state;
+wire wdbpoint_assart_en = (wdbpoint == rd_data_ma[31:2]) & cmd_st_ma & wdbpoint_en;
+assign wdbpoint_assart = wdbpoint_assart_en & cpu_run_state;
+
+assign dbg_bpoint = { wdbpoint_assart_en, rdbpoint_assart_en, bpoint_assart_en };
 
 /*
 always @ (posedge clk or negedge rst_n) begin

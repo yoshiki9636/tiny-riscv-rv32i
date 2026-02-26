@@ -18,6 +18,7 @@ module qspi_if (
 	//output [3:0] sio_o,
 	//output sio_en,
 
+	output [2:0] dbg_bpoint_en,
 	input [1:0] init_latency,
 	input init_qspicmd,
 
@@ -623,6 +624,7 @@ assign dbg_2div_read_half_end = dbg_2div[1];
 assign dbg_reg_2div_cec_write = dbg_2div[2];
 assign dbg_reg_2div_cec_read = dbg_2div[3];
 assign dbg_2div_trt = dbg_2div[4];
+assign dbg_bpoint_en = dbg_2div[7:5];
 
 always @ (posedge clk or negedge rst_n) begin
 	if (~rst_n)

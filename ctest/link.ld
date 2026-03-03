@@ -3,41 +3,66 @@ ENTRY(_start)
 
 MEMORY
 {
-stack : ORIGIN = 0x00040000, LENGTH = 1K
+    RAM (rwx)  : ORIGIN = 0x00001000, LENGTH = 0x00f00000
 }
 
-_min_stack = 0x004000;
-_stack_len = LENGTH(stack);
-_stack_start = ORIGIN(stack) + LENGTH(stack);
+_stack_len = 0x010000;
+_min_heap_size = 0x200000;
 
 SECTIONS
 {
   . = 0x00001000;
-  .text.init : { *(.text.init) }
-  . = ALIGN(0x10);
-  .text : { *(.text) *(.rodata .rodata.*) }
-  . = ALIGN(0x10);
-  .data : { *(.data) }
-
+  .text.init : {
+	*(.text.init)
+    _init_end = .;
+  } > RAM 
+  .text : {
+    _text_start = .;
+    *(.text)
+    _text_end = .;
+  } > RAM 
+  .rodata : {
+    _rodata_start = .;
+    *(.rodata)
+    *(.rodata.*)
+    _rodata_end = .;
+  } > RAM
+  .srodata : {
+    _rodata_start = .;
+    *(.srodata.*)
+    *(.srodata)
+    _rodata_end = .;
+  } > RAM
+  .data : {
+    _data_start = .;
+    __global_pointer$ = . + 0x800;
+    *( .data)
+    _data_end = .;
+  } > RAM 
+  
   .sbss : {
     . = ALIGN(16);
-    PROVIDE(_bss_start = .);
+    _bss_start = .;
     *(.sbss .sbss.*)
   }
-
   .bss :{
-    *(.bss .bss.*)
-    . = ALIGN(16);
-    PROVIDE(_bss_end = .);
-  }
+    *(.bss)
+    _bss_end = .;
+  } > RAM 
 
-  .stack (NOLOAD): {
-	. = ALIGN(16);
-	. = . * _min_stack;
-	. = ALIGN(16);
- 	stack = . ;
- 	_stack = . ;
-	}
+  .heap :{
+    PROVIDE(_heap_start = .);
+	. = . + _min_heap_size;
+    PROVIDE(_heap_end = .);
+  } > RAM 
+
+  .stack :{
+    PROVIDE(_stack_start = .);
+    . = . + _stack_len;
+    PROVIDE(_stack_end = .);
+    stack = . ;
+    _stack = . ;
+  } > RAM 
 
   _end = .;
 }

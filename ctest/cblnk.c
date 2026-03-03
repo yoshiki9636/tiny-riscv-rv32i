@@ -8,8 +8,8 @@ int main() {
     while(1) {
         timer = 0;
 	timer2 = 0;
-        while(timer2 < 90) {
-            while(timer < 100) {
+        while(timer2 < 100) {
+            while(timer < 1000) {
                 timer++;
 	    }
             timer2++;

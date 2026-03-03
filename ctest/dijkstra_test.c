@@ -12,6 +12,9 @@
 #define START_NODE 0
 #define END_NODE 3
 
+#include "add_for_cmpl_all.c"
+#include "add_for_cmpl2.c"
+
 typedef struct _node_base t_NODE_BASE;
 typedef struct _edge_base t_EDGE_BASE;
 typedef struct _edge_list t_EDGE_LIST;
@@ -43,28 +46,6 @@ struct _node_list {
     t_NODE_LIST* next;
 };
 
-int __errno;
-
-char* heap_end = (char*)0x30000;
-//void _sbrk_r(void) {}
-char* _sbrk(int incr) {
- char* heap_low = (char*)0x20000;
- char* heap_top = (char*)0x30000;
- char *prev_heap_end;
-
- if (heap_end == 0) {
-  heap_end = heap_low;
- }
- prev_heap_end = heap_end;
-
- if (heap_end + incr > heap_top) {
-  /* Heap and stack collision */
-  return (char *)0;
- }
-
- heap_end += incr;
- return (char*) prev_heap_end;
-}
 
 int start_dijkstra(int start_node, int end_node, int num_node, int num_edge, t_NODE_BASE* node_info, t_EDGE_BASE* edge_info);
 int marking_start_node(int cur_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_info);
@@ -100,7 +81,7 @@ int main() {
 
 	// print initial status
 	print_edge_info(NUM_EDGE, edge_info);
-	print_node_info(NUM_NODE, node_info);
+	//print_node_info(NUM_NODE, node_info);
 
 	// do dijkstra
 	start_dijkstra(START_NODE, END_NODE, NUM_NODE, NUM_EDGE, node_info, edge_info); 
@@ -342,108 +323,4 @@ int print_node_info(int num_node, t_NODE_BASE* node_info) {
 	return 0;
 }
 
-/*
-static void clearbss(void)
-{
-    unsigned int *p;
-    extern unsigned int _bss_start[];
-    extern unsigned int _bss_end[];
-
-    for (p = _bss_start; p < _bss_end; p++) {
-        *p = 0;
-    }
-}
-*/
-
-void uprint( char* buf, int length, int ret ) {
-    unsigned int* led = (unsigned int*)0xc000fe00;
-    unsigned int* uart_out = (unsigned int*)0xc000fc00;
-    unsigned int* uart_status = (unsigned int*)0xc000fc04;
-
-	//unsigned int flg = 1;
-	//while(flg == 1) {
-		//flg = *uart_status;
-	//}
-	//*uart_out = 0x41;
-
-	for (int i = 0; i < length + ret; i++) {
-		unsigned int flg = 1;
-		while(flg == 1) {
-			flg = *uart_status;
-		}
-        *uart_out = ((i == length+1)&&(ret == 2)) ? 0x0a :
-                    ((i == length)&&(ret == 1)) ? 0x20 :
-                    ((i == length)&&(ret == 2)) ? 0x0d : buf[i];
-		*led = i;
-	}
-/*
-	char cbuf[64];
-	for ( int i = 0; i<length; i++ ) {
-		cbuf[i] = buf[i];
-	}
-	cbuf[length] = 0x0;
-	printf("%s",cbuf);
-	if ( ret == 2) { printf("\n"); }
-    else if ( ret == 1) { printf(" "); }
-*/
-}
-
-void pass() {
-    unsigned int* led = (unsigned int*)0xc000fe00;
-    unsigned int val;
-    unsigned int timer,timer2;
-    val = 0;
-    while(1) {
-		wait();
-		val++;
-		*led = val & 0x7777;
-    }
-}
-
-void wait() {
-    unsigned int timer,timer2;
-    timer = 0;
-	timer2 = 0;
-    while(timer2 < LP2) {
-        while(timer < LP) {
-            timer++;
-    	}
-        timer2++;
-	}
-}
-
-int int_print( char* cbuf, int value, int type ) {
-	// type 0 : digit  1:hex
-	unsigned char buf[32];
-	int ofs = 0;
-	int cntr = 0;
-	if (value == 0) {
-		cbuf[0] = 0x30;
-		ofs = 1;
-	}
-	else if (type == 0) { // int
-		if (value < 0) {
-			cbuf[ofs++] = 0x2d;
-			value = -value;
-		}
-		while(value > 0) {
-			buf[cntr++] = (unsigned char)(value % 10);
-			value = value / 10;
-		}
-		for(int i = cntr - 1; i >= 0; i--) {	
-			cbuf[ofs++] = buf[i] + 0x30;
-		}	
-	}
-	else { //unsinged int
-		unsigned int uvalue = (unsigned int)value;
-		while(uvalue > 0) {
-			buf[cntr++] = (unsigned char)(uvalue % 10);
-			uvalue = uvalue / 10;
-		}
-		for(int i = cntr - 1; i >= 0; i--) {	
-			cbuf[ofs++] = buf[i] + 0x30;
-		}	
-	}
-	return ofs;	
-}
 

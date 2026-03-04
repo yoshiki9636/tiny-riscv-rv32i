@@ -28,10 +28,10 @@ SECTIONS
     _rodata_end = .;
   } > RAM
   .srodata : {
-    _rodata_start = .;
+    _srodata_start = .;
     *(.srodata.*)
     *(.srodata)
-    _rodata_end = .;
+    _srodata_end = .;
   } > RAM
   .data : {
     _data_start = .;
@@ -42,10 +42,11 @@ SECTIONS
   
   .sbss : {
     . = ALIGN(16);
-    _bss_start = .;
     *(.sbss .sbss.*)
   }
   .bss :{
+    . = ALIGN(16);
+    _bss_start = .;
     *(.bss)
     _bss_end = .;
   } > RAM 

@@ -16,11 +16,6 @@ double weight( double x, double y, double u, double v);
 int dct(double* indata, double* outdata);
 int idct(double* indata, double* outdata, int using);
 int matrix_print( double* mat, int x, int y);
-int double_print( char* cbuf, double value, int digit );
-int int_print( char* cbuf, int value, int type );
-void uprint( char* buf, int length, int ret );
-void pass();
-void wait();
 
 int main() {
 	char cbuf[64];

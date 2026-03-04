@@ -46,7 +46,6 @@ struct _node_list {
     t_NODE_LIST* next;
 };
 
-int __errno;
 
 int start_dijkstra(int start_node, int end_node, int num_node, int num_edge, t_NODE_BASE* node_info, t_EDGE_BASE* edge_info);
 int marking_start_node(int cur_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_info);
@@ -55,10 +54,6 @@ int node_not_finished(int num_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_in
 int init_graph(int num_node, int num_edge, int* edge_data, t_NODE_BASE* node_info, t_EDGE_BASE* edge_info);
 int print_edge_info(int num_edge, t_EDGE_BASE* edge_info);
 int print_node_info(int num_node, t_NODE_BASE* node_info);
-int int_print( char* cbuf, int value, int type );
-//static void clearbss(void);
-void pass();
-void wait();
 
 int edge_init_data[NUM_EDGE*3] = {
         0, 1, 4,
@@ -74,43 +69,33 @@ int main() {
 	t_EDGE_BASE edge_info[NUM_EDGE];
 	//t_NODE_BASE start_node;
 	//t_NODE_BASE end_node;
-    unsigned int* led = (unsigned int*)0xc000fe00;
-	*led = 7;
 
 	//clearbss();
 
 	init_graph(NUM_NODE, NUM_EDGE, edge_init_data, node_info, edge_info);
 
-	*led = 6;
 	// print initial status
-	//print_edge_info(NUM_EDGE, edge_info);
+	print_edge_info(NUM_EDGE, edge_info);
 	//print_node_info(NUM_NODE, node_info);
 
 	// do dijkstra
 	start_dijkstra(START_NODE, END_NODE, NUM_NODE, NUM_EDGE, node_info, edge_info); 
-	*led = 5;
 
 	// print finsal status
 	print_node_info(NUM_NODE, node_info);
 
-	*led = 2;
 	// print result
-	printf( "distance = %d\n",node_info[END_NODE].cur_dist );
-	//uprint( "distance = ", 11, 0 );
-	//int length = int_print( cbuf, node_info[END_NODE].cur_dist, 0 );
-	//uprint( cbuf, length, 2 );
-	printf( "route = " );
-	//uprint( "route = ", 8, 0 );
+	uprint( "distance = ", 11, 0 );
+	int length = int_print( cbuf, node_info[END_NODE].cur_dist, 0 );
+	uprint( cbuf, length, 2 );
+	uprint( "route = ", 8, 0 );
 	t_NODE_LIST* route_node = node_info[END_NODE].cur_route;
-	*led = 1;
 	while ( route_node != NULL ) {
-		//int length = int_print( cbuf, route_node->na, 0 );
-		//uprint( cbuf, length, 1 );
-		printf( "%d ", route_node->na );
+		int length = int_print( cbuf, route_node->na, 0 );
+		uprint( cbuf, length, 1 );
 		route_node = route_node->next;
 	}
-	printf( "\n");
-	//uprint( " ", 1, 2 );
+	uprint( " ", 1, 2 );
 	
 	pass();
 	return 0;
@@ -120,11 +105,11 @@ int node_not_finished(int num_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_in
 	char cbuf[64];
 	int j = -1;
 	for (int i = 0; i < num_node; i++) {
-		//uprint( "dbg ", 4, 0 );
-		//int length = int_print( cbuf, i, 0 );
-		//uprint( cbuf, length, 1 );
-		//length = int_print( cbuf, node_info[i].chk_flg, 0 );
-		//uprint( cbuf, length, 2 );
+		uprint( "dbg ", 4, 0 );
+		int length = int_print( cbuf, i, 0 );
+		uprint( cbuf, length, 1 );
+		length = int_print( cbuf, node_info[i].chk_flg, 0 );
+		uprint( cbuf, length, 2 );
 		if ( node_info[i].chk_flg == 0) {
 			int flg = 0;
 			t_EDGE_LIST* edge = node_info[i].edges;
@@ -142,9 +127,9 @@ int node_not_finished(int num_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_in
 			}
 			if ( flg == 1 ) {
 				j = i;
-				//uprint( "dbg2 ", 5, 0 );
-				//int length = int_print( cbuf, j, 0 );
-				//uprint( cbuf, length, 2 );
+				uprint( "dbg2 ", 5, 0 );
+				int length = int_print( cbuf, j, 0 );
+				uprint( cbuf, length, 2 );
 				//break;
 				return i;
 			}
@@ -167,9 +152,8 @@ int marking_next_node(int cur_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_in
 	t_EDGE_LIST* edge =  node_info[cur_node].edges;
 	while ( edge != NULL ) {
 		int next_node = (edge_info[edge->ea].na == cur_node) ? edge_info[edge->ea].nb : edge_info[edge->ea].na;
-		//int length = int_print( cbuf, next_node, 0 );
-		//uprint( cbuf, length, 2 );
-		printf( "%d\n", next_node );
+		int length = int_print( cbuf, next_node, 0 );
+		uprint( cbuf, length, 2 );
 		if (node_info[next_node].chk_flg == 1) {
 			// update cur_node 
 			int distance = node_info[next_node].cur_dist + edge_info[edge->ea].dist;
@@ -190,9 +174,8 @@ int marking_next_node(int cur_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_in
 	edge =  node_info[cur_node].edges;
 	while ( edge != NULL ) {
 		int next_node = (edge_info[edge->ea].na == cur_node) ? edge_info[edge->ea].nb : edge_info[edge->ea].na;
-		//int length = int_print( cbuf, next_node, 0 );
-		//uprint( cbuf, length, 2 );
-		printf( "%d\n", next_node );
+		int length = int_print( cbuf, next_node, 0 );
+		uprint( cbuf, length, 2 );
 		if (node_info[next_node].chk_flg == 1) {
 			int distance = node_info[cur_node].cur_dist + edge_info[edge->ea].dist;
 			if (distance < node_info[next_node].cur_dist) {
@@ -214,29 +197,22 @@ int marking_next_node(int cur_node, t_NODE_BASE* node_info, t_EDGE_BASE* edge_in
 
 int start_dijkstra(int start_node, int end_node, int num_node, int num_edge, t_NODE_BASE* node_info, t_EDGE_BASE* edge_info) {
 	char cbuf[64];
-    unsigned int* led = (unsigned int*)0xc000fe00;
 
 	// 1st marking 
 	marking_start_node(start_node, node_info, edge_info);
 
-	*led = 5;
 	int cur_node = node_not_finished(num_node, node_info, edge_info);
 	//cur_node = 1;
-	//uprint( "dbg3 = ", 7, 0 );
-	//int length = int_print( cbuf, cur_node, 0 );
-	//uprint( cbuf, length, 2 );
-	//printf( "dbg3 = %d\n", cur_node );
+	uprint( "dbg3 = ", 7, 0 );
+	int length = int_print( cbuf, cur_node, 0 );
+	uprint( cbuf, length, 2 );
 	while ( cur_node != -1 ) {
-		//uprint( "current node = ", 15, 0 );
-		//int length = int_print( cbuf, cur_node, 0 );
-		//uprint( cbuf, length, 2 );
-
-		//printf( "current node = %d\n", cur_node );
+		uprint( "current node = ", 15, 0 );
+		int length = int_print( cbuf, cur_node, 0 );
+		uprint( cbuf, length, 2 );
 
 		// marking
-	*led = 4;
 		marking_next_node(cur_node, node_info, edge_info);
-	*led = 3;
 		cur_node = node_not_finished(num_node, node_info, edge_info);
 		//cur_node = (cur_node == -1) ? -1 : cur_node - 1;
 	}
@@ -277,19 +253,18 @@ int init_graph(int num_node, int num_edge, int* edge_data, t_NODE_BASE* node_inf
 int print_edge_info(int num_edge, t_EDGE_BASE* edge_info) {
 	char cbuf[64];
 	for (int i = 0; i < num_edge; i++) {
-		//uprint( "edge [ ", 7, 0 );
-		//int length = int_print( cbuf, i, 0 );
-		//uprint( cbuf, length, 0 );
-		//uprint( "] : between ", 12, 0 );
-		//length = int_print( cbuf, edge_info[i].na, 0 );
-		//uprint( cbuf, length, 0 );
-		//uprint( " : ", 3, 0 );
-		//length = int_print( cbuf, edge_info[i].nb, 0 );
-		//uprint( cbuf, length, 0 );
-		//uprint( " : dist = ", 10, 0 );
-		//length = int_print( cbuf, edge_info[i].dist, 0 );
-		//uprint( cbuf, length, 2 );
-		printf( "edge [ %d ] : between %d : %d dist = %d\n", i,  edge_info[i].na, edge_info[i].nb, edge_info[i].dist );
+		uprint( "edge [ ", 7, 0 );
+		int length = int_print( cbuf, i, 0 );
+		uprint( cbuf, length, 0 );
+		uprint( "] : between ", 12, 0 );
+		length = int_print( cbuf, edge_info[i].na, 0 );
+		uprint( cbuf, length, 0 );
+		uprint( " : ", 3, 0 );
+		length = int_print( cbuf, edge_info[i].nb, 0 );
+		uprint( cbuf, length, 0 );
+		uprint( " : dist = ", 10, 0 );
+		length = int_print( cbuf, edge_info[i].dist, 0 );
+		uprint( cbuf, length, 2 );
 	}
 	return 0;
 }
@@ -297,54 +272,47 @@ int print_edge_info(int num_edge, t_EDGE_BASE* edge_info) {
 int print_node_info(int num_node, t_NODE_BASE* node_info) {
 	char cbuf[64];
 	for (int i = 0; i < num_node; i++) {
-		//uprint( "node [ ", 7, 0 );
-		//int length = int_print( cbuf, i, 0 );
-		//uprint( cbuf, length, 0 );
-		//uprint( "] : node_num = ", 15, 0 );
-		//length = int_print( cbuf, node_info[i].na, 0 );
-		//uprint( cbuf, length, 0 );
-		//uprint( " : num_edge = ", 14, 0 );
-		//length = int_print( cbuf, node_info[i].num_e, 0 );
-		//uprint( cbuf, length, 0 );
-		//uprint( " : cur_dist = ", 14, 0 );
-		//length = int_print( cbuf, node_info[i].cur_dist, 0 );
-		//uprint( cbuf, length, 2 );
-		//uprint( "edges = ", 8, 0 );
-		printf( "node [ %d ] : node_num = %d : num_edge = %d : cur_dist = %d\n", i, node_info[i].na, node_info[i].num_e, node_info[i].cur_dist );
+		uprint( "node [ ", 7, 0 );
+		int length = int_print( cbuf, i, 0 );
+		uprint( cbuf, length, 0 );
+		uprint( "] : node_num = ", 15, 0 );
+		length = int_print( cbuf, node_info[i].na, 0 );
+		uprint( cbuf, length, 0 );
+		uprint( " : num_edge = ", 14, 0 );
+		length = int_print( cbuf, node_info[i].num_e, 0 );
+		uprint( cbuf, length, 0 );
+		uprint( " : cur_dist = ", 14, 0 );
+		length = int_print( cbuf, node_info[i].cur_dist, 0 );
+		uprint( cbuf, length, 2 );
+		uprint( "edges = ", 8, 0 );
 		t_EDGE_LIST* tmp_entry = node_info[i].edges;
 		while (tmp_entry != NULL) {
-			//length = int_print( cbuf, tmp_entry->ea, 0 );
-			//uprint( cbuf, length, 0 );
+			length = int_print( cbuf, tmp_entry->ea, 0 );
+			uprint( cbuf, length, 0 );
 			if (tmp_entry->next  == NULL) {
-				//uprint( " ", 1, 2 );
-				printf("%d\n",  tmp_entry->ea);
+				uprint( " ", 1, 2 );
 				break;
 			}
 			else {
-				//uprint( ", ", 2, 0 );
-				printf("%d ",  tmp_entry->ea);
+				uprint( ", ", 2, 0 );
 				tmp_entry = tmp_entry->next;
 			}
 		}
-		//uprint( "cur_route = ", 12, 0 );
-		printf( "cur_route = ");
+		uprint( "cur_route = ", 12, 0 );
 		t_NODE_LIST* tmp_node = node_info[i].cur_route;
 		while (tmp_node != NULL) {
-			//length = int_print( cbuf, tmp_node->na, 0 );
-			//uprint( cbuf, length, 0 );
+			length = int_print( cbuf, tmp_node->na, 0 );
+			uprint( cbuf, length, 0 );
 			if (tmp_node->next  == NULL) {
-				printf("%d\n",  tmp_node->na);
-				//uprint( " ", 1, 2 );
+				uprint( " ", 1, 2 );
 				break;
 			}
 			else {
-				printf("%d ",  tmp_node->na);
-				//uprint( ", ", 2, 0 );
+				uprint( ", ", 2, 0 );
 				tmp_node = tmp_node->next;
 			}
 		}
-		printf( "\n");
-		//uprint( " ", 1, 2 );
+		uprint( " ", 1, 2 );
 	}
 
 	return 0;

@@ -30,12 +30,6 @@ int dct(double* indata, double* outdata);
 int idct(double* indata, double* outdata, int using);
 int matrix_print( double* mat, int x, int y);
 //int matrix_print_dummy( double* mat, int x, int y);
-int double_print( char* cbuf, double value, int digit );
-int int_print( char* cbuf, int value, int type );
-void uprint( char* buf, int length, int ret );
-//void uprint_dummy( char* buf, int length, int ret );
-void pass();
-void wait();
 
 int main() {
 	char cbuf[64];
@@ -96,9 +90,6 @@ int main() {
 			put_tile(cmat2, idct_data, S, x, y, T);
 		}
 	}
-
-	uprint( "mat2", 4, 2 );
-	//for ( int i = 0; i < S*S; i++) {
 
 	pass();
 	return 0;

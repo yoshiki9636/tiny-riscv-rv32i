@@ -15,21 +15,35 @@ int main() {
 	char cbuf2[32];
 	int a = -12345;
 	double b = -876543.21;
+	int length;
+    unsigned int* led = (unsigned int*)0xc000fe00;
 
 	// print Hello world
-	uprint( cbuf, 13 );
+	//uprint( cbuf, 13 );
 
 	// pritn a
-	int length = int_print( cbuf2, a, 0 );
+/*
+	for(int i = 0; i < 10; i++) {
+	length = int_print( cbuf2, a, 0 );
 	if (length > 10) {
 		fail();
 	}
 	uprint( cbuf2, length );
-
+	}
+*/
+	*led = 0x15;
+	uprint( cbuf, 1 );
 	// pritn b
-	length = double_print( cbuf2, b, 9 );
+	for(int j = 0; j < 2; j++) {
+	for(int i = 0; i < 5; i++) {
+	double x = b;
+	*led = i + 0x20;
+	length = double_print( cbuf2, x, 9 );
+	*led = i + 0x30;
 
 	uprint( cbuf2, length );
+	}
+	}
 	pass();
 	return 0;
 }
@@ -124,7 +138,7 @@ void uprint( char* buf, int length ) {
 		*uart_out = (i == length+2) ? 0 :
 		            (i == length+1) ? 0x0a :
 		            (i == length) ? 0x0d : buf[i];
-		*led = i;
+		*led = i + 0x40;
 	}
 	//return 0;
 }

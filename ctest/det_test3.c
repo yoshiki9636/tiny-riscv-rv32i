@@ -8,57 +8,12 @@
 #define LP2 200
 #define SIZE 4
 
-void uprint( char* buf, int length, int ret );
-// workaround for libm_nano.a
-int __errno;
+#include "add_for_cmpl_all.c"
+#include "add_for_cmpl2.c"
 
-char* heap_end = (char*)0x40000;
-//void _sbrk_r(void) {}
-char* _sbrk(int incr) {
- char* heap_low = (char*)0x40000;
- char* heap_top = (char*)0x7f000;
- char *prev_heap_end;
-
- if (heap_end == 0) {
-  heap_end = heap_low;
- }
- prev_heap_end = heap_end;
-
- if (heap_end + incr > heap_top) {
-  /* Heap and stack collision */
-  return (char *)0;
- }
-
- heap_end += incr;
- return (char*) prev_heap_end;
-}
-
-int _write(int file, char* ptr, int len)
-{
-    uprint( ptr, len, 0 );
-    return len ;
-}
-
-// workaround for using libc_nano.a
-int _close(void) { return 0; }
-int _lseek(void) { return 0; }
-int _read(void) { return 0; }
-//void _write(void) {}
-//void _sbrk_r(void) {}
-int abort(void) { return 0; }
-void _kill_r(void) { return;}
-int _getpid_r(void) { return -1; }
-int _fstat_r(void) { return -1; }
-int _isatty_r(void) { return -1; }
-int _isatty(void) { return -1; }
-
-void pass();
-void wait();
 double det_cal( double* mat, int s);
 int part_mat( double* mat, double* pmat, int s, int p);
 int matrix_print( double* mat, int x, int y);
-int double_print( char* cbuf, double value, int digit );
-static void clearbss(void);
 
 int main() {
     unsigned int* led = (unsigned int*)0xc000fe00;
@@ -86,19 +41,6 @@ int main() {
 	pass();
 	return 0;
 }
-
-/*
-static void clearbss(void)
-{
-    unsigned long long *p;
-    extern unsigned long long _bss_start[];
-    extern unsigned long long _bss_end[];
-
-    for (p = _bss_start; p < _bss_end; p++) {
-        *p = 0LL;
-    }
-}
-*/
 
 double det_cal( double* mat, int s) {
     unsigned int* led = (unsigned int*)0xc000fe00;
@@ -159,46 +101,5 @@ int matrix_print( double* mat, int x, int y) {
 		}
 	}
 	return 0;
-}
-
-void uprint( char* buf, int length, int ret ) {
-    unsigned int* led = (unsigned int*)0xc000fe00;
-    unsigned int* uart_out = (unsigned int*)0xc000fc00;
-    unsigned int* uart_status = (unsigned int*)0xc000fc04;
-
-	for (int i = 0; i < length + ret; i++) {
-		unsigned int flg = 1;
-		while(flg == 1) {
-			flg = *uart_status;
-		}
-        *uart_out = ((i == length+1)&&(ret == 2)) ? 0x0a :
-                    ((i == length)&&(ret == 1)) ? 0x20 :
-                    ((i == length)&&(ret == 2)) ? 0x0d : buf[i];
-		*led = i;
-	}
-}
-
-void pass() {
-    unsigned int* led = (unsigned int*)0xc000fe00;
-    unsigned int val;
-    unsigned int timer,timer2;
-    val = 0;
-    while(1) {
-		wait();
-		val++;
-		*led = val & 0x7777;
-    }
-}
-
-void wait() {
-    unsigned int timer,timer2;
-    timer = 0;
-	timer2 = 0;
-    while(timer2 < LP2) {
-        while(timer < LP) {
-            timer++;
-    	}
-        timer2++;
-	}
 }
 

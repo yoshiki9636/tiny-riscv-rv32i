@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-//#include "/opt/riscv32i/gmp/include/gmp.h"
-#include "mini-gmp.h"
-#include "mini-gmp.c"
+#include "/opt/riscv32i/gmp/include/gmp.h"
+//#include "mini-gmp.h"
+//#include "mini-gmp.c"
 
 #define LP 10
 //#define LP 1000
@@ -19,6 +19,55 @@
 
 char _pbuf[4096];
 
+// --- only for libgmp ---
+
+size_t fwrite(const void *, size_t, size_t, FILE *) { return 0; }
+void raise(void) { }
+//void* realloc(void*, size_t) { return NULL; }
+//char* strchr(const char*, int) { return NULL; }
+char* nl_langinfo(void) { return ""; }
+//int snprintf(char *__restrict, size_t, const char *__restrict, ...) { return 0; }
+
+// by AI
+void* realloc(void *ptr, size_t new_size) {
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) { free(ptr); return NULL; }
+
+    void *new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    free(ptr);
+    return new_ptr;
+}
+
+char *strchr(const char *s, int c) {
+    char ch = (char)c;
+
+    while (*s != '\0') {
+        if (*s == ch) {
+            return (char *)s;
+        }
+        s++;
+    }
+    if (ch == '\0') {
+        return (char *)s;
+    }
+    return NULL;
+}
+
+int snprintf(char *str, size_t size, const char *format, ...)
+{
+    va_list ap;
+    int result;
+
+    va_start(ap, format);
+    result = vsnprintf(str, size, format, ap);
+    va_end(ap);
+
+    return result;
+}
+
+/*
 // 簡易的なビット乱数生成（mini-gmp用）
 void mpz_urandomb_custom(mpz_t rop, size_t bits) {
 	unsigned int rnd = 0;
@@ -49,7 +98,7 @@ void mpz_urandomb_custom(mpz_t rop, size_t bits) {
 }
 
 // n以下のランダムなmpz_tを生成する関数
-void generate_random_under_n(mpz_t result, const mpz_t n) {
+void generate_random_under_n(mpz_t result, gmp_randstate_t state, const mpz_t n) {
     if (mpz_cmp_ui(n, 0) <= 0) {
         mpz_set_ui(result, 0);
         return;
@@ -59,24 +108,25 @@ void generate_random_under_n(mpz_t result, const mpz_t n) {
     
     do {
         // bit_countビットの乱数を生成してresultに格納
-        mpz_urandomb_custom(result, bit_count); 
+        //mpz_urandomb_custom(result, bit_count); 
+		mpz_urandomb(result, state, bit_count);
         // 生成した乱数がnより大きい場合、もう一度生成
     } while (mpz_cmp(result, n) >= 0);
 }
+*/
 
-int get_random(unsigned int blen, mpz_t rnd) {
+int get_random(unsigned int blen, gmp_randstate_t state, mpz_t rnd) {
 
 	//mpz_init (rnd);
-	//mpz_urandomb(rnd, state, blen);
-	mpz_urandomb_custom(rnd, blen);
+	mpz_urandomb(rnd, state, blen);
+	//mpz_urandomb_custom(rnd, blen);
 	mpz_setbit(rnd,0);
 	mpz_setbit(rnd,blen-1);
 	return 0;
 }
 
 // millar rabin primary test
-//int mr_primary_test(int k, gmp_randstate_t state, mpz_t n) {
-int mr_primary_test(int k, mpz_t n) {
+int mr_primary_test(int k, gmp_randstate_t state, mpz_t n) {
     unsigned int* led = (unsigned int*)0xc000fe00;
 	mpz_t d;
 	mpz_t p;
@@ -112,8 +162,8 @@ int mr_primary_test(int k, mpz_t n) {
 
 	for (int j = 0; j < k; j++) {
 		*led = 7;
-		//mpz_urandomm(r, state, nm1);
-		generate_random_under_n(r, nm1);
+		mpz_urandomm(r, state, nm1);
+		//generate_random_under_n(r, nm1);
 		mpz_get_str(_pbuf, 16, r);
 		printf("r %s\n",_pbuf);
 		mpz_add_ui(tmp, r, 1);
@@ -166,19 +216,18 @@ int mr_primary_test(int k, mpz_t n) {
 }
 
 // get prime
-//int get_prime(int blen, gmp_randstate_t state, mpz_t n) {
-int get_prime(int blen, int k, mpz_t n) {
+int get_prime(int blen, int k, gmp_randstate_t state, mpz_t n) {
 	int cntr = 0;
 	while(1) {
 		cntr++;
-		get_random(blen, n);
+		get_random(blen, state, n);
 		//gmp_printf("%Zx\n", n);
 		mpz_get_str(_pbuf, 16, n);
 		printf("candidate %s\n",_pbuf);
 		//unsigned int zz = (unsigned int)mpz_get_ui(n);
 		//printf("%08x\n",zz);
 
-		if (mr_primary_test(k, n) == 1) {
+		if (mr_primary_test(k, state, n) == 1) {
 		//if (mr_primary_test(4, state, n) == 1) {
 			printf("%d It is prime!!!\n",cntr);
 			break;
@@ -220,12 +269,15 @@ int main () {
 
 	//pass();
 	*led = 0;
-	srand(4);
-	//gmp_randstate_t state;
+	//srand(0);
+	gmp_randstate_t state;
 	*led = 1;
-	//gmp_randinit_default(state);
+	gmp_randinit_default(state);
 	*led = 2;
-	//gmp_randseed_ui(state,0); wont work
+	//mpz_t x;
+	//mpz_init_set_str(x,"970eb807",16);
+	//gmp_randseed(state,x);
+	gmp_randseed_ui(state,1);
 	*led = 3;
 
 	//mpz_t n;
@@ -243,7 +295,7 @@ int main () {
 	mpz_t n;
 	mpz_init (n);
 	*led = 5;
-	get_prime(BLEN, 20, n);
+	get_prime(BLEN, 20, state, n);
 	*led = 6;
 	printf("PRIME\n");
 	//gmp_printf("%Zx\n", n);

@@ -3,7 +3,7 @@ ENTRY(_start)
 
 MEMORY
 {
-    RAM (rwx)  : ORIGIN = 0x00001000, LENGTH = 0x00f00000
+    RAM (rwx)  : ORIGIN = 0x00001000, LENGTH = 0x040000000
 }
 
 _stack_len = 0x010000;

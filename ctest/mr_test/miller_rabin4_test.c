@@ -2,22 +2,71 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-//#include "/opt/riscv32i/gmp/include/gmp.h"
-#include "mini-gmp.h"
-#include "mini-gmp.c"
+#include "/opt/riscv32i/gmp/include/gmp.h"
+//#include "mini-gmp.h"
+//#include "mini-gmp.c"
 
 #define LP 10
 //#define LP 1000
 #define LP2 200
 
-#define BLEN 256
-#define ILEN (256/32)
+#define BLEN 512
+#define ILEN (512/32)
 
 #include "../add_for_cmpl_all.c"
 #include "../add_for_cmpl2.c"
 
 
 char _pbuf[4096];
+
+// --- only for libgmp ---
+
+size_t fwrite(const void *, size_t, size_t, FILE *) { return 0; }
+void raise(void) { }
+//void* realloc(void*, size_t) { return NULL; }
+//char* strchr(const char*, int) { return NULL; }
+char* nl_langinfo(void) { return ""; }
+//int snprintf(char *__restrict, size_t, const char *__restrict, ...) { return 0; }
+
+// by AI
+void* realloc(void *ptr, size_t new_size) {
+    if (ptr == NULL) return malloc(new_size);
+    if (new_size == 0) { free(ptr); return NULL; }
+
+    void *new_ptr = malloc(new_size);
+    if (new_ptr == NULL) return NULL;
+
+    free(ptr);
+    return new_ptr;
+}
+
+char *strchr(const char *s, int c) {
+    char ch = (char)c;
+
+    while (*s != '\0') {
+        if (*s == ch) {
+            return (char *)s;
+        }
+        s++;
+    }
+    if (ch == '\0') {
+        return (char *)s;
+    }
+    return NULL;
+}
+
+int snprintf(char *str, size_t size, const char *format, ...)
+{
+    va_list ap;
+    int result;
+
+    va_start(ap, format);
+    result = vsnprintf(str, size, format, ap);
+    va_end(ap);
+
+    return result;
+}
+
 
 // 簡易的なビット乱数生成（mini-gmp用）
 void mpz_urandomb_custom(mpz_t rop, size_t bits) {

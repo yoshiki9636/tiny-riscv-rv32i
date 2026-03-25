@@ -1,7 +1,3 @@
-//#define LP 10
-#define LP 1000
-#define LP2 200
-#define TESTNUM 0x3c00
 
 // workaround for libc_nano.a
 int __errno;

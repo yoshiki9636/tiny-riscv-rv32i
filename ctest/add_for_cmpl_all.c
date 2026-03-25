@@ -1,11 +1,16 @@
+//#define LP 10
+#define LP 1000
+#define LP2 200
+#define TESTNUM 0x3c00
+
 // workaround for libc_nano.a
 int __errno;
 
 // common modules for all vectors
 void uprint( char* buf, int length, int ret ) {
-    unsigned int* led = (unsigned int*)0xc000fe00;
-    unsigned int* uart_out = (unsigned int*)0xc000fc00;
-    unsigned int* uart_status = (unsigned int*)0xc000fc04;
+    volatile unsigned int* led = (unsigned int*)0xc000fe00;
+    volatile unsigned int* uart_out = (unsigned int*)0xc000fc00;
+    volatile unsigned int* uart_status = (unsigned int*)0xc000fc04;
 
 	for (int i = 0; i < length + ret; i++) {
 		unsigned int flg = 1;
@@ -116,7 +121,7 @@ void wait() {
 }
 
 void pass() {
-    unsigned int* led = (unsigned int*)0xc000fe00;
+    volatile unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int val;
     unsigned int timer,timer2;
     val = 0;

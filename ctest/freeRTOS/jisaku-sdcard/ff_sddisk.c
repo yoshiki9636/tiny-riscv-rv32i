@@ -391,7 +391,7 @@ int32_t prvReadRAM( uint8_t *pucDestination,
 {
 	//uint8_t pucSource[512];
 
-	length = sprintf(cbuf, "Read disk!! %d %d",  ulSectorNumber, ulSectorCount );
+	length = sprintf(cbuf, "   Read disk!! %d %d",  ulSectorNumber, ulSectorCount );
 	uprint( cbuf, length, 2 );
 
 	for (int s = ulSectorNumber; s < ulSectorNumber + ulSectorCount; s++) {
@@ -406,11 +406,9 @@ int32_t prvReadRAM( uint8_t *pucDestination,
 		// disable interrupt
     	inbuf[0] = 0x00;
     	inbuf[1] = 0x00;
-		taskENTER_CRITICAL();
     	while((inbuf[0] != 0xfe)&&(inbuf[1] != 0xfe)) {
         	cmd_dispatch(dummy, inbuf, 2, 2);
     	}
-		taskEXIT_CRITICAL();
 		// enable interrupt
     	for (int i = 0; i < 65; i++) {
         	if (i == 64) {
@@ -448,7 +446,7 @@ int32_t prvWriteRAM( uint8_t *pucSource,
                             FF_Disk_t *pxDisk )
 {
 
-	length = sprintf(cbuf, "Write disk!! %d %d",  ulSectorNumber, ulSectorCount );
+	length = sprintf(cbuf, "  Write disk!! %d %d",  ulSectorNumber, ulSectorCount );
 	uprint( cbuf, length, 2 );
 
 	for (int s = ulSectorNumber; s < ulSectorNumber + ulSectorCount; s++) {
@@ -486,11 +484,9 @@ int32_t prvWriteRAM( uint8_t *pucSource,
 		//__asm__ volatile("csrw mie, %0" : "=r"(value));
     	inbuf[0] = 0x1f;
     	inbuf[1] = 0x1f;
-		taskENTER_CRITICAL();
     	while(((inbuf[0] & 0x1f) != 0x05)&&((inbuf[1] & 0x1f) != 0x05)) {
         	cmd_dispatch(dummy, inbuf, 2, 2);
     	}
-		taskEXIT_CRITICAL();
 		// enable interrupt
 		//__asm__ volatile("csrw mie, %0" : "=r"(tmp));
     	// wait busy

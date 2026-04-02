@@ -116,7 +116,7 @@ static void prvQueueReceiveTask( void * pvParameters )
 
 int main_blinky( void )
 {
-    vSendString( "Hello FreeRTOS!" );
+    vSendString( "Hello FreeRTOS!\n" );
 
     /* Create the queue. */
     xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( unsigned long ) );

@@ -32,7 +32,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "FreeRTOS_CLI.h"
-#include "FreeRTOS_CLI.h"
 #include "FreeRTOSFATConfig.h"
 #include "ff_headers.h"
 #include "ff_stdio.h"
@@ -174,13 +173,13 @@ static BaseType_t prvCdCommand(char *pcWriteBuffer,
 
     if(FF_FindFirst(pxIOManager, &xDir, newPath) != FF_ERR_NONE)
     {
-        snprintf(pcWriteBuffer, xWriteBufferLen, "cd: no such dir\r\n");
+        snprintf(pcWriteBuffer, xWriteBufferLen, "cd: no such dir: %s\r\n", xDir);
         return pdFALSE;
     }
 
     if(!(xDir.ucAttrib & FF_FAT_ATTR_DIR))
     {
-        snprintf(pcWriteBuffer, xWriteBufferLen, "cd: not a dir\r\n");
+        snprintf(pcWriteBuffer, xWriteBufferLen, "cd: not a dir: %s\r\n", xDir);
         return pdFALSE;
     }
 
@@ -199,8 +198,8 @@ static BaseType_t prvLsCommand(char *pcWriteBuffer,
 	int buflen = 128;
 	FF_Unmount(pxDisk);
 	FF_Mount(pxDisk, 0);
-   	buflen = sprintf(cbuf, "CLI stack: %u\n", uxTaskGetStackHighWaterMark(NULL));
-	uprint( cbuf, buflen, 2 );
+   	//buflen = sprintf(cbuf, "CLI stack: %u\n", uxTaskGetStackHighWaterMark(NULL));
+	//uprint( cbuf, buflen, 2 );
 
     FF_DirEnt_t xDir;
     FF_Error_t xError;
@@ -396,6 +395,211 @@ static BaseType_t prvCatCommand(char *pcWriteBuffer,
     return pdFALSE;
 }
 
+static BaseType_t prvCpCommand(char *pcWriteBuffer,
+                               size_t xWriteBufferLen,
+                               const char *pcCommandString)
+{
+    char src[64], dst[64];
+    BaseType_t len1, len2;
+
+    /* 引数取得 */
+    const char *p1 = FreeRTOS_CLIGetParameter(pcCommandString, 1, &len1);
+    const char *p2 = FreeRTOS_CLIGetParameter(pcCommandString, 2, &len2);
+
+    if(p1 == NULL || p2 == NULL)
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "cp: src dst\r\n");
+        return pdFALSE;
+    }
+
+    /* コピー */
+    if(len1 >= sizeof(src)) len1 = sizeof(src)-1;
+    if(len2 >= sizeof(dst)) len2 = sizeof(dst)-1;
+
+    memcpy(src, p1, len1); src[len1] = '\0';
+    memcpy(dst, p2, len2); dst[len2] = '\0';
+
+    /* パス生成 */
+    char pathSrc[128], pathDst[128];
+
+    if(src[0] == '/')
+        snprintf(pathSrc, sizeof(pathSrc), "%s", src);
+    else
+        snprintf(pathSrc, sizeof(pathSrc), "%s/%s", pcCurrentDir, src);
+
+    if(dst[0] == '/')
+        snprintf(pathDst, sizeof(pathDst), "%s", dst);
+    else
+        snprintf(pathDst, sizeof(pathDst), "%s/%s", pcCurrentDir, dst);
+
+    /* open src */
+    FF_Error_t err;
+    FF_FILE *fpSrc = FF_Open(pxIOManager, pathSrc, FF_MODE_READ, &err);
+
+    if(fpSrc == NULL)
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "cp: open src error (%08X)\r\n", err);
+        return pdFALSE;
+    }
+
+    /* open dst */
+    FF_FILE *fpDst = FF_Open(pxIOManager, pathDst,
+                             FF_MODE_WRITE | FF_MODE_CREATE | FF_MODE_TRUNCATE,
+                             &err);
+
+    if(fpDst == NULL)
+    {
+        FF_Close(fpSrc);
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "cp: open dst error (%08X)\r\n", err);
+        return pdFALSE;
+    }
+
+    /* コピー */
+    uint8_t buf[128];
+    int32_t r;
+
+    do
+    {
+        r = FF_Read(fpSrc, 1, sizeof(buf), buf);
+
+        if(r > 0)
+        {
+            int32_t w = FF_Write(fpDst, 1, r, buf);
+
+            if(w != r)
+            {
+                snprintf(pcWriteBuffer, xWriteBufferLen,
+                         "cp: write error\r\n");
+                break;
+            }
+        }
+
+    } while(r > 0);
+
+    FF_Close(fpSrc);
+    FF_Close(fpDst);
+
+    snprintf(pcWriteBuffer, xWriteBufferLen,
+             "cp: done\r\n");
+
+    return pdFALSE;
+}
+
+static BaseType_t prvRmCommand(char *pcWriteBuffer,
+                               size_t xWriteBufferLen,
+                               const char *pcCommandString)
+{
+    char param[64];
+    BaseType_t paramLen;
+
+    const char *pcParam = FreeRTOS_CLIGetParameter(
+        pcCommandString, 1, &paramLen);
+
+    if(pcParam == NULL)
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "rm: missing operand\r\n");
+        return pdFALSE;
+    }
+
+    if(paramLen >= sizeof(param))
+        paramLen = sizeof(param) - 1;
+
+    memcpy(param, pcParam, paramLen);
+    param[paramLen] = '\0';
+
+    /* パス生成 */
+    char path[128];
+
+    if(param[0] == '/')
+    {
+        snprintf(path, sizeof(path), "%s", param);
+    }
+    else
+    {
+        if(strcmp(pcCurrentDir, "/") == 0)
+            snprintf(path, sizeof(path), "/%s", param);
+        else
+            snprintf(path, sizeof(path), "%s/%s", pcCurrentDir, param);
+    }
+
+    /* 削除 */
+    FF_Error_t err = FF_RmFile(pxIOManager, path);
+
+    if(err != FF_ERR_NONE)
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "rm: error (%08X)\r\n", err);
+    }
+    else
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "rm: deleted %s\r\n", path);
+    }
+
+    return pdFALSE;
+}
+
+static BaseType_t prvRmdirCommand(char *pcWriteBuffer,
+                                  size_t xWriteBufferLen,
+                                  const char *pcCommandString)
+{
+    char param[64];
+    BaseType_t paramLen;
+
+    /* 引数取得 */
+    const char *pcParam = FreeRTOS_CLIGetParameter(
+        pcCommandString, 1, &paramLen);
+
+    if(pcParam == NULL)
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "rmdir: missing operand\r\n");
+        return pdFALSE;
+    }
+
+    /* コピー */
+    if(paramLen >= sizeof(param))
+        paramLen = sizeof(param) - 1;
+
+    memcpy(param, pcParam, paramLen);
+    param[paramLen] = '\0';
+
+    /* フルパス生成 */
+    char path[128];
+
+    if(param[0] == '/')
+    {
+        snprintf(path, sizeof(path), "%s", param);
+    }
+    else
+    {
+        if(strcmp(pcCurrentDir, "/") == 0)
+            snprintf(path, sizeof(path), "/%s", param);
+        else
+            snprintf(path, sizeof(path), "%s/%s", pcCurrentDir, param);
+    }
+
+    /* 削除 */
+    FF_Error_t err = FF_RmDir(pxIOManager, path);
+
+    if(err != FF_ERR_NONE)
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "rmdir: error (%08X)\r\n", err);
+    }
+    else
+    {
+        snprintf(pcWriteBuffer, xWriteBufferLen,
+                 "rmdir: removed %s\r\n", path);
+    }
+
+    return pdFALSE;
+}
+
 static const CLI_Command_Definition_t hello_cmd = {
     "hello",
     "hello: print hello message\n",
@@ -450,6 +654,30 @@ static const CLI_Command_Definition_t xCat =
     1
 };
 
+static const CLI_Command_Definition_t xCp =
+{
+    "cp",
+    "cp <file> <file>: copy file\r\n",
+    prvCpCommand,
+    2
+};
+
+static const CLI_Command_Definition_t xRm =
+{
+    "rm",
+    "rm <file>: remove file\r\n",
+    prvRmCommand,
+    1
+};
+
+static const CLI_Command_Definition_t xRmdir =
+{
+    "rmdir",
+    "rmdir <dir>: remove directory\r\n",
+    prvRmdirCommand,
+    1
+};
+
 /*-----------------------------------------------------------*/
 /*-----------------------------------------------------------*/
 
@@ -466,7 +694,10 @@ int main( void )
     FreeRTOS_CLIRegisterCommand(&xCd);
     FreeRTOS_CLIRegisterCommand(&xLs);
     FreeRTOS_CLIRegisterCommand(&xMkdir);
+    FreeRTOS_CLIRegisterCommand(&xRmdir);
     FreeRTOS_CLIRegisterCommand(&xCat);
+    FreeRTOS_CLIRegisterCommand(&xCp);
+    FreeRTOS_CLIRegisterCommand(&xRm);
 
 	uprint("pxDisk init",11,2);
 	pxDisk = FF_RAMDiskInit( "/",

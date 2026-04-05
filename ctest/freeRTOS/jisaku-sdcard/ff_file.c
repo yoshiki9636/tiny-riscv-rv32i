@@ -35,6 +35,7 @@
  **/
 
 #include "ff_headers.h"
+#include <stdio.h>
 
 #if ( ffconfigUNICODE_UTF16_SUPPORT != 0 )
     #include <wchar.h>
@@ -64,6 +65,8 @@ static uint32_t FF_FileLBA( FF_FILE * pxFile );
 static FF_Error_t FF_ExtendFile( FF_FILE * pxFile,
                                  uint32_t ulSize );
 
+extern char cbuf[];
+extern int length;
 /*-----------------------------------------------------------*/
 
 /**
@@ -139,7 +142,7 @@ static FF_FILE * prvAllocFileHandle( FF_IOManager_t * pxIOManager,
     }
     else
     {
-        memset( pxFile, 0, sizeof( *pxFile ) );
+        memset( pxFile, '\0', sizeof( *pxFile ) );
 
         #if ( ffconfigOPTIMISE_UNALIGNED_ACCESS != 0 )
         {
@@ -147,7 +150,7 @@ static FF_FILE * prvAllocFileHandle( FF_IOManager_t * pxIOManager,
 
             if( pxFile->pucBuffer != NULL )
             {
-                memset( pxFile->pucBuffer, 0, pxIOManager->usSectorSize );
+                memset( pxFile->pucBuffer, '\0', pxIOManager->usSectorSize );
             }
             else
             {

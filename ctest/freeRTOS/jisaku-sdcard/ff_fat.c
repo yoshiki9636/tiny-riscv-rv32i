@@ -600,7 +600,7 @@ FF_Error_t FF_ClearCluster( FF_IOManager_t * pxIOManager,
                 break;
             }
 
-            memset( pxBuffer->pucBuffer, 0x00, pxIOManager->usSectorSize );
+            memset( pxBuffer->pucBuffer, '\0', pxIOManager->usSectorSize );
         }
 
         xError = FF_BlockWrite( pxIOManager, ( uint32_t ) ( ulBaseLBA + xIndex ), 1U, pxBuffer->pucBuffer, pdFALSE );

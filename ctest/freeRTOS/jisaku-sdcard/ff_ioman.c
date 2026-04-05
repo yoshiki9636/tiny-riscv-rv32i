@@ -698,7 +698,8 @@ int32_t FF_BlockWrite( FF_IOManager_t * pxIOManager,
  * It may be set to one of these values: FF_T_FAT[12,16,32]
  * just to force the driver to assume a certain FAT type.
  */
-static uint8_t ucAssumeFATType = 0;
+//static uint8_t ucAssumeFATType = 0;
+static uint8_t ucAssumeFATType = FF_T_FAT32;
 
 /* The history of FAT types:
  * The Microsoft documents says that the actual type: FAT-12, FAT-16 and FAT-32

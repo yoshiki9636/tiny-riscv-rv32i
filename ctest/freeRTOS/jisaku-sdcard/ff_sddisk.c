@@ -21,6 +21,11 @@ In this example:
  multiple of the sector size, and at least twice as big as the sector size.
 */
 
+extern char cbuf[];
+extern int buflen;
+extern int length;
+extern SemaphoreHandle_t xMutex;
+
 static volatile unsigned int* gpio_out_value = (unsigned int*)0xc000fe10;
 static volatile unsigned int* spi_mode = (unsigned int*)0xc000f200;
 static volatile unsigned int* spi_sckdiv = (unsigned int*)0xc000f204;
@@ -34,17 +39,14 @@ char cmd10[17] = { 0xff, 0x4a, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff, 0xff, 0xff, 0
 char cmd16[9] = { 0xff, 0x50, 0x00, 0x00, 0x02, 0x00, 0x01, 0xff, 0xff }; // set block size to 512
 char cmd17[11] = { 0xff, 0x51, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff }; // read block
 char cmd24[11] = { 0xff, 0x58, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff }; // write block
-char cmd5541[17] = { 0xff, 0x77, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff, 0xff, 0x69, 0x40, 0x00, 0x00, 0x00, 0x01, 0xff, 0xff };
+char cmd5541[18] = { 0xff, 0x77, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff, 0xff, 0xff, 0x69, 0x40, 0x00, 0x00, 0x00, 0x01, 0xff, 0xff };
 char cmd58[17] = { 0xff, 0x7A, 0x00, 0x00, 0x00, 0x00, 0x01, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 char dummy[8] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 char inbuf[64];
 int flg;
 
-char cbuf[64];
-int length;
-
-// not used for SDCard
+// not used now
 static FF_Error_t prvPartitionAndFormatDisk( FF_Disk_t * pxDisk )
 {
     FF_PartitionParameters_t xPartition;
@@ -227,8 +229,8 @@ int prvSDCardInit() {
     flg = 0;
 
     while(flg == 0) {
-        cmd_dispatch(cmd5541, inbuf, 17, 1);
-        flg = ((inbuf[8] == 0x01)&(inbuf[16] == 0x00)) ? 1 : 0;
+        cmd_dispatch(cmd5541, inbuf, 18, 1);
+        flg = ((inbuf[8] == 0x01)&(inbuf[17] == 0x00)) ? 1 : 0;
         //flg = ((inbuf[8] == 0x00)&(inbuf[15] == 0x00)) ? 1 : 0;
         cmd_dispatch(dummy, inbuf, 8, 0);
 
@@ -253,6 +255,8 @@ int prvSDCardInit() {
 
 	return 0;
 }
+
+uint8_t cache[4096];
 
 FF_Disk_t *FF_RAMDiskInit( char *pcName,
                           uint8_t *pucDataBuffer,
@@ -299,7 +303,7 @@ FF_CreationParameters_t xParameters;
 
         /* The signature is used by the disk read and disk write functions to
            ensure the disk being accessed is a RAM disk. */
-        pxDisk->ulSignature = 0;
+        //pxDisk->ulSignature = 0;
 
         /* The number of sectors is recorded for bounds checking in the read and
            write functions. */
@@ -309,9 +313,9 @@ FF_CreationParameters_t xParameters;
            the FF_CreationParameters_t structure completed with the required
            parameters, then passed into the [FF_CreateIOManager()](FF_CreateIOManager) function. */
         memset (&xParameters, '\0', sizeof xParameters);
-        xParameters.pucCacheMemory = NULL;
-        xParameters.ulMemorySize = xIOManagerCacheSize;
         xParameters.ulSectorSize = ramSECTOR_SIZE;
+        xParameters.pucCacheMemory = cache;
+        xParameters.ulMemorySize = sizeof(cache);
         xParameters.fnWriteBlocks = prvWriteRAM;
         xParameters.fnReadBlocks = prvReadRAM;
         xParameters.pxDisk = pxDisk;
@@ -321,7 +325,7 @@ FF_CreationParameters_t xParameters;
            semaphore is only used to protect FAT data structures, and not the read
            and write function. */
         xParameters.pvSemaphore = ( void * ) xSemaphoreCreateRecursiveMutex();
-        xParameters.xBlockDeviceIsReentrant = pdTRUE;
+        //xParameters.xBlockDeviceIsReentrant = pdTRUE;
 
         pxDisk->pxIOManager = FF_CreateIOManager( &xParameters, &xError );
 		if (pxDisk->pxIOManager == NULL ) {
@@ -342,11 +346,11 @@ FF_CreationParameters_t xParameters;
                this step because the media will already been partitioned and
                formatted. */
 			// not format SD card...
-            xError = prvPartitionAndFormatDisk( pxDisk );
+            //xError = prvPartitionAndFormatDisk( pxDisk );
 			//uprint( " G", 2, 0 );
 
-            if( FF_isERR( xError ) == pdFALSE )
-            {
+            //if( FF_isERR( xError ) == pdFALSE )
+            //{
 				//uprint( " H", 2, 0 );
                 /* Record the partition number the FF_Disk_t structure is, then
                    mount the partition. */
@@ -354,10 +358,26 @@ FF_CreationParameters_t xParameters;
 
                 /* Mount the partition. */
                 xError = FF_Mount( pxDisk, ramPARTITION_NUMBER );
+    			uint8_t type = pxDisk->pxIOManager->xPartition.ucType;
+
+    			//length = sprintf(cbuf, "FAT type: %d\n", type);
+    			//uprint(cbuf, length, 2);
+    			//length = sprintf(cbuf, "ulFirstDataSector : %d\n", pxDisk->pxIOManager->xPartition.ulFirstDataSector);
+    			//uprint(cbuf, length, 2);
+
+    			if(type == FF_T_FAT32)
+    			{
+        			uprint("FAT32 OK", 8, 2);
+    			}
+    			else
+    			{
+        			uprint("Not FAT32", 9 , 2);
+    			}
+
 				//length = sprintf(cbuf, "err: %ld", xError);
 				//uprint( cbuf, length, 0 );
 
-            }
+            //}
 
             if( FF_isERR( xError ) == pdFALSE )
             {
@@ -367,6 +387,9 @@ FF_CreationParameters_t xParameters;
                    system's root directory. */
                 FF_FS_Add( pcName, pxDisk );
             }
+			else {
+				uprint( "Mount failed!", 13, 2 );
+			}
 			//uprint( " J", 2, 0 );
         }
         else
@@ -405,21 +428,31 @@ int32_t prvReadRAM( uint8_t *pucDestination,
 		//unsigned int value = 0x8;
 		// disable interrupt
     	inbuf[0] = 0x00;
-    	inbuf[1] = 0x00;
-    	while((inbuf[0] != 0xfe)&&(inbuf[1] != 0xfe)) {
-        	cmd_dispatch(dummy, inbuf, 2, 2);
+    	//inbuf[1] = 0x00;
+		//taskENTER_CRITICAL();
+    	//while((inbuf[0] != 0xfe)&&(inbuf[1] != 0xfe)) {
+    	while((inbuf[0] != 0xfe)) {
+        	cmd_dispatch(dummy, inbuf, 1, 2);
     	}
+		//taskEXIT_CRITICAL();
 		// enable interrupt
     	for (int i = 0; i < 65; i++) {
         	if (i == 64) {
-            	cmd_dispatch(dummy, inbuf, 4, 1);
+            	cmd_dispatch(dummy, inbuf, 2, 1);
         	}
         	else {
-            	cmd_dispatch(dummy, inbuf, 8, 2);
-				for (int b = 0; b < 8; b++) {
-    				pucDestination[(s-ulSectorNumber)*512+i*8+b] = inbuf[b];
-					//pucSource[i*8+b] = inbuf[b];
+				for(int j = 0; j < 8; j++) {
+            		cmd_dispatch(dummy, inbuf, 1, 2);
+    				pucDestination[(s-ulSectorNumber)*512+i*8+j] = inbuf[0];
+					//if(i == 0) {
+						//length = sprintf(cbuf, " 0x%x", inbuf[0] );
+	                    //uprint( cbuf, length, 2 );
+					//}
 				}
+            	//cmd_dispatch(dummy, inbuf, 8, 2);
+				//for (int b = 0; b < 8; b++) {
+    				//pucDestination[(s-ulSectorNumber)*512+i*8+b] = inbuf[b];
+				//}
 				//memcpy(&pucSource[i*8], inbuf, 8);
         	}
     	}
@@ -434,8 +467,6 @@ int32_t prvReadRAM( uint8_t *pucDestination,
 
     }
 
-    /* Copy the data from the disk. As this is a RAM disk data can be copied
- using memcpy(). */
     return FF_ERR_NONE;
 }
 
@@ -483,10 +514,13 @@ int32_t prvWriteRAM( uint8_t *pucSource,
 		// disable interrupt
 		//__asm__ volatile("csrw mie, %0" : "=r"(value));
     	inbuf[0] = 0x1f;
-    	inbuf[1] = 0x1f;
-    	while(((inbuf[0] & 0x1f) != 0x05)&&((inbuf[1] & 0x1f) != 0x05)) {
-        	cmd_dispatch(dummy, inbuf, 2, 2);
+    	//inbuf[1] = 0x1f;
+		//taskENTER_CRITICAL();
+    	//while(((inbuf[0] & 0x1f) != 0x05)&&((inbuf[1] & 0x1f) != 0x05)) {
+    	while((inbuf[0] & 0x1f) != 0x05) {
+        	cmd_dispatch(dummy, inbuf, 1, 2);
     	}
+		//taskEXIT_CRITICAL();
 		// enable interrupt
 		//__asm__ volatile("csrw mie, %0" : "=r"(tmp));
     	// wait busy

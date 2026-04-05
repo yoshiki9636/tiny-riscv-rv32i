@@ -12,16 +12,13 @@ void uprint( const char* buf, int length, int ret );
 
 char uart_getchar() {
     volatile unsigned int* rx_char = (unsigned int*)0xc000fc0c;
-    volatile unsigned int* led = (unsigned int*)0xc000fe00;
 
 	unsigned int char_reg;
     while (1) {
         char_reg = *rx_char;
         while ((char_reg & 0xf00) == 0) {
             char_reg = *rx_char;
-            *led = 1;
         }
-        *led = 2;
         if ((char_reg & 0x100) != 0) {
             break;
         }

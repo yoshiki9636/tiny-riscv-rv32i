@@ -66,10 +66,17 @@ void vShellTask( );
 //uint8_t ucRAMDisk[ 512 * 520 ]; // 100KB
 SD_Disk_t *sdDisk;
 FF_Disk_t *pxDisk;
+FF_DirEnt_t xDir;
 FF_IOManager_t *pxIOManager;
+SemaphoreHandle_t xMutex;
 
 static char pcCurrentDir[MAX_PATH] = "/\0";
 
+char cbuf[128];
+int buflen = 128;
+int length = 128;
+uint8_t buf[512];
+int32_t r = 0;
 
 /*-----------------------------------------------------------*/
 
@@ -169,7 +176,6 @@ static BaseType_t prvCdCommand(char *pcWriteBuffer,
     char newPath[256];
     vNormalizePath(newPath, input);
 
-    FF_DirEnt_t xDir;
 
     if(FF_FindFirst(pxIOManager, &xDir, newPath) != FF_ERR_NONE)
     {
@@ -193,17 +199,29 @@ static BaseType_t prvLsCommand(char *pcWriteBuffer,
                                size_t xWriteBufferLen,
                                const char *pcCommandString)
 {
-    (void) pcCommandString;
-	char cbuf[128];
-	int buflen = 128;
-	FF_Unmount(pxDisk);
-	FF_Mount(pxDisk, 0);
+    //(void) pcCommandString;
+	//FF_Unmount(pxDisk);
+	//FF_Mount(pxDisk, 0);
+
+	uint8_t type = pxDisk->pxIOManager->xPartition.ucType;
+
+	//buflen = sprintf(cbuf, "FAT type: %d\n", type);
+   	//uprint(cbuf, buflen, 2);
+
+	if(type == FF_T_FAT32)
+	{
+    	uprint("FAT32 OK", 8, 2);
+	}
+	else
+	{
+    	uprint("Not FAT32", 9 , 2);
+	}
    	//buflen = sprintf(cbuf, "CLI stack: %u\n", uxTaskGetStackHighWaterMark(NULL));
 	//uprint( cbuf, buflen, 2 );
 
-    FF_DirEnt_t xDir;
+    //FF_DirEnt_t xDir;
     FF_Error_t xError;
-	memset(&xDir, 0, sizeof(xDir));
+	memset(&xDir, '\0', sizeof(xDir));
 
    	//snprintf(cbuf, buflen, " a");
 	//vSendString( cbuf );
@@ -211,18 +229,21 @@ static BaseType_t prvLsCommand(char *pcWriteBuffer,
 
     size_t offset = 0;
 
-    xError = FF_FindFirst(pxIOManager, &xDir, pcCurrentDir);
+   	//snprintf(cbuf, buflen, "FindFirst");
+	//uprint( cbuf, buflen, 2 );
+
+    xError = FF_FindFirst(pxDisk->pxIOManager, &xDir, pcCurrentDir);
     //xError = FF_FindFirst(pxDisk->pxIOManager, &xDir, "/\0");
 
-   	//snprintf(cbuf, buflen, "FindFirst\n");
-	//vSendString( cbuf );
+   	//snprintf(cbuf, buflen, "FindFirst");
+	//uprint( cbuf, buflen, 2 );
 
     if(xError != FF_ERR_NONE)
     {
 		if((xError & 0xffff) != FF_ERR_DIR_END_OF_DIR) {
         	snprintf(pcWriteBuffer, xWriteBufferLen, "ls: error\r\n");
-   			buflen = sprintf(cbuf, "e: %d",xError);
-			uprint( cbuf, buflen, 2 );
+   			//buflen = sprintf(cbuf, "e: %d",xError);
+			//uprint( cbuf, buflen, 2 );
        		return pdFALSE;
 		}
 		// end of dir
@@ -283,12 +304,26 @@ static BaseType_t prvMkdirCommand(char *pcWriteBuffer,
     if(param[0] == '/')
     {
         snprintf(path, sizeof(path), "%s", param);
+   		//uprint(" a", 2, 0);
     }
     else
     {
-        snprintf(path, sizeof(path), "%s/%s", pcCurrentDir, param);
+        if(strcmp(pcCurrentDir, "/") == 0) {
+            snprintf(path, sizeof(path), "/%s", param);
+		}
+		else {
+        	snprintf(path, sizeof(path), "%s/%s", pcCurrentDir, param);
+		}
+   		//uprint(" b", 2, 0);
     }
+	path[strcspn(path, "\r\n")] = 0;
 
+	//buflen = sprintf(cbuf, "Path: %s\n", path);
+   	//uprint(cbuf, buflen, 2);
+
+	// check
+    //buflen = sprintf(cbuf, "mkdir:ulFirstDataSector : %d\n", pxDisk->pxIOManager->xPartition.ulFirstDataSector);
+    //uprint(cbuf, buflen, 2);
     /* mkdir実行 */
     FF_Error_t err = FF_MkDir(pxIOManager, path);
 
@@ -346,6 +381,7 @@ static BaseType_t prvCatCommand(char *pcWriteBuffer,
         else
             snprintf(path, sizeof(path), "%s/%s", pcCurrentDir, param);
     }
+	
 
     /* ファイルオープン */
     //FF_FILE *fp = FF_Open(pxIOManager, path, FF_MODE_READ);
@@ -406,6 +442,9 @@ static BaseType_t prvCpCommand(char *pcWriteBuffer,
     const char *p1 = FreeRTOS_CLIGetParameter(pcCommandString, 1, &len1);
     const char *p2 = FreeRTOS_CLIGetParameter(pcCommandString, 2, &len2);
 
+	//FF_Unmount(pxDisk);
+	//FF_Mount(pxDisk, 0);
+
     if(p1 == NULL || p2 == NULL)
     {
         snprintf(pcWriteBuffer, xWriteBufferLen,
@@ -443,6 +482,10 @@ static BaseType_t prvCpCommand(char *pcWriteBuffer,
                  "cp: open src error (%08X)\r\n", err);
         return pdFALSE;
     }
+	else {
+   		//buflen = sprintf(cbuf, "Src OK: ");
+		//uprint( cbuf, buflen, 0);
+	}
 
     /* open dst */
     FF_FILE *fpDst = FF_Open(pxIOManager, pathDst,
@@ -456,14 +499,18 @@ static BaseType_t prvCpCommand(char *pcWriteBuffer,
                  "cp: open dst error (%08X)\r\n", err);
         return pdFALSE;
     }
+	else {
+   		//buflen = sprintf(cbuf, "Dst OK: ");
+		//uprint( cbuf, buflen, 0);
+    }
 
     /* コピー */
-    uint8_t buf[128];
-    int32_t r;
 
     do
     {
         r = FF_Read(fpSrc, 1, sizeof(buf), buf);
+   		//buflen = sprintf(cbuf, "length: %d",r);
+		//uprint( cbuf, buflen, 2);
 
         if(r > 0)
         {
@@ -679,6 +726,12 @@ static const CLI_Command_Definition_t xRmdir =
 };
 
 /*-----------------------------------------------------------*/
+extern char __stack_size;
+extern char _stack_top;
+extern char _bss;
+extern char _bss_lma;
+extern char _ebss;
+static uint32_t dummy;
 /*-----------------------------------------------------------*/
 
 int main( void )
@@ -699,11 +752,51 @@ int main( void )
     FreeRTOS_CLIRegisterCommand(&xCp);
     FreeRTOS_CLIRegisterCommand(&xRm);
 
+	//buflen = sprintf(cbuf, "__stack_size: %x\n", &__stack_size);
+	//uprint(cbuf,buflen,2);
+	//buflen = sprintf(cbuf, "_stack_top: %x\n", &_stack_top);
+	//uprint(cbuf,buflen,2);
+	//buflen = sprintf(cbuf, "_bss: %x\n", &_bss);
+	//uprint(cbuf,buflen,2);
+	//buflen = sprintf(cbuf, "_bss_lma: %x\n", &_bss_lma);
+	//uprint(cbuf,buflen,2);
+	//buflen = sprintf(cbuf, "_ebss: %x\n", &_ebss);
+	//uprint(cbuf,buflen,2);
+	
 	uprint("pxDisk init",11,2);
+	//buflen = sprintf(cbuf, "free heap: %u\n", xPortGetFreeHeapSize());
+	//uprint(cbuf,buflen,2);
+
 	pxDisk = FF_RAMDiskInit( "/",
-                              NULL,
-                              4096 * 4,
-                              1024 );
+                              (uint8_t *)&dummy,
+                              (32ULL * 1024 * 1024 * 1024 / 512),
+                              16384 );
+                              //ucRAMDisk ,
+                              //512 ,
+                              //1024 );
+    //buflen = sprintf(cbuf, "2:ulFirstDataSector : %d\n", pxDisk->pxIOManager->xPartition.ulFirstDataSector);
+    //uprint(cbuf, buflen, 2);
+
+
+	pxIOManager = pxDisk->pxIOManager;
+
+	buflen = sprintf(cbuf, "free heap: %u\n", xPortGetFreeHeapSize());
+	uprint(cbuf,buflen,2);
+
+	//uint8_t buf[512];
+	//prvReadRAM(buf, 0, 1, pxDisk);
+	//buflen = sprintf(cbuf, "1st sector: %x %x %x\n",buf[0], buf[1], buf[2]);
+	//uprint(cbuf,buflen,2);
+	//for (int i = 0; i < 512; i++) {
+		//buflen = sprintf(cbuf, "%x: %x\n",i,buf[i]);
+		//uprint(cbuf,buflen,2);
+	//}
+
+    //FF_Error_t err = FF_MkDir(pxIOManager, "/abc");
+    //FF_Error_t err;
+	//FF_Open(pxIOManager, "/abc.txt",
+        //FF_MODE_WRITE | FF_MODE_CREATE | FF_MODE_TRUNCATE,
+        //&err);
 
 	if (pxDisk == NULL) {
 		uprint("no pxDisk",9,2);
@@ -711,7 +804,7 @@ int main( void )
 	else {
 		uprint("OK pxDisk",9,2);
 	}
-	pxIOManager = pxDisk->pxIOManager;
+	//pxIOManager = pxDisk->pxIOManager;
 
     #if defined( DEMO_BLINKY )
         ret = main_blinky();

@@ -14,7 +14,7 @@ ifeq ($(XLEN), 64)
 else
     MARCH = rv32i_zicsr
     MABI = ilp32
-	STACK_SIZE = 600
+	STACK_SIZE = 0x1000
 endif
 
 BUILD_DIR       = build
@@ -37,7 +37,8 @@ CFLAGS  = -march=$(MARCH) -mabi=$(MABI) -mcmodel=medany \
 LDFLAGS = -nostartfiles \
 	-march=$(MARCH) -mabi=$(MABI) -mcmodel=medany \
 	-Xlinker --gc-sections \
-	-Xlinker --defsym=__stack_size=$(STACK_SIZE)
+	-Xlinker --defsym=__stack_size=$(STACK_SIZE) \
+	-Wl,-Map=build/RTOSDemo32.map
 
 ifeq ($(DEBUG), 1)
     CFLAGS += -Og -ggdb3

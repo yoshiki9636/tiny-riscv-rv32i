@@ -703,6 +703,10 @@ static BaseType_t FF_ShortNameExists( FF_IOManager_t * pxIOManager,
 #endif
 /* *INDENT-ON* */
 {
+	
+char cbuf[64];
+int length;
+
     uint16_t it = 0; /* Re-entrancy Variables for FF_strtok( ). */
     BaseType_t last = pdFALSE;
     FF_DirEnt_t xMyDirectory;
@@ -724,6 +728,9 @@ static BaseType_t FF_ShortNameExists( FF_IOManager_t * pxIOManager,
 
     memset( &xFindParams, '\0', sizeof( xFindParams ) );
     xFindParams.ulDirCluster = pxIOManager->xPartition.ulRootDirCluster;
+
+    //length = sprintf(cbuf, "DirCluster1: %ld",xFindParams.ulDirCluster );
+    //uprint( cbuf, length, 2 );
 
     xError = FF_ERR_NONE;
 
@@ -768,6 +775,8 @@ static BaseType_t FF_ShortNameExists( FF_IOManager_t * pxIOManager,
         }
         #endif /* ffconfigPATH_CACHE */
     }
+    //length = sprintf(cbuf, "DirCluster2: %ld",xFindParams.ulDirCluster );
+    //uprint( cbuf, length, 2 );
 
     if( xFound == pdFALSE )
     {
@@ -777,13 +786,21 @@ static BaseType_t FF_ShortNameExists( FF_IOManager_t * pxIOManager,
         {
             xMyDirectory.usCurrentItem = 0;
             xFindParams.ulDirCluster = FF_FindEntryInDir( pxIOManager, &xFindParams, pcToken, ( uint8_t ) FF_FAT_ATTR_DIR, &xMyDirectory, &xError );
+    //length = sprintf(cbuf, "DirCluster3: %ld",xFindParams.ulDirCluster );
+    //uprint( cbuf, length, 2 );
 
             if( xFindParams.ulDirCluster == 0ul )
             {
+    //length = sprintf(cbuf, "DirCluster4: %ld",xFindParams.ulDirCluster );
+    //uprint( cbuf, length, 2 );
                 break;
             }
 
+    //length = sprintf(cbuf, "DirCluster5: %ld",xFindParams.ulDirCluster );
+    //uprint( cbuf, length, 2 );
             pcToken = FF_strtok( pcPath, mytoken, &it, &last, pathLen );
+    //length = sprintf(cbuf, "DirCluster6: %ld",xFindParams.ulDirCluster );
+    //uprint( cbuf, length, 2 );
         } while( pcToken != NULL );
 
         if( ( pcToken != NULL ) &&
@@ -827,6 +844,8 @@ static BaseType_t FF_ShortNameExists( FF_IOManager_t * pxIOManager,
         }
         #endif /* ffconfigPATH_CACHE */
     } /* if( pathLen > 1 ) */
+    //length = sprintf(cbuf, "DirCluster7: %ld",xFindParams.ulDirCluster );
+    //uprint( cbuf, length, 2 );
 
     if( pxError != NULL )
     {
@@ -1066,7 +1085,8 @@ FF_Error_t FF_InitEntryFetch( FF_IOManager_t * pxIOManager,
 {
     FF_Error_t xError;
 
-    memset( pxContext, 0, sizeof( FF_FetchContext_t ) );
+	//uprint( " bm", 3, 0 );
+    memset( pxContext, '\0', sizeof( FF_FetchContext_t ) );
 	//uprint( " m", 2, 0 );
 
     /* Get the total length of the chain. */
@@ -1659,6 +1679,8 @@ FF_Error_t FF_PopulateLongDirent( FF_IOManager_t * pxIOManager,
 #endif
 /* *INDENT-ON* */
 {
+char cbuf[64];
+int length;
     FF_Error_t xError;
 
     #if ( ffconfigUNICODE_UTF16_SUPPORT != 0 )
@@ -1678,7 +1700,7 @@ FF_Error_t FF_PopulateLongDirent( FF_IOManager_t * pxIOManager,
 
 	//uprint( " b", 2, 0 );
 
-    memset( pxDirEntry, 0, sizeof( FF_DirEnt_t ) );
+    memset( pxDirEntry, '\0', sizeof( FF_DirEnt_t ) );
 
 	//uprint( " c", 2, 0 );
 
@@ -1756,6 +1778,8 @@ FF_Error_t FF_PopulateLongDirent( FF_IOManager_t * pxIOManager,
             else
             {
 				//uprint( " j", 2, 0 );
+    			length = sprintf(cbuf, "FindFirst: %ld, ", pxDirEntry->ulDirCluster );
+    			//uprint( cbuf, length, 2 );
                 /* Initialise the Fetch Context. */
                 xError = FF_InitEntryFetch( pxIOManager, pxDirEntry->ulDirCluster, &( pxDirEntry->xFetchContext ) );
 				//uprint( " k", 2, 0 );
@@ -2547,7 +2571,7 @@ int32_t FF_FindShortName( FF_IOManager_t * pxIOManager,
          */
         UBaseType_t uxIndex, x;
 
-        memset( pucEntryBuffer, 0, FF_SIZEOF_DIRECTORY_ENTRY );
+        memset( pucEntryBuffer, '\0', FF_SIZEOF_DIRECTORY_ENTRY );
 
         FF_putChar( pucEntryBuffer, FF_FAT_LFN_ORD, ( uint8_t ) ( ( uxLFN & ~0x40U ) ) );
         FF_putChar( pucEntryBuffer, FF_FAT_DIRENT_ATTRIB, ( uint8_t ) FF_FAT_ATTR_LFN );
@@ -2963,7 +2987,7 @@ FF_Error_t FF_CreateDirent( FF_IOManager_t * pxIOManager,
     /* Round-up the number of LFN's needed: */
     xLFNCount = ( BaseType_t ) ( ( NameLen + 12 ) / 13 );
 
-    memset( pucEntryBuffer, 0, sizeof( pucEntryBuffer ) );
+    memset( pucEntryBuffer, '\0', sizeof( pucEntryBuffer ) );
 
     #if ( ffconfigLFN_SUPPORT != 0 )
     {
@@ -3222,6 +3246,8 @@ FF_Error_t FF_CreateDirent( FF_IOManager_t * pxIOManager,
 /* *INDENT-ON* */
 {
     FF_DirEnt_t xMyDirectory;
+char cbuf[64];
+int length;
 
     #if ( ffconfigUNICODE_UTF16_SUPPORT != 0 )
         const FF_T_WCHAR * pcDirName;
@@ -3314,6 +3340,9 @@ FF_Error_t FF_CreateDirent( FF_IOManager_t * pxIOManager,
         /* Will set flags FIND_FLAG_FITS_SHORT and FIND_FLAG_SIZE_OK */
         FF_CreateShortName( &xFindParams, pcDirName );
 
+		// workaround
+    //length = sprintf(cbuf, "MkDir1: %s, ",pcDirName );
+    //uprint( cbuf, length, 2 );
         if( FF_FindEntryInDir( pxIOManager, &xFindParams, pcDirName, 0x00, &xMyDirectory, &xError ) )
         {
             if( FF_isERR( xError ) == pdFALSE )
@@ -3323,6 +3352,8 @@ FF_Error_t FF_CreateDirent( FF_IOManager_t * pxIOManager,
 
             break;
         }
+    //length = sprintf(cbuf, "MkDir2: %s, ",pcDirName );
+    //uprint( cbuf, length, 2 );
 
         if( ( FF_isERR( xError ) ) && ( FF_GETERROR( xError ) != FF_ERR_DIR_END_OF_DIR ) )
         {
@@ -3332,9 +3363,15 @@ FF_Error_t FF_CreateDirent( FF_IOManager_t * pxIOManager,
         STRNCPY( xMyDirectory.pcFileName, pcDirName, ffconfigMAX_FILENAME - 1 );
         xMyDirectory.pcFileName[ ffconfigMAX_FILENAME - 1 ] = 0;
 
+    //length = sprintf(cbuf, "MkDir3: %s, ",xMyDirectory.pcFileName );
+    //uprint( cbuf, length, 2 );
+
         xMyDirectory.ulFileSize = 0;
         xMyDirectory.ucAttrib = FF_FAT_ATTR_DIR;
         xMyDirectory.ulObjectCluster = FF_CreateClusterChain( pxIOManager, &xError );
+
+    //length = sprintf(cbuf, "MkDir4: %ld, ",xMyDirectory.ulObjectCluster );
+    //uprint( cbuf, length, 2 );
 
         /* Give all entries a proper time stamp, looks nicer than 1 Jan 1970 */
         #if ( ffconfigTIME_SUPPORT != 0 )
@@ -3379,7 +3416,7 @@ FF_Error_t FF_CreateDirent( FF_IOManager_t * pxIOManager,
         /* folowed by 10 spaces: */
         memset( pucEntryBuffer + 1, ' ', 10 );
         /* Clear the rest of the structure. */
-        memset( pucEntryBuffer + 11, 0, FF_SIZEOF_DIRECTORY_ENTRY - 11 );
+        memset( pucEntryBuffer + 11, '\0', FF_SIZEOF_DIRECTORY_ENTRY - 11 );
 
         ulObjectCluster = xMyDirectory.ulObjectCluster;
         xError = FF_PutEntry( pxIOManager, ( uint16_t ) 0u, ulObjectCluster, &xMyDirectory, pucEntryBuffer );

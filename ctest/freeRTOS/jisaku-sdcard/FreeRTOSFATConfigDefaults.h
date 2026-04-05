@@ -74,7 +74,7 @@
  * Users should familiarise themselves with any patent issues that may
  * potentially exist around the use of long file names in FAT file systems
  * before enabling long file name support. */
-    #define ffconfigLFN_SUPPORT    0
+    #define ffconfigLFN_SUPPORT    1
 #endif
 
 #if !defined( ffconfigINCLUDE_SHORT_NAME )

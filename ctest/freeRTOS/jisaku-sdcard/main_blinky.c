@@ -37,7 +37,7 @@
 
 /* The rate at which data is sent to the queue.  The 200ms value is converted
  * to ticks using the pdMS_TO_TICKS() macro. */
-#define mainQUEUE_SEND_FREQUENCY_MS        pdMS_TO_TICKS( 3000 )
+#define mainQUEUE_SEND_FREQUENCY_MS        pdMS_TO_TICKS( 5000 )
 
 /* The maximum number items the queue can hold.  The priority of the receiving
  * task is above the priority of the sending task, so the receiving task will
@@ -129,7 +129,7 @@ int main_blinky( void )
                      mainQUEUE_RECEIVE_TASK_PRIORITY, NULL );
         xTaskCreate( prvQueueSendTask, "Tx", configMINIMAL_STACK_SIZE * 2U, NULL,
                      mainQUEUE_SEND_TASK_PRIORITY, NULL );
-		xTaskCreate( vShellTask, "shell", 2048, NULL, 1, NULL);
+		xTaskCreate( vShellTask, "shell", 4096, NULL, 1, NULL);
     }
 
     vTaskStartScheduler();

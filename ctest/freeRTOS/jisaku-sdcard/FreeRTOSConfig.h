@@ -53,7 +53,7 @@
 #define configTICK_RATE_HZ				( ( TickType_t ) 400 )
 #define configMAX_PRIORITIES			( 7 )
 #define configMINIMAL_STACK_SIZE		( ( unsigned short ) 512 )
-#define configTOTAL_HEAP_SIZE			( 32 * 1024 )
+#define configTOTAL_HEAP_SIZE			( 64 * 1024 )
 //#define configMINIMAL_STACK_SIZE		( ( unsigned short ) 511 )
 //#define configTOTAL_HEAP_SIZE			( ( size_t ) 64500 )
 #define configMAX_TASK_NAME_LEN			( 16 )
@@ -107,10 +107,12 @@ to exclude the API function. */
 #define INCLUDE_xTaskGetHandle				1
 #define INCLUDE_xSemaphoreGetMutexHolder	1
 
+#define ffconfigFSINFO_TRUSTED    1
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS    0
 #define ffconfigCWD_THREAD_LOCAL_INDEX    -1
 #define configSUPPORT_DYNAMIC_ALLOCATION 1
 #define INCLUDE_uxTaskGetStackHighWaterMark 1
+
 
 #define pdFREERTOS_LITTLE_ENDIAN        0
 #define pdFREERTOS_BIG_ENDIAN           1

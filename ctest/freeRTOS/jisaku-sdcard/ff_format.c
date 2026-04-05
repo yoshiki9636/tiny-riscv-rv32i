@@ -378,7 +378,7 @@ static FF_Error_t prvFormatWriteBPB( struct xFormatSet * pxSet,
     pcName[ sizeof( pcName ) - 1 ] = 0;
 
     /* Clear all fields that aren't set explicitely. */
-    ( void ) memset( pxSet->pucSectorBuffer, 0, pxSet->pxIOManager->usSectorSize );
+    ( void ) memset( pxSet->pucSectorBuffer, '\0', pxSet->pxIOManager->usSectorSize );
 
     ( void ) memcpy( pxSet->pucSectorBuffer + OFS_BPB_jmpBoot_24, "\xEB\x00\x90" "FreeRTOS", 11 );                      /* Includes OFS_BPB_OEMName_64 */
 
@@ -461,7 +461,7 @@ static FF_Error_t prvFormatInitialiseFAT( struct xFormatSet * pxSet,
 {
     FF_Error_t xReturn;
 
-    ( void ) memset( pxSet->pucSectorBuffer, 0, pxSet->pxIOManager->usSectorSize );
+    ( void ) memset( pxSet->pucSectorBuffer, '\0', pxSet->pxIOManager->usSectorSize );
 
     switch( pxSet->ucFATType )
     {
@@ -491,7 +491,7 @@ static FF_Error_t prvFormatInitialiseFAT( struct xFormatSet * pxSet,
     {
         int32_t addr;
 
-        ( void ) memset( pxSet->pucSectorBuffer, 0, pxSet->pxIOManager->usSectorSize );
+        ( void ) memset( pxSet->pucSectorBuffer, '\0', pxSet->pxIOManager->usSectorSize );
 
         for( addr = lFatBeginLBA + 1;
              ( addr < ( lFatBeginLBA + ( int32_t ) pxSet->ulSectorsPerFAT ) ) &&
@@ -526,7 +526,7 @@ static FF_Error_t prvFormatInitialiseRootDir( struct xFormatSet * pxSet,
     int32_t lLastAddress;
     BaseType_t xHasCleared = pdFALSE;
 
-    ( void ) memset( pxSet->pucSectorBuffer, 0, pxSet->pxIOManager->usSectorSize );
+    ( void ) memset( pxSet->pucSectorBuffer, '\0', pxSet->pxIOManager->usSectorSize );
     ( void ) memcpy( pxSet->pucSectorBuffer, pcVolumeName, 11 );
     pxSet->pucSectorBuffer[ 11 ] = FF_FAT_ATTR_VOLID;
 
@@ -550,7 +550,7 @@ static FF_Error_t prvFormatInitialiseRootDir( struct xFormatSet * pxSet,
         if( xHasCleared == pdFALSE )
         {
             xHasCleared = pdTRUE;
-            ( void ) memset( pxSet->pucSectorBuffer, 0, pxSet->pxIOManager->usSectorSize );
+            ( void ) memset( pxSet->pucSectorBuffer, '\0', pxSet->pxIOManager->usSectorSize );
         }
     }
 
@@ -601,7 +601,7 @@ FF_Error_t FF_FormatDisk( FF_Disk_t * pxDisk,
 	char cbuf[64];
 	int length;
 
-    memset( &( xSet ), 0, sizeof xSet );
+    memset( &( xSet ), '\0', sizeof xSet );
 
     xSet.ulFSInfo = 1;           /* Sector number of FSINFO structure within the reserved area */
     xSet.ulBackupBootSector = 6; /* Sector number of "copy of the boot record" within the reserved area */
@@ -733,7 +733,7 @@ FF_Error_t FF_FormatDisk( FF_Disk_t * pxDisk,
         {
 			//uprint( " at", 3, 0 );
             /* FAT32 stores extra information in the FSInfo sector, usually sector 1. */
-            ( void ) memset( xSet.pucSectorBuffer, 0, xSet.pxIOManager->usSectorSize );
+            ( void ) memset( xSet.pucSectorBuffer, '\0', xSet.pxIOManager->usSectorSize );
 
 			//uprint( " au", 3, 0 );
             FF_putLong( xSet.pucSectorBuffer, OFS_FSI_32_LeadSig, 0x41615252 );                   /* to validate that this is in fact an FSInfo sector. */
@@ -829,7 +829,7 @@ static FF_Error_t prvPartitionPrimary( struct xPartitionSet * pxSet )
     }
 
     pucBuffer = pxSectorBuffer->pucBuffer;
-    ( void ) memset( pucBuffer, 0, pxSet->pxIOManager->usSectorSize );
+    ( void ) memset( pucBuffer, '\0', pxSet->pxIOManager->usSectorSize );
     ( void ) memcpy( pucBuffer + OFS_BPB_jmpBoot_24, "\xEB\x00\x90" "FreeRTOS", 11 ); /* Includes OFS_BPB_OEMName_64 */
     ulPartitionOffset = OFS_PTABLE_PART_0;
 
@@ -885,7 +885,7 @@ static FF_Error_t prvPartitionExtended( struct xPartitionSet * pxSet,
     {
         uint32_t ulNextLBA;
 
-        ( void ) memset( writeParts, 0, sizeof( writeParts ) );
+        ( void ) memset( writeParts, '\0', sizeof( writeParts ) );
 
         if( index < 0 )
         {
@@ -943,7 +943,7 @@ static FF_Error_t prvPartitionExtended( struct xPartitionSet * pxSet,
             }
         }
         pucBuffer = pxSectorBuffer->pucBuffer;
-        ( void ) memset( pucBuffer, 0, pxSet->pxIOManager->usSectorSize );
+        ( void ) memset( pucBuffer, '\0', pxSet->pxIOManager->usSectorSize );
         ( void ) memcpy( pucBuffer + OFS_BPB_jmpBoot_24, "\xEB\x00\x90" "FreeRTOS", 11 ); /* Includes OFS_BPB_OEMName_64 */
 
         ulPartitionOffset = OFS_PTABLE_PART_0;
@@ -989,7 +989,7 @@ FF_Error_t FF_Partition( FF_Disk_t * pxDisk,
     uint32_t ulSummedSizes = 0U; /* Summed sizes as a percentage or as number of sectors. */
     uint32_t ulReservedSpace;    /**< Space needed for the extended partitions. */
 
-    memset( &( xSet ), 0, sizeof( xSet ) );
+    memset( &( xSet ), '\0', sizeof( xSet ) );
 
     /* Hidden space between 2 extended partitions */
     xSet.ulInterSpace = pParams->ulInterSpace ? pParams->ulInterSpace : 2048;

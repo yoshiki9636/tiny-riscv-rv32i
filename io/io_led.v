@@ -130,9 +130,9 @@ reg [3:0] gpio_in_lat2;
 
 assign dma_io_rdata = (re_led_value_dly == 1'b1) ? { 29'd0, led_value[2:0] } : 
                       (re_gpio_value_dly[0] == 1'b1) ? { 26'd0, gpi_init_lat2 } :
-                      (re_gpio_value_dly[1] == 1'b1) ? { 26'd0, gpio_out_value } :
-                      (re_gpio_value_dly[2] == 1'b1) ? { 26'd0, gpio_in_lat2 } :
-                      (re_gpio_value_dly[3] == 1'b1) ? { 26'd0, gpio_en_value } : dma_io_rdata_in;
+                      (re_gpio_value_dly[1] == 1'b1) ? { 28'd0, gpio_out_value } :
+                      (re_gpio_value_dly[2] == 1'b1) ? { 28'd0, gpio_in_lat2 } :
+                      (re_gpio_value_dly[3] == 1'b1) ? { 28'd0, gpio_en_value } : dma_io_rdata_in;
 
 // inout port
 assign gpio[0] = (gpio_en_value[0]) ? gpio_out_value[0] : 1'bz;

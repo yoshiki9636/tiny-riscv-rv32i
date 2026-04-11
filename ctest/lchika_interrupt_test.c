@@ -1,9 +1,9 @@
 #include <stdio.h>
 
 //#define LP 10
-#define LP 1000
-#define LP2 200
-#define TESTNUM 0x3c00
+//#define LP 1000
+//#define LP2 200
+//#define TESTNUM 0x3c00
 
 #include "add_for_cmpl_all.c"
 
@@ -25,7 +25,7 @@ int main() {
 	p_func = interrupt;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	// enable MEIE
-	unsigned int value = 0x800;
+	unsigned int value = 0x888;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
 	// mstatus
 	value = 0x8;

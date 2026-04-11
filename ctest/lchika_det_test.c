@@ -4,26 +4,26 @@
 //#define LP 10
 #define LP 1000
 #define LP2 200
-#define SIZE 4
+#define SIZE 8
 
 #include "add_for_cmpl_all.c"
+//#include "add_for_cmpl2.c"
 
 double det_cal( double* mat, int s);
 int part_mat( double* mat, double* pmat, int s, int p);
 int matrix_print( double* mat, int x, int y);
-void interrupt();
+void __attribute__((interrupt)) interrupt_h();
 
 int main() {
 
 	void (*p_func)();
-	register int mask __asm__("x21");
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* int_enable = (unsigned int*)0xc000fa00;
     unsigned int* frc_cmp_low  = (unsigned int*)0xc000f808;
     unsigned int* frc_cmp_high = (unsigned int*)0xc000f80c;
     unsigned int* frc_ctrl = (unsigned int*)0xc000f810;
 
-	*led = 7;
+	//*led = 7;
 
 	// for frc setup
 	*frc_cmp_low = 0x17D7840; // 0.5sec @ 50MHz
@@ -31,7 +31,7 @@ int main() {
 	// start frc
 	*frc_ctrl = 3;
 
-	p_func = interrupt;
+	p_func = interrupt_h;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	// enable MTIE
 	unsigned int value = 0x880;
@@ -41,7 +41,7 @@ int main() {
 	__asm__ volatile("csrw mstatus, %0" : "=r"(value));
 
 	uprint( "start\n", 7, 0);
-	*led = 6;
+	//*led = 6;
 
 	char cbuf[64];
 	double mat1[SIZE*SIZE];
@@ -121,54 +121,15 @@ int matrix_print( double* mat, int x, int y) {
 	return 0;
 }
 
-void interrupt() {
+static int led_value = 0;
 
-	__asm__ volatile("addi    sp,sp,-128");
-
-	__asm__ volatile("sw  ra,124(sp)");
-
-	__asm__ volatile("sw  t0,120(sp)");
-	__asm__ volatile("sw  t1,116(sp)");
-	__asm__ volatile("sw  t2,112(sp)");
-	__asm__ volatile("sw  t3,108(sp)");
-	__asm__ volatile("sw  t4,104(sp)");
-	__asm__ volatile("sw  t5,100(sp)");
-	__asm__ volatile("sw  t6,96(sp)");
-
-	__asm__ volatile("sw  a0,92(sp)");
-	__asm__ volatile("sw  a1,88(sp)");
-	__asm__ volatile("sw  a2,84(sp)");
-	__asm__ volatile("sw  a3,80(sp)");
-	__asm__ volatile("sw  a4,76(sp)");
-	__asm__ volatile("sw  a5,72(sp)");
-	__asm__ volatile("sw  a6,68(sp)");
-	__asm__ volatile("sw  a7,64(sp)");
-
-	__asm__ volatile("sw  s0,60(sp)");
-	__asm__ volatile("sw  s1,56(sp)");
-	__asm__ volatile("sw  s2,52(sp)");
-	__asm__ volatile("sw  s3,48(sp)");
-	__asm__ volatile("sw  s4,44(sp)");
-	__asm__ volatile("sw  s5,40(sp)");
-	__asm__ volatile("sw  s6,36(sp)");
-	__asm__ volatile("sw  s7,32(sp)");
-	__asm__ volatile("sw  s8,28(sp)");
-	__asm__ volatile("sw  s9,24(sp)");
-	__asm__ volatile("sw  s10,20(sp)");
-	__asm__ volatile("sw  s11,16(sp)");
-	__asm__ volatile("sw  tp,12(sp)");
-	__asm__ volatile("sw  gp,8(sp)");
-
-	__asm__ volatile("addi    sp,sp,128");
-	__asm__ volatile("addi    s0,sp,0");
+void __attribute__((interrupt)) interrupt_h() {
 
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* frc_low  = (unsigned int*)0xc000f800;
     unsigned int* frc_high = (unsigned int*)0xc000f804;
     unsigned int* frc_ctrl = (unsigned int*)0xc000f810;
-	//register int mask __asm__("x21");
-	static int value;
-	//uprint( "ringing timer!\n", 16, 0);
+	uprint( "ringing timer!\n", 16, 0);
 
 	//printf("low  counter = %d\n",*frc_low);
 	//printf("high counter = %d\n",*frc_high);
@@ -176,53 +137,7 @@ void interrupt() {
 	// clear both frc counter & interrupt bit
 	*frc_ctrl = 3;
 
-	value++;
-	*led = value;
-	
-	// pop from stack
-	__asm__ volatile("addi    sp,sp,-128");
-	__asm__ volatile("lw  ra,124(sp)");
-
-	__asm__ volatile("lw  t0,120(sp)");
-	__asm__ volatile("lw  t1,116(sp)");
-	__asm__ volatile("lw  t2,112(sp)");
-	__asm__ volatile("lw  t3,108(sp)");
-	__asm__ volatile("lw  t4,104(sp)");
-	__asm__ volatile("lw  t5,100(sp)");
-	__asm__ volatile("lw  t6,96(sp)");
-
-	__asm__ volatile("lw  a0,92(sp)");
-	__asm__ volatile("lw  a1,88(sp)");
-	__asm__ volatile("lw  a2,84(sp)");
-	__asm__ volatile("lw  a3,80(sp)");
-	__asm__ volatile("lw  a4,76(sp)");
-	__asm__ volatile("lw  a5,72(sp)");
-	__asm__ volatile("lw  a6,68(sp)");
-	__asm__ volatile("lw  a7,64(sp)");
-
-	__asm__ volatile("lw  s0,60(sp)");
-	__asm__ volatile("lw  s1,56(sp)");
-	__asm__ volatile("lw  s2,52(sp)");
-	__asm__ volatile("lw  s3,48(sp)");
-	__asm__ volatile("lw  s4,44(sp)");
-	__asm__ volatile("lw  s5,40(sp)");
-	__asm__ volatile("lw  s6,36(sp)");
-	__asm__ volatile("lw  s7,32(sp)");
-	__asm__ volatile("lw  s8,28(sp)");
-	__asm__ volatile("lw  s9,24(sp)");
-	__asm__ volatile("lw  s10,20(sp)");
-	__asm__ volatile("lw  s11,16(sp)");
-	__asm__ volatile("lw  tp,12(sp)");
-	__asm__ volatile("lw  gp,8(sp)");
-
-	__asm__ volatile("addi    sp,sp,128");
-
-	// workaround
-	__asm__ volatile("lw  ra,28(sp)");
-	__asm__ volatile("lw  s0,24(sp)");
-	__asm__ volatile("addi    sp,sp,32");
-
-	__asm__ volatile("mret");
-
+	led_value++;
+	*led = led_value;
 }
 

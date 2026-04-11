@@ -8,15 +8,14 @@
 #include "add_for_cmpl_all.c"
 #include "add_for_cmpl2.c"
 
-void inturrpt();
-
-int mask;
+void __attribute__((interrupt)) interrupt_h();
 
 int main() {
 	void (*p_func)();
 	register int mask __asm__("x21");
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* int_enable = (unsigned int*)0xc000fa00;
+    unsigned int* int_clr = (unsigned int*)0xc000fa04;
     unsigned int* rx_char = (unsigned int*)0xc000fc0c;
     unsigned int* rx_echoback = (unsigned int*)0xc000fc10;
 
@@ -24,7 +23,13 @@ int main() {
 	*rx_echoback = 0; // enable rx echoback
 	//*rx_echoback = 1; //disable rx echoback
 
-	p_func = inturrpt;
+	// clear char buffer
+	*rx_char = 0;
+	// for rx interrupt enable
+	*int_clr = 0;
+	*int_enable = 1;
+
+	p_func = interrupt_h;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	unsigned int value = 0x800;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
@@ -32,19 +37,14 @@ int main() {
 	value = 0x8;
 	__asm__ volatile("csrw mstatus, %0" : "=r"(value));
 
-	// clear char buffer
-	*rx_char = 0;
-	// for rx interrupt enable
-	*int_enable = 1;
-
 	uprint( "start\n", 7, 0);
 	*led = 6;
-	pass();
+	masked_pass();
 	return 0;
 
 }
 
-void inturrpt() {
+void __attribute__((interrupt)) interrupt_h() {
     unsigned int* int_clr = (unsigned int*)0xc000fa04;
     unsigned int* rx_char = (unsigned int*)0xc000fc0c;
     unsigned int* tx_char = (unsigned int*)0xc000fc00;
@@ -53,8 +53,6 @@ void inturrpt() {
 	flg = (flg == 0) ? 1 : 0;
 	mask = (flg == 0) ? 0x7777 : 0x1111;
 	//uprint( "pushed\n", 8, 0);
-	// interrupt clear
-	*int_clr = 0;
 
 	// reead char
 	int char_reg;
@@ -65,7 +63,11 @@ void inturrpt() {
 	// for overwrite error case
 	//char_reg = (flg == 0) ? *rx_char : 0; 
 
-	if ((char_reg & 0x100) == 0) {
+	if ((char_reg & 0x300) == 0x300) {
+		uprint( "error!! double write and 1st read\n", 21, 0);
+		printf("%x\n",char_reg);
+	}
+	else if ((char_reg & 0x100) == 0) {
 		uprint( "error!! double read\n", 21, 0);
 		printf("%x\n",char_reg);
 	}
@@ -77,11 +79,7 @@ void inturrpt() {
 		printf("%x\n",char_reg);
 	}
 
-	// workaround
-	__asm__ volatile("lw  ra,28(sp)");
-	__asm__ volatile("lw  s0,24(sp)");
-	__asm__ volatile("lw  s5,20(sp)");
-	__asm__ volatile("addi    sp,sp,32");
-	__asm__ volatile("mret");
+	// interrupt clear
+	*int_clr = 0;
 }
 

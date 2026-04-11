@@ -8,9 +8,7 @@
 #include "add_for_cmpl_all.c"
 #include "add_for_cmpl2.c"
 
-void interrupt();
-
-int mask;
+void __attribute__((interrupt)) interrupt_h();
 
 int main() {
 	void (*p_func)();
@@ -29,7 +27,7 @@ int main() {
 	// start frc
 	*frc_ctrl = 3;
 
-	p_func = interrupt;
+	p_func = interrupt_h;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	// enable MTIE
 	unsigned int value = 0x80;
@@ -45,7 +43,7 @@ int main() {
 
 }
 
-void interrupt() {
+void __attribute__((interrupt)) interrupt_h() {
     unsigned int* led = (unsigned int*)0xc000fe00;
     unsigned int* frc_low  = (unsigned int*)0xc000f800;
     unsigned int* frc_high = (unsigned int*)0xc000f804;
@@ -62,11 +60,5 @@ void interrupt() {
 
 	value++;
 	*led = value;
-	
-	// workaround
-	__asm__ volatile("lw  ra,28(sp)");
-	__asm__ volatile("lw  s0,24(sp)");
-	__asm__ volatile("addi    sp,sp,32");
-	__asm__ volatile("mret");
 }
 

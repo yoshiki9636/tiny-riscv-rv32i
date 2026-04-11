@@ -14,7 +14,7 @@
 double det_cal( double* mat, int s);
 int part_mat( double* mat, double* pmat, int s, int p);
 int matrix_print( double* mat, int x, int y);
-void interrupt();
+void __attribute__((interrupt)) interrupt_h();
 
 int main() {
 
@@ -45,10 +45,10 @@ int main() {
 	int len = int_print(cbuf, frc_stat, 1);
 	uprint( cbuf, len, 2);
 
-	p_func = interrupt;
+	p_func = interrupt_h;
 	__asm__ volatile("csrw mtvec, %0" : "=r"(p_func));
 	// enable MEIE MTIE
-	unsigned int value = 0x880;
+	unsigned int value = 0x888;
 	__asm__ volatile("csrw mie, %0" : "=r"(value));
 	// mstatus
 	value = 0x8;
@@ -138,46 +138,7 @@ int matrix_print( double* mat, int x, int y) {
 }
 
 
-void interrupt() {
-
-	//__asm__ volatile("addi    sp,sp,-128");
-
-	__asm__ volatile("sw  ra,124(zero)");
-
-	__asm__ volatile("sw  t0,120(zero)");
-	__asm__ volatile("sw  t1,116(zero)");
-	__asm__ volatile("sw  t2,112(zero)");
-	__asm__ volatile("sw  t3,108(zero)");
-	__asm__ volatile("sw  t4,104(zero)");
-	__asm__ volatile("sw  t5,100(zero)");
-	__asm__ volatile("sw  t6,96(zero)");
-
-	__asm__ volatile("sw  a0,92(zero)");
-	__asm__ volatile("sw  a1,88(zero)");
-	__asm__ volatile("sw  a2,84(zero)");
-	__asm__ volatile("sw  a3,80(zero)");
-	__asm__ volatile("sw  a4,76(zero)");
-	__asm__ volatile("sw  a5,72(zero)");
-	__asm__ volatile("sw  a6,68(zero)");
-	__asm__ volatile("sw  a7,64(zero)");
-
-	__asm__ volatile("sw  s0,60(zero)");
-	__asm__ volatile("sw  s1,56(zero)");
-	__asm__ volatile("sw  s2,52(zero)");
-	__asm__ volatile("sw  s3,48(zero)");
-	__asm__ volatile("sw  s4,44(zero)");
-	__asm__ volatile("sw  s5,40(zero)");
-	__asm__ volatile("sw  s6,36(zero)");
-	__asm__ volatile("sw  s7,32(zero)");
-	__asm__ volatile("sw  s8,28(zero)");
-	__asm__ volatile("sw  s9,24(zero)");
-	__asm__ volatile("sw  s10,20(zero)");
-	__asm__ volatile("sw  s11,16(zero)");
-	__asm__ volatile("sw  tp,12(zero)");
-	__asm__ volatile("sw  gp,8(zero)");
-
-	//__asm__ volatile("addi    sp,sp,128");
-	__asm__ volatile("addi    s0,sp,128");
+void __attribute__((interrupt)) interrupt_h() {
 
 	char cbuf[64];
     unsigned int* int_status  = (unsigned int*)0xc000fa04;
@@ -243,51 +204,6 @@ void interrupt() {
 
 	*int_status = 0x0; // clear interrupt status
 	*frc_ctrl = 0x3; // clear interrupt status
-
-	// pop from stack
-	//__asm__ volatile("addi    sp,sp,-128");
-	__asm__ volatile("lw  ra,124(zero)");
-
-	__asm__ volatile("lw  t0,120(zero)");
-	__asm__ volatile("lw  t1,116(zero)");
-	__asm__ volatile("lw  t2,112(zero)");
-	__asm__ volatile("lw  t3,108(zero)");
-	__asm__ volatile("lw  t4,104(zero)");
-	__asm__ volatile("lw  t5,100(zero)");
-	__asm__ volatile("lw  t6,96(zero)");
-
-	__asm__ volatile("lw  a0,92(zero)");
-	__asm__ volatile("lw  a1,88(zero)");
-	__asm__ volatile("lw  a2,84(zero)");
-	__asm__ volatile("lw  a3,80(zero)");
-	__asm__ volatile("lw  a4,76(zero)");
-	__asm__ volatile("lw  a5,72(zero)");
-	__asm__ volatile("lw  a6,68(zero)");
-	__asm__ volatile("lw  a7,64(zero)");
-
-	__asm__ volatile("lw  s0,60(zero)");
-	__asm__ volatile("lw  s1,56(zero)");
-	__asm__ volatile("lw  s2,52(zero)");
-	__asm__ volatile("lw  s3,48(zero)");
-	__asm__ volatile("lw  s4,44(zero)");
-	__asm__ volatile("lw  s5,40(zero)");
-	__asm__ volatile("lw  s6,36(zero)");
-	__asm__ volatile("lw  s7,32(zero)");
-	__asm__ volatile("lw  s8,28(zero)");
-	__asm__ volatile("lw  s9,24(zero)");
-	__asm__ volatile("lw  s10,20(zero)");
-	__asm__ volatile("lw  s11,16(zero)");
-	__asm__ volatile("lw  tp,12(zero)");
-	__asm__ volatile("lw  gp,8(zero)");
-
-	//__asm__ volatile("addi    sp,sp,128");
-
-	// workaround this should changed by number of parameter
-	__asm__ volatile("lw  ra,124(sp)");
-	__asm__ volatile("lw  s0,120(sp)");
-	__asm__ volatile("addi    sp,sp,128");
-
-	__asm__ volatile("mret");
 
 }
 
